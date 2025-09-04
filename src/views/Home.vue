@@ -1,268 +1,304 @@
 <template>
+    <!-- NAV -->
     <nav class="bg-white fixed w-full z-20 top-0 start-0 border-b border-gray-200">
         <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-            <a href="/" class="flex items-center space-x-3 rtl:space-x-reverse">
-                <img src="~/assets/icons/logowhite.png" alt="" class="Uni Events Logo"></img>
-            </a>
-            <div class="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
-                <button type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center">Login</button>
-                <button data-collapse-toggle="navbar-sticky" type="button" class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200" aria-controls="navbar-sticky" aria-expanded="false">
-                    <span class="sr-only">Open main menu</span>
-                    <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15"/>
-                    </svg>
-                </button>
-            </div>
-            <div class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1" id="navbar-sticky">
-                <ul class="flex flex-col p-4 md:p-0 mt-4 font-medium border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white">
-                    <li>
-                        <a href="#" class="block py-2 px-3 text-white bg-blue-700 rounded-sm md:bg-transparent md:text-blue-700 md:p-0" aria-current="page">Home</a>
-                    </li>
-                    <li>
-                        <a href="#" class="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0">About</a>
-                    </li>
-                    <li>
-                        <a href="#" class="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0">Services</a>
-                    </li>
-                    <li>
-                        <a href="#" class="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0">Contact</a>
-                    </li>
-                </ul>
-            </div>
+        <RouterLink to="/" class="flex items-center space-x-3 rtl:space-x-reverse">
+            <img :src="logoUrl" alt="Uni Events Logo" class="h-8 w-auto" />
+        </RouterLink>
+        <div class="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
+            <button type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center">Login</button>
+            <button type="button" class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200" aria-controls="navbar-sticky" :aria-expanded="navOpen.toString()" @click="navOpen = !navOpen">
+            <span class="sr-only">Open main menu</span>
+            <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M1 1h15M1 7h15M1 13h15" />
+            </svg>
+            </button>
+        </div>
+        <div id="navbar-sticky"
+            class="items-center justify-between w-full md:flex md:w-auto md:order-1" :class="navOpen ? 'block' : 'hidden'">
+            <ul class="flex flex-col p-4 md:p-0 mt-4 font-medium border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white">
+                <template v-for="(item, index) in routeItems" :key="index">
+                    <li><RouterLink :to=item.link class="block py-2 px-3 text-white bg-blue-700 rounded-sm md:bg-transparent md:text-blue-700 md:p-0">Home</RouterLink></li>
+                </template>
+                <li><RouterLink to="/about" class="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0">About</RouterLink></li>
+                <li><RouterLink to="/services" class="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0">Services</RouterLink></li>
+                <li><RouterLink to="/contact" class="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0">Contact</RouterLink></li>
+            </ul>
+        </div>
         </div>
     </nav>
-    <section class="relative h-screen">
-        <div class="absolute inset-0">
-            <img src="{{ asset($tPath.'assets/img/party-1.png') }}" alt="" class="w-full h-full object-cover"></img>
-            <div class="absolute inset-0 bg-gradient-to-b from-pink-500/80 to-indigo-600/90"></div>
-            <div class="absolute inset-0" style="background-image: #ED4690; background-image: linear-gradient(135deg, rgba(237, 70, 144, 1) 0%, rgba(85, 34, 204, 1) 100%);"></div>
-        </div>
-        <div class="relative z-10 flex flex-col justify-center gap-24 items-center h-full text-white">
-            <div class="w-[87%] h-1/2 bg-black">
-                <div id="carouselComponent" class="w-full h-full relative left-1/2 -translate-x-1/2 rounded-xl">
-                    <div class="card-loading items-loading absolute top-0 left-0 w-full h-full 3xsphone:rounded-md sm:rounded-lg md:rounded-xl" style="animation: 2.5s shine ease-in infinite; animation-delay: 0.25s;"></div>
-                    <div class="absolute z-0 inset-0">
-                        <img src="{{ asset($tPath.'assets/img/Rectangle-3859.png') }}" class="absolute block w-3/4 xl:w-[87%] h-full object-cover -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2" alt="...">
-                        <img src="{{ asset($tPath.'assets/img/party-1.png') }}" class="absolute block w-3/4 xl:w-[87%] h-full object-cover -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2" alt="...">
-                        <img src="{{ asset($tPath.'assets/img/party-1.png') }}" class="block object-contain 3xsphone:rounded-md sm:rounded-lg md:rounded-xl" alt="...">
-                        <div class="absolute inset-0 bg-gradient-to-b from-pink-500/80 to-indigo-600/90"></div>
-                        <div class="absolute inset-0 bg-gradient-to-br from-black to-purple-700"></div>
 
-                        <div class="absolute inset-0" style="background: #000000; background: linear-gradient(45deg, rgba(0, 0, 0, 1) 13%, rgba(84, 32, 180, 1) 100%);"></div>
-                    </div>
-                    <div class="w-[95%] h-3/5 relative z-10 left-1/2 -translate-x-1/2 top-[10%] flex justify-around">
-                        <div class="w-2/5 h-4/5 self-center flex justify-between items-center">
-                            <!-- {!! str_replace('<svg', '<svg class="size-8" onclick="prevCarousel"', file_get_contents(public_path('assets/icons/hero_home/vector-left.svg'))) !!} -->
-                            <div class="flex-1 h-full relative">
-                                <h3 class="text-3xl">Mavisuru Ragasoba</h3>
-                                <span>University morawa</span>
-                                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Cum, dolorem nobis suscipit cumque culpa voluptas illum dignissimos ullam necessitatibus rem repellat aspernatur molestias ad?</p>
-                                <a href="/" class="w-35 h-10 rounded-lg absolute bottom-[10%] flex justify-center items-center font-bold mt-5 text-lg text-white border-2 border-white">Learn More</a>
-                            </div>
-                            <!-- {!! str_replace('<svg', '<svg class="size-8" onclick="nextCarousel()"', file_get_contents(public_path('assets/icons/hero_home/vector-right.svg'))) !!} -->
-                        </div>
-                        <div class="w-2/5 h-4/5 self-center relative">
-                            <h3 class="text-3xl">UNI EVENTS</h3>
-                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Distinctio optio laborum cupiditate laudantium reprehenderit eligendi blanditiis, in excepturi accusantium aspernatur voluptates ut, nesciunt incidunt amet animi illum repellat neque atque?</p>
-                            <a href="/about" class="w-35 h-10 rounded-lg absolute bottom-[10%] flex justify-center items-center font-bold mt-5 bg-red-500 text-lg text-white">About US</a>
-                        </div>
-                    </div>
-                    <ul class="absolute left-1/2 -translate-x-1/2 bottom-5 -translate-y-1/2 flex gap-3">
-                        <li class="w-3 h-3 rounded-full bg-white cursor-pointer" onclick="change(1)"></li>
-                        <li class="w-3 h-3 rounded-full bg-white cursor-pointer" onclick="change(2)"></li>
-                        <li class="w-3 h-3 rounded-full bg-white cursor-pointer" onclick="change(3)"></li>
-                        <li class="w-3 h-3 rounded-full bg-white cursor-pointer" onclick="change(4)"></li>
-                    </ul>
-                    <div class="w-11/12 absolute left-1/2 -translate-x-1/2 -bottom-7 flex justify-around bg-white rounded-2xl">
-                        <div>
-                            <h4>Date Event:</h4>
-                            <p>Select Event Month</p>
-                            <div class="relative max-w-sm">
-                                <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                                    <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
-                                    </svg>
-                                </div>
-                                <input id="datepicker-autohide" datepicker datepicker-autohide type="text" class="bg-gray-50 border border-gray-300 text-black text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="date event:">
-                            </div>
-                        </div>
-                        <form class="max-w-sm mx-auto">
-                            <label for="countries" class="block mb-2 text-sm font-medium text-black">Select an University</label>
-                            <select id="countries" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                                <option selected>Choose a University</option>
-                                <option value="US">United States</option>
-                                <option value="CA">Canada</option>
-                                <option value="FR">France</option>
-                                <option value="DE">Germany</option>
-                            </select>
-                        </form>
-                        <form class="max-w-sm mx-auto">
-                            <label for="countries" class="block mb-2 text-sm font-medium text-black">Select an Event</label>
-                            <select id="countries" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                                <option selected>Choose a Event</option>
-                                <option value="US">United States</option>
-                                <option value="CA">Canada</option>
-                                <option value="FR">France</option>
-                                <option value="DE">Germany</option>
-                            </select>
-                        </form>
-                    </div>
-                </div>
+  <!-- HERO -->
+  <section class="relative h-screen pt-16">
+    <div class="absolute inset-0">
+      <img :src="heroImg" alt="" class="w-full h-full object-cover" />
+      <!-- pilih salah satu overlay gradient, jangan numpuk tiga -->
+      <div class="absolute inset-0 bg-gradient-to-b from-pink-500/80 to-indigo-600/90"></div>
+      <!-- contoh alternatif:
+      <div class="absolute inset-0 bg-gradient-to-br from-black to-purple-700"></div>
+      -->
+    </div>
+
+    <div class="relative z-10 flex flex-col justify-center gap-24 items-center h-full text-white">
+      <div class="w-[87%] h-1/2">
+        <div class="relative left-1/2 -translate-x-1/2 rounded-xl h-full">
+          <!-- Carousel -->
+          <div class="absolute z-0 inset-0 rounded-xl overflow-hidden">
+            <img :src="rectImg"
+                 class="absolute block w-3/4 xl:w-[87%] h-full object-cover -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2"
+                 alt="bg rectangle" />
+            <transition name="fade" mode="out-in">
+              <img :key="activeSlide"
+                   :src="slides[activeSlide]"
+                   class="absolute block w-3/4 xl:w-[87%] h-full object-cover -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2"
+                   alt="slide" />
+            </transition>
+            <div class="absolute inset-0 bg-gradient-to-b from-pink-500/60 to-indigo-600/80"></div>
+          </div>
+
+          <!-- Content beside -->
+          <div class="w-[95%] h-3/5 relative z-10 left-1/2 -translate-x-1/2 top-[10%] flex justify-around">
+            <div class="w-2/5 h-4/5 self-center flex justify-between items-center">
+              <button class="size-8 rounded-full bg-white/20 backdrop-blur hover:bg-white/30" @click="prevSlide" aria-label="Prev">‹</button>
+              <div class="flex-1 h-full relative px-4">
+                <h3 class="text-3xl">Mavisuru Ragasoba</h3>
+                <span>University morawa</span>
+                <p class="mt-2">Lorem ipsum dolor sit amet consectetur adipisicing elit...</p>
+                <RouterLink to="/"
+                  class="w-35 h-10 rounded-lg absolute bottom-[10%] inline-flex justify-center items-center font-bold mt-5 text-lg text-white border-2 border-white">
+                  Learn More
+                </RouterLink>
+              </div>
+              <button class="size-8 rounded-full bg-white/20 backdrop-blur hover:bg-white/30" @click="nextSlide" aria-label="Next">›</button>
             </div>
-            <ul class="w-3/4 xl:w-[87%] flex justify-around text-white">
-                <li class="flex flex-col items-center gap-1">
-                    <div class="bg-white inline-flex justify-center items-center size-16 rounded-full">
-                        <!-- {!! str_replace('<svg', '<svg class="size-8"', file_get_contents(public_path('assets/icons/hero_home/music_note.svg'))) !!} -->
-                    </div>
-                    <span class="block text-center">Music event</span>
-                </li>
-                <li class="flex flex-col items-center gap-1">
-                    <div class="bg-white inline-flex justify-center items-center size-16 rounded-full">
-                        <!-- {!! str_replace('<svg', '<svg class="size-8"', file_get_contents(public_path('assets/icons/hero_home/groups_2.svg'))) !!} -->
-                    </div>
-                    <span class="block text-center">Conferences</span>
-                </li>
-                <li class="flex flex-col items-center gap-1">
-                    <div class="bg-white inline-flex justify-center items-center size-16 rounded-full">
-                        <!-- {!! str_replace('<svg', '<svg class="size-8"', file_get_contents(public_path('assets/icons/hero_home/celebration.svg'))) !!} -->
-                    </div>
-                    <span class="block text-center">Annual Celebrations</span>
-                </li>
-                <li class="flex flex-col items-center gap-1">
-                    <div class="bg-white inline-flex justify-center items-center size-16 rounded-full">
-                        <!-- {!! str_replace('<svg', '<svg class="size-8"', file_get_contents(public_path('assets/icons/hero_home/sports_cricket.svg'))) !!} -->
-                    </div>
-                    <span class="block text-center">Games</span>
-                </li>
-            </ul>
-        </div>
-    </section>
-    <section class="relative min-h-screen h-fit flex flex-col justify-between border-black">
-        <div id="bg-cta" class="x">
-            <div class="bg-section-1 absolute top-0 left-0 w-full h-full"></div>
-            <!-- <img src="{{ asset($tPath.'assets/img/cele-3.png') }}" alt="" class="absolute right-0"></img> -->
-        </div>
-        <div x-data="cardsList()" x-init="init()" class="relative w-[90%] flex-1 self-center cards-container">
-            <div class="absolute -translate-y-1/2 w-full flex flex-row justify-between items-center">
-                <div class="bg-white rounded-3xl">
-                    <h2 class="text-[#242565] xl:text-3xl mt-4 mb-4 ml-6 mr-6">Upcoming Event</h2>
-                </div>
-                <div class="flex flex-row h-fit gap-5">
-                    <div class="d-dropdown d-dropdown-bottom bg-white rounded-xl">
-                        <div tabindex="0" role="button" class="mt-2 mb-2 ml-4 mr-4">WeekDays</div>
-                        <ul tabindex="0" class="d-dropdown-content d-menu d-bg-base-100 d-rounded-box d-z-1 d-w-52 d-p-2 d-shadow-sm">
-                            <li><a>Item 1</a></li>
-                            <li><a>Item 2</a></li>
-                        </ul>
-                    </div>
-                    <div class="d-dropdown d-dropdown-bottom bg-white rounded-xl">
-                        <div tabindex="0" role="button" class="mt-2 mb-2 ml-4 mr-4">Popular</div>
-                        <ul tabindex="0" class="d-dropdown-content d-menu d-bg-base-100 d-rounded-box d-z-1 d-w-52 d-p-2 d-shadow-sm">
-                            <li><a>Item 1</a></li>
-                            <li><a>Item 2</a></li>
-                        </ul>
-                    </div>
-                    <div class="d-dropdown d-dropdown-bottom bg-white rounded-xl">
-                        <div tabindex="0" role="button" class="mt-2 mb-2 ml-4 mr-4">Latest</div>
-                        <ul tabindex="0" class="d-dropdown-content d-menu d-bg-base-100 d-rounded-box d-z-1 d-w-52 d-p-2 d-shadow-sm">
-                            <li><a>Item 1</a></li>
-                            <li><a>Item 2</a></li>
-                        </ul>
-                    </div>
-                </div>
+
+            <div class="w-2/5 h-4/5 self-center relative">
+              <h3 class="text-3xl">UNI EVENTS</h3>
+              <p class="mt-2">Lorem ipsum dolor sit amet consectetur adipisicing elit...</p>
+              <RouterLink to="/about"
+                class="w-35 h-10 rounded-lg absolute bottom-[10%] inline-flex justify-center items-center font-bold mt-5 bg-red-500 text-lg text-white">
+                About US
+              </RouterLink>
             </div>
-            <ul class="cards self-center bg-red-500" style="display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); grid-column-gap: 30px; grid-row-gap: 30px;">
-                <!-- Skeleton loading -->
-                <template x-if="loading && items.length === 0">
-                    <template x-for="i in 6" :key="i">
-                    <li class="card bg-base-100 shadow-sm animate-pulse">
-                        <div class="h-48 bg-base-200"></div>
-                        <div class="card-body">
-                        <div class="h-5 bg-base-200 rounded w-2/3"></div>
-                        <div class="h-4 bg-base-200 rounded w-full mt-2"></div>
-                        <div class="h-10 bg-base-200 rounded mt-4"></div>
-                        </div>
-                    </li>
-                    </template>
-                </template> 
-                <!-- Real items -->
-                <template x-for="(item, idx) in filtered" :key="String(item.id)">
-                    <li class="card bg-base-100 shadow-sm rounded-2xl">
-                        <figure class="h-1/3">
-                            <img :src="item.imageicon_1" :alt="item.title" loading="lazy" />
-                        </figure>
-                        <div class="card-body">
-                            <h2 class="card-title" x-text="item.eventname"></h2>
-                            <p x-text="item.startdate"></p>
-                            <div class="card-actions justify-between items-center">
-                                <span class="font-semibold" x-text="formatPrice(item.price)"></span>
-                                <button class="btn btn-primary" @click="buy(item)">Buy Now</button>
-                            </div>
-                        </div>
-                    </li>
-                </template>
-            </ul>
-            <a href="/events" class="relative left-1/2 -translate-x-1/2 mt-10 text-[#3D37F1] !border-[#3D37F1] rounded-2xl hover:bg-[#3D37F1] hover:text-white">See All Events</a>
-        </div>
-        <div class="sm:h-30 xl:h-40 flex flex-row mt-20 justify-evenly overflow-y-visible">
-            <img src="{{ asset($tPath.'assets/img/image-3.png') }}" alt="" class="h-70 self-end"></img>
-            <div class="w-fit h-3/4 relative top-1/2 -translate-y-1/2 flex flex-col items-center text-white">
-                <h2 class="">Add Your Loving Event</h2>
-                <p class="">Lorem, ipsum dolor sit amet consectetur adipisicing elit.</p>
-                <a href="/" class="" style="background-color: #F5167E">View all events</a>
+          </div>
+
+          <!-- Dots -->
+          <ul class="absolute left-1/2 -translate-x-1/2 bottom-5 flex gap-3">
+            <li v-for="(s, i) in slides" :key="i"
+                class="w-3 h-3 rounded-full cursor-pointer"
+                :class="i===activeSlide ? 'bg-white' : 'bg-white/50'"
+                @click="go(i)"></li>
+          </ul>
+
+          <!-- Filters bar -->
+          <div class="w-11/12 absolute left-1/2 -translate-x-1/2 -bottom-7 flex justify-around bg-white rounded-2xl p-4">
+            <div>
+              <h4 class="font-semibold">Date Event:</h4>
+              <p class="text-sm text-gray-600">Select Event Month</p>
+              <!-- pake input date sederhana; nanti bisa diganti flatpickr/flowbite-vue -->
+              <input type="month"
+                     class="mt-2 bg-gray-50 border border-gray-300 text-black text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                     v-model="filters.month" />
             </div>
+            <div class="max-w-sm">
+              <label class="block mb-2 text-sm font-medium text-black">Select an University</label>
+              <select v-model="filters.university"
+                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                <option value="">Choose a University</option>
+                <option value="US">United States</option>
+                <option value="CA">Canada</option>
+                <option value="FR">France</option>
+                <option value="DE">Germany</option>
+              </select>
+            </div>
+            <div class="max-w-sm">
+              <label class="block mb-2 text-sm font-medium text-black">Select an Event</label>
+              <select v-model="filters.eventType"
+                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                <option value="">Choose an Event</option>
+                <option value="music">Music</option>
+                <option value="conference">Conference</option>
+                <option value="celebration">Celebration</option>
+                <option value="games">Games</option>
+              </select>
+            </div>
+          </div>
         </div>
-    </section>
-    <section class="relative min-h-screen h-fit flex flex-col justify-between border-black border-4">
-        <div id="bg-cta" class="x">
-            <div class="bg-section-1 absolute top-0 left-0 w-full h-full"></div>
-            <img src="{{ asset($tPath.'assets/img/cele-3.png') }}" alt="" class="absolute right-0"></img>
+      </div>
+
+      <!-- ICONS ROW -->
+      <ul class="w-3/4 xl:w-[87%] flex justify-around text-white">
+        <li class="flex flex-col items-center gap-1">
+          <div class="bg-white inline-flex justify-center items-center size-16 rounded-full">
+            <!-- svg inline kalau mau -->
+          </div>
+          <span class="block text-center">Music event</span>
+        </li>
+        <li class="flex flex-col items-center gap-1">
+          <div class="bg-white inline-flex justify-center items-center size-16 rounded-full"></div>
+          <span class="block text-center">Conferences</span>
+        </li>
+        <li class="flex flex-col items-center gap-1">
+          <div class="bg-white inline-flex justify-center items-center size-16 rounded-full"></div>
+          <span class="block text-center">Annual Celebrations</span>
+        </li>
+        <li class="flex flex-col items-center gap-1">
+          <div class="bg-white inline-flex justify-center items-center size-16 rounded-full"></div>
+          <span class="block text-center">Games</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- CARDS / UPCOMING -->
+  <section class="relative min-h-screen h-fit flex flex-col justify-between">
+    <div class="relative w-[90%] self-center">
+      <div class="sticky top-20 w-full flex flex-row justify-between items-center z-10">
+        <div class="bg-white rounded-3xl">
+          <h2 class="text-[#242565] xl:text-3xl mt-4 mb-4 ml-6 mr-6">Upcoming Event</h2>
         </div>
-    </section>
-    <footer>
-        <div></div>
-    </footer>
+        <div class="flex flex-row h-fit gap-5">
+          <div class="bg-white rounded-xl px-4 py-2">WeekDays</div>
+          <div class="bg-white rounded-xl px-4 py-2">Popular</div>
+          <div class="bg-white rounded-xl px-4 py-2">Latest</div>
+        </div>
+      </div>
+
+      <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
+        <!-- Skeleton -->
+        <template v-if="loading && items.length === 0">
+          <li v-for="i in 6" :key="i" class="card bg-base-100 shadow-sm animate-pulse rounded-2xl">
+            <div class="h-48 bg-base-200 rounded-t-2xl"></div>
+            <div class="p-4 space-y-2">
+              <div class="h-5 bg-base-200 rounded w-2/3"></div>
+              <div class="h-4 bg-base-200 rounded w-full mt-2"></div>
+              <div class="h-10 bg-base-200 rounded mt-4"></div>
+            </div>
+          </li>
+        </template>
+
+        <!-- Real items -->
+        <li v-for="item in filtered" :key="String(item.id)" class="card bg-white shadow-sm rounded-2xl overflow-hidden">
+          <figure class="h-48">
+            <img :src="item.imageicon_1" :alt="item.eventname" class="w-full h-full object-cover" loading="lazy" />
+          </figure>
+          <div class="p-4">
+            <h2 class="font-semibold text-lg">{{ item.eventname }}</h2>
+            <p class="text-sm text-gray-600">{{ item.startdate }}</p>
+            <div class="mt-4 flex justify-between items-center">
+              <span class="font-semibold">{{ formatPrice(item.price) }}</span>
+              <button class="btn btn-primary px-4 py-2 rounded-lg bg-blue-600 text-white" @click="buy(item)">Buy Now</button>
+            </div>
+          </div>
+        </li>
+      </ul>
+
+      <RouterLink to="/events"
+        class="relative left-1/2 -translate-x-1/2 mt-10 inline-block text-[#3D37F1] border border-[#3D37F1] px-4 py-2 rounded-2xl hover:bg-[#3D37F1] hover:text-white">
+        See All Events
+      </RouterLink>
+    </div>
+
+    <div class="sm:h-30 xl:h-40 flex flex-row mt-20 justify-evenly overflow-y-visible">
+      <img :src="img3" alt="" class="h-70 self-end" />
+      <div class="w-fit h-3/4 relative top-1/2 -translate-y-1/2 flex flex-col items-center text-white">
+        <h2>Add Your Loving Event</h2>
+        <p>Lorem, ipsum dolor sit amet consectetur adipisicing elit.</p>
+        <RouterLink to="/" class="px-4 py-2 rounded-2xl mt-2" style="background-color:#F5167E">View all events</RouterLink>
+      </div>
+    </div>
+  </section>
+
+  <section class="relative min-h-screen h-fit flex flex-col justify-between border-black border-4">
+    <div class="absolute top-0 left-0 w-full h-full"></div>
+    <img :src="cele3" alt="" class="absolute right-0" />
+  </section>
+
+  <footer class="py-10 text-center text-sm text-gray-500">
+    <div>© 2025 Uni Events</div>
+  </footer>
 </template>
-<style scoped lang="scss">
-    /* #bg-hero div{
-        background: #ED4690;
-        background: -webkit-linear-gradient(133deg, rgba(237, 70, 144, 1) 0%, rgba(85, 34, 204, 1) 100%);
-        background: -moz-linear-gradient(133deg, rgba(237, 70, 144, 1) 0%, rgba(85, 34, 204, 1) 100%);
-        background: linear-gradient(133deg, rgba(237, 70, 144, 1) 0%, rgba(85, 34, 204, 1) 100%);
-        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#ED4690", endColorstr="#5522CC", GradientType=0);
-    } */
-    #bg-hero{
-        background: #ED4690;
-        background: -webkit-linear-gradient(133deg, rgba(237, 70, 144, 1) 0%, rgba(85, 34, 204, 1) 100%);
-        background: -moz-linear-gradient(133deg, rgba(237, 70, 144, 1) 0%, rgba(85, 34, 204, 1) 100%);
-        background: linear-gradient(133deg, rgba(237, 70, 144, 1) 0%, rgba(85, 34, 204, 1) 100%);
-        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#ED4690", endColorstr="#5522CC", GradientType=0);
-    }
-    #bg-hero-carousel{
-        background: #000000;
-        background: -webkit-linear-gradient(45deg, rgba(0, 0, 0, 1) 13%, rgba(84, 32, 180, 1) 100%);
-        background: -moz-linear-gradient(45deg, rgba(0, 0, 0, 1) 13%, rgba(84, 32, 180, 1) 100%);
-        background: linear-gradient(45deg, rgba(0, 0, 0, 1) 13%, rgba(84, 32, 180, 1) 100%);
-        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#000000", endColorstr="#5420B4", GradientType=0);
-    }
-    section:nth-of-type(2) > div:not(.cards-container):not(#bg-cta){
-        background: #8C44E4;
-        background: -webkit-linear-gradient(90deg, rgba(140, 68, 228, 1) 0%, rgba(182, 83, 222, 1) 100%);
-        background: -moz-linear-gradient(90deg, rgba(140, 68, 228, 1) 0%, rgba(182, 83, 222, 1) 100%);
-        background: linear-gradient(90deg, rgba(140, 68, 228, 1) 0%, rgba(182, 83, 222, 1) 100%);
-        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#8C44E4", endColorstr="#B653DE", GradientType=1);
-    }
-    // #bg-section1 div{
-    // }
-</style>
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue'
+import { RouterLink } from 'vue-router'
 
-const props = defineProps({
-    //
-});
-const local = reactive({
-    //
-});
+// --- assets (ganti semua Blade asset(...) ke import Vite)
+import logoUrl from '@/assets/icons/logowhite.png'
+import heroImg from '@/assets/img/party-1.png'
+import rectImg from '@/assets/img/Rectangle-3859.png'
+import img3 from '@/assets/img/image-3.png'
+import cele3 from '@/assets/img/cele-3.png'
 
+// NAV
+const navOpen = ref(false)
+const routeItems = reactive([
+    {
+        'label': 'Beranda',
+        'link': '#beranda',
+    },
+    {
+        'label': 'Tentang Kami',
+        'link': '#tentang-kami',
+    },
+    {
+        'label': 'Kategori',
+        'link': '#kategori',
+    },
+    {
+        'label': 'Dokumentasi',
+        'link': '#dokumentasi',
+    },
+]);
+// CAROUSEL
+const slides = [heroImg, heroImg, heroImg, heroImg] // taruh path berbeda kalau ada
+const activeSlide = ref(0)
+const nextSlide = () => (activeSlide.value = (activeSlide.value + 1) % slides.length)
+const prevSlide = () => (activeSlide.value = (activeSlide.value - 1 + slides.length) % slides.length)
+const go = (i: number) => (activeSlide.value = i)
+
+// AUTO-PLAY (opsional)
+let timer: number | undefined
+onMounted(() => {
+  timer = window.setInterval(nextSlide, 5000)
+})
+
+// FILTERS & CARDS (pengganti Alpine x-data/x-init)
+type Item = { id: number; eventname: string; startdate: string; price: number; imageicon_1: string; type?: string; university?: string }
+const loading = ref(true)
+const items = ref<Item[]>([])
+const filters = ref({ month: '', university: '', eventType: '' })
+
+onMounted(async () => {
+  // fetch data dari API Laravel-mu (contoh):
+  // const res = await fetch('/api/events')
+  // items.value = await res.json()
+  // sementara dummy:
+  items.value = [
+    { id: 1, eventname: 'Music Fest', startdate: '2025-09-20', price: 150000, imageicon_1: heroImg, type: 'music', university: 'US' },
+    { id: 2, eventname: 'Tech Conf', startdate: '2025-10-05', price: 0, imageicon_1: rectImg, type: 'conference', university: 'CA' },
+    { id: 3, eventname: 'Games Day', startdate: '2025-11-02', price: 75000, imageicon_1: heroImg, type: 'games', university: 'DE' },
+  ]
+  loading.value = false
+})
+
+const filtered = computed(() => {
+  return items.value.filter(it => {
+    const byUni = !filters.value.university || it.university === filters.value.university
+    const byType = !filters.value.eventType || it.type === filters.value.eventType
+    const byMonth = !filters.value.month || (it.startdate?.slice(0, 7) === filters.value.month)
+    return byUni && byType && byMonth
+  })
+})
+
+const formatPrice = (n: number) =>
+  n === 0 ? 'Free' : n.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })
+
+const buy = (item: Item) => {
+  // trigger ke route/checkout
+  alert(`Buy ${item.eventname}`)
+}
 </script>
+
+<style scoped>
+</style>
