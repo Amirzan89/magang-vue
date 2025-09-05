@@ -225,10 +225,10 @@ import { RouterLink } from 'vue-router'
 
 // --- assets (ganti semua Blade asset(...) ke import Vite)
 import logoUrl from '@/assets/icons/logowhite.png'
-import heroImg from '@/assets/img/party-1.png'
-import rectImg from '@/assets/img/Rectangle-3859.png'
-import img3 from '@/assets/img/image-3.png'
-import cele3 from '@/assets/img/cele-3.png'
+import heroImg from '@/assets/images/party-1.png'
+import rectImg from '@/assets/images/Rectangle-3859.png'
+import img3 from '@/assets/images/image-3.png'
+import cele3 from '@/assets/images/cele-3.png'
 
 // NAV
 const navOpen = ref(false)

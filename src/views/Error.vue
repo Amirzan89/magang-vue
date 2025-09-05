@@ -1,10 +1,10 @@
 <template>
-    <template v-if="curLayout === 'DefaultLayout'">
+    <!-- <template v-if="curLayout === 'DefaultLayout'">
         <HeaderHome/>
     </template>
     <template v-else-if="curLayout === 'AuthLayout'">
-        <!-- <HeaderAuth/> -->
-    </template>
+        <HeaderAuth/>
+    </template> -->
     <section>
         <div class="bg h-screen absolute inset-0">
             <nav>
@@ -26,10 +26,10 @@
     </footer>
 </template>
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
+// import { useRoute } from 'vue-router'
 // import HeaderAuth from '@/components/HeaderAuth.vue';
-import HeaderHome from '@/components/HeaderHome.vue';
-const curLayout = useRoute().meta.layout;
+// import HeaderHome from '@/components/HeaderHome.vue';
+// const curLayout = useRoute().meta.layout;
 </script>
 <style scoped lang="scss">
 section .bg{
