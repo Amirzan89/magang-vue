@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import publicRoutes from '@/router/routes/public'
-import NotFound from '@/views/Error.vue'
+import NotFound from '@/views/ErrorView.vue'
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
