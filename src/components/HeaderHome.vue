@@ -1,3 +1,31 @@
+<script setup lang="ts">
+import { reactive, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { useConfig } from '@/composables/useConfig'
+const publicConfig = useConfig()
+const route = useRoute()
+const routeItems = reactive([
+    {
+        'label': 'Beranda',
+        'link': '#beranda',
+    },
+    {
+        'label': 'Tentang Kami',
+        'link': '#tentang-kami',
+    },
+    {
+        'label': 'Kategori',
+        'link': '#kategori',
+    },
+    {
+        'label': 'Dokumentasi',
+        'link': '#dokumentasi',
+    },
+]);
+let header: any = null;
+onMounted(() => {
+});
+</script>
 <template>
     <header class="bg-white fixed w-full z-20 top-0 start-0 border-b border-gray-200">
         <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
@@ -30,31 +58,3 @@
 </template>
 <style scoped lang="scss">
 </style>
-<script setup lang="ts">
-import { reactive, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-import { useConfig } from '@/composables/useConfig'
-const publicConfig = useConfig()
-const route = useRoute()
-const routeItems = reactive([
-    {
-        'label': 'Beranda',
-        'link': '#beranda',
-    },
-    {
-        'label': 'Tentang Kami',
-        'link': '#tentang-kami',
-    },
-    {
-        'label': 'Kategori',
-        'link': '#kategori',
-    },
-    {
-        'label': 'Dokumentasi',
-        'link': '#dokumentasi',
-    },
-]);
-let header: any = null;
-onMounted(() => {
-});
-</script>

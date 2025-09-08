@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { useToastStore } from '@/stores/Toast'
-const Toast = useToastStore()
+const toast = useToastStore()
 const redToast = () => {
-    Toast.error({ id: Date.now().toString(), title: 'testing abang', message: 'akuuuuu abang' })
+    toast.error({ id: Date.now().toString(), title: 'testing abang', message: 'akuuuuu abang' })
 }
 const ijoToast = () => {
-    Toast.success({ id: Date.now().toString(), title: 'testing ijo', message: 'akuuuuu ijoo' })
+    toast.success({ id: Date.now().toString(), title: 'testing ijo', message: 'akuuuuu ijoo' })
 }
 </script>
 <template>

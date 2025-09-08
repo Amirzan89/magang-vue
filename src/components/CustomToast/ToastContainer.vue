@@ -1,26 +1,11 @@
-<template>
-    <transition-group name="toast" tag="div" class="tw-fixed tw-w-100 tw-max-h-120" :class="getPositionContainer" style="z-index: 999">
-        <template v-for="toast in Toast.toastData" :key="toast.id">
-            <ToastComponent :id="toast.id" :title="toast.title" :message="toast.message" :type="toast.type" :icon="toast.icon" :duration="toast.duration" :timeData="toast.timeData" :class="toast.class" @closeToast="Toast.closePopup" />
-        </template>
-    </transition-group>
-</template>
-<style scoped>
-div div{
-    transition: transform 0.3s ease-in-out, margin 0.3s ease-in-out;
-}
-div div:nth-child(n+2) {
-    margin-top: 5px;
-}
-</style>
 <script setup lang="ts">
-import { useToastStore } from '@/stores/Toast';
 import { ref, watch } from 'vue';
+import { useToastStore } from '@/stores/Toast';
 import ToastComponent from '@/components/CustomToast/Toast.vue';
-const Toast = useToastStore();
+const toast = useToastStore();
 const getPositionContainer = ref('');
 let lastPos = '';
-watch(() => Toast.config.position, (newPosition: string) => {
+watch(() => toast.config.position, (newPosition: string) => {
     if(newPosition === lastPos) return;
     const positions: Record<string, string> = {
         'top-left': 'tw-top-0 tw-left-0 tw-mt-4 tw-ml-4',
@@ -34,3 +19,18 @@ watch(() => Toast.config.position, (newPosition: string) => {
     lastPos = newPosition;
 }, { immediate: true });
 </script>
+<template>
+    <transition-group name="toast" tag="div" class="tw-fixed tw-w-100 tw-max-h-120" :class="getPositionContainer" style="z-index: 999">
+        <template v-for="toast in toast.toastData" :key="toast.id">
+            <ToastComponent :id="toast.id" :title="toast.title" :message="toast.message" :type="toast.type" :icon="toast.icon" :duration="toast.duration" :timeData="toast.timeData" :class="toast.class" @closeToast="toast.closePopup" />
+        </template>
+    </transition-group>
+</template>
+<style scoped>
+div div{
+    transition: transform 0.3s ease-in-out, margin 0.3s ease-in-out;
+}
+div div:nth-child(n+2) {
+    margin-top: 5px;
+}
+</style>

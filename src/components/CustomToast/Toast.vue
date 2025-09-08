@@ -1,3 +1,13 @@
+<script setup lang="ts">
+import { onMounted } from 'vue';
+const props = defineProps(['id', 'title', 'message', 'type', 'icon', 'duration', 'timeData', 'class']);
+const emit = defineEmits(['closeToast']);
+onMounted(() => {
+    setTimeout(() => {
+        emit('closeToast', props.id)
+    }, props.duration * 1000);
+})
+</script>
 <template>
     <div class="relative w-full 3xs:h-12 lg:h-14 xl:h-20 text-lg font-normal rounded-2xl toast" :class="props.class">
         <div class="w-full h-full absolute 3xs:rounded-lg rounded-xl" style="background: #ECFFEB;border: 2px #01B701 solid;"></div>
@@ -31,13 +41,3 @@
     opacity: 0;
 }
 </style>
-<script setup lang="ts">
-import { onMounted } from 'vue';
-const props = defineProps(['id', 'title', 'message', 'type', 'icon', 'duration', 'timeData', 'class']);
-const emit = defineEmits(['closeToast']);
-onMounted(() => {
-    setTimeout(() => {
-        emit('closeToast', props.id)
-    }, props.duration * 1000);
-})
-</script>
