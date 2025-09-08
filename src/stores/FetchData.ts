@@ -1,8 +1,9 @@
 import { defineStore } from "pinia";
+import { useRoute } from "vue-router";
 import router from "@/router";
 import createAxios from "@/composables/api/axios";
-import ImgBoy from '~/assets/images/profile/default_boy.jpg';
-import ImgGirl from '~/assets/images/profile/default_girl.png';
+// import ImgBoy from '~/assets/images/profile/default_boy.jpg';
+// import ImgGirl from '~/assets/images/profile/default_girl.png';
 const { axiosJson, createCSRF } = createAxios();
 import { useConfig } from '@/composables/useConfig';
 const publicConfig = useConfig();
@@ -93,25 +94,25 @@ export const useFetchDataStore = defineStore('fetchDataStore', {
             }
             return res;
         },
-        async fetchAuth(routePath: string){
-            if(Object.keys(this.cacheAuth).length === 0 && (!this.isFirstTime || !this.publicPath.includes(routePath))){
-                const res = await this.fetchData('/profil', { params: { _: Date.now() } }, 'userAuth');
-                if(res.code && res.code != 200) return res;
-                if(!res.data.photo){
-                    res.data.photo = res.data.jenis_kelamin == 'laki-laki' ? ImgBoy : ImgGirl;
-                }else{
-                    if(res.data.role == 'super admin' || res.data.role == 'admin'){
-                        res.data.photo = publicConfig.baseURL + '/admin/download/photo';
-                    }else{
-                        res.data.photo = publicConfig.baseURL + '/download/photo';
-                    }
-                }
-                this.cacheAuth = res.data;
-                this.isFirstTime = false;
-                return res;
-            }
-            return { status: 'success', 'data': this.cacheAuth };
-        },
+        // async fetchAuth(routePath: string){
+        //     if(Object.keys(this.cacheAuth).length === 0 && (!this.isFirstTime || !this.publicPath.includes(routePath))){
+        //         const res = await this.fetchData('/profil', { params: { _: Date.now() } }, 'userAuth');
+        //         if(res.code && res.code != 200) return res;
+        //         if(!res.data.photo){
+        //             res.data.photo = res.data.jenis_kelamin == 'laki-laki' ? ImgBoy : ImgGirl;
+        //         }else{
+        //             if(res.data.role == 'super admin' || res.data.role == 'admin'){
+        //                 res.data.photo = publicConfig.baseURL + '/admin/download/photo';
+        //             }else{
+        //                 res.data.photo = publicConfig.baseURL + '/download/photo';
+        //             }
+        //         }
+        //         this.cacheAuth = res.data;
+        //         this.isFirstTime = false;
+        //         return res;
+        //     }
+        //     return { status: 'success', 'data': this.cacheAuth };
+        // },
         resetFetchData() {
             Object.keys(this.cache).forEach(key => {
                 this.cache[key].forEach((item: { url: string}, index: number) => {

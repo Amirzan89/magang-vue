@@ -91,9 +91,71 @@
     </footer>
 </template>
 <script setup lang="ts">
-import { useConfig } from '@/composables/useConfig';
-import { RouterLink } from 'vue-router';
+import * as z from 'zod'
+import { reactive } from 'vue'
+import { useRouter,RouterLink } from 'vue-router'
+import { Login } from '@/composables/api/auth'
+import { useConfig } from '@/composables/useConfig'
+import { useForm } from 'vee-validate'
+import { useLoading } from '@/stores/Loading'
+import { useFetchDataStore } from '@/stores/FetchData'
+import { toTypedSchema } from '@vee-validate/zod'
+import { useToast } from 'flowbite-vue'
 const publicConfig = useConfig()
-const 
-console.log('isiii footer ', publicConfig)
+const route = useRouter()
+const fetchDataS = useFetchDataStore()
+const Loading = useLoading()
+const toast = useToast()
+const local = reactive({
+    isRequestInProgress: false,
+    isUpdated: false,
+    isPasswordShow: false,
+})
+const formSchema = toTypedSchema(z.object({
+    email: z.string().min(1, 'Email Harus diisi !').email('Masukkan email dengan benar !'),
+    password: z.string().min(1, 'Password Harus diisi !')
+}))
+const { values, setFieldError, handleSubmit, validate } = useForm({
+    validationSchema: formSchema,
+})
+const inpFields = Object.keys(values);
+const inpChange = async() => {
+    await validate();
+}
+const loginForm = async() => {
+    if(local.isRequestInProgress) return;
+    handleSubmit(async(values) => {
+        local.isRequestInProgress = true;
+        Loading.showLoading();
+        const res = await Login({email: values.email, password: values.password, recaptcha: ''});
+        if(res.status === 'success'){
+            local.isRequestInProgress = false;
+            fetchDataS.isFirstTime = false;
+            Loading.closeLoading();
+            console.log('toastt berhasil')
+            // toast.success({ title: 'Berhasil Login', message: res.message, duration: 3000 });
+            setTimeout(function(){
+                route.push('/dashboard');
+            }, 1500);
+        }else if(res.status === 'error'){
+            local.isRequestInProgress = false;
+            Loading.closeLoading();
+            console.log('toastt gagal', res.message);
+            toast.error({ title: 'Gagal Login', message: res.message, duration: 3000 });
+            if(res.fields){
+                if(typeof res.fields === 'string'){
+                    setFieldError(res.fields, res.message);
+                }else{
+                    res.fields.forEach((field: any) => {
+                        if(inpFields.includes(field)){
+                            setFieldError(field, res.message);
+                        }
+                    });
+                }
+            }
+        }
+    }, (err: any) => {
+        console.error('errrrorrr ', err)
+    })();
+}
 </script>
