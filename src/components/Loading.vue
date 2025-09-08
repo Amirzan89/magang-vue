@@ -23,6 +23,6 @@
 }
 </style>
 <script setup lang="ts">
-import { useLoading } from '@/stores/Loading';
-const Loading = useLoading();
+import { useLoadingStore } from '@/stores/Loading';
+const Loading = useLoadingStore();
 </script>

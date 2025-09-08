@@ -5,6 +5,7 @@ import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import EmptyLayout from '@/layouts/EmptyLayout.vue'
 import LoadingComponent from './components/Loading.vue'
+import ToastContainer from './components/CustomToast/ToastContainer.vue'
 const layouts = {
     default: DefaultLayout,
     auth: AuthLayout,
@@ -23,6 +24,7 @@ watchEffect(() => {
 <template>
     <component :is="Layout" :key="layoutName" />
     <LoadingComponent/>
+    <ToastContainer/>
     <!-- kalau mau animasi antar layout -->
     <!--
     <transition name="fade" mode="out-in">

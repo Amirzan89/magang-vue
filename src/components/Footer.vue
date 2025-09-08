@@ -94,17 +94,17 @@
 import * as z from 'zod'
 import { reactive } from 'vue'
 import { useRouter,RouterLink } from 'vue-router'
+import { useToast } from 'flowbite-vue'
+import { useForm } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
 import { Login } from '@/composables/api/auth'
 import { useConfig } from '@/composables/useConfig'
-import { useForm } from 'vee-validate'
-import { useLoading } from '@/stores/Loading'
+import { useLoadingStore } from '@/stores/Loading'
 import { useFetchDataStore } from '@/stores/FetchData'
-import { toTypedSchema } from '@vee-validate/zod'
-import { useToast } from 'flowbite-vue'
 const publicConfig = useConfig()
 const route = useRouter()
 const fetchDataS = useFetchDataStore()
-const Loading = useLoading()
+const Loading = useLoadingStore()
 const toast = useToast()
 const local = reactive({
     isRequestInProgress: false,
