@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Component as VueComponent } from "vue"
 import type { WithClassAsProps } from "./interface"
 import type { ButtonVariants } from '@/components/ui/button'
 import { ArrowLeft } from "lucide-vue-next"
@@ -9,6 +10,8 @@ import { useCarousel } from "./useCarousel"
 const props = withDefaults(defineProps<{
   variant?: ButtonVariants["variant"]
   size?: ButtonVariants["size"]
+  cusIcon?: VueComponent
+  cusIconClass?: string
 }
 & WithClassAsProps>(), {
   variant: "outline",
@@ -34,7 +37,8 @@ const { orientation, canScrollPrev, scrollPrev } = useCarousel()
     @click="scrollPrev"
   >
     <slot>
-      <ArrowLeft />
+      <component :is="cusIcon" v-if="cusIcon" :class="cusIconClass"></component>
+      <ArrowLeft v-else/>
       <span class="sr-only">Previous Slide</span>
     </slot>
   </Button>

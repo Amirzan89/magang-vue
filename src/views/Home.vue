@@ -1,159 +1,142 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, markRaw } from 'vue'
 import { RouterLink } from 'vue-router'
+import { watchOnce } from "@vueuse/core"
 import HeaderComponent from '@/components/HeaderHome.vue'
 import FooterComponent from '@/components/Footer.vue'
 import Button from '@/components/ui/button/Button.vue'
+import { Card, CardContent } from '@/components/ui/card'
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi, } from '@/components/ui/carousel'
+import I_VLeft from '@/assets/icons/hero_home/vector-left.svg?component'
+import I_VRight from '@/assets/icons/hero_home/vector-right.svg?component'
+import I_music from '@/assets/icons/hero_home/music_note.svg?component'
+import I_conferences from '@/assets/icons/hero_home/conferences.svg?component'
+import I_celebration from '@/assets/icons/hero_home/celebration.svg?component'
+import I_games from '@/assets/icons/hero_home/games.svg?component'
 import heroImg from '@/assets/images/party-1.png'
 import rectImg from '@/assets/images/Rectangle-3859.png'
 import img3 from '@/assets/images/image-3.png'
 import cele3 from '@/assets/images/cele-3.png'
 // CAROUSEL
-const slides = [heroImg, heroImg, heroImg, heroImg] // taruh path berbeda kalau ada
-const activeSlide = ref(0)
-const nextSlide = () => (activeSlide.value = (activeSlide.value + 1) % slides.length)
-const prevSlide = () => (activeSlide.value = (activeSlide.value - 1 + slides.length) % slides.length)
-const go = (i: number) => (activeSlide.value = i)
-
+const emblaMainApi = ref<CarouselApi>()
+const emblaThumbnailApi = ref<CarouselApi>()
+const selectedIndex = ref(0)
+const onSelect = () => {
+    if (!emblaMainApi.value || !emblaThumbnailApi.value) return
+    selectedIndex.value = emblaMainApi.value.selectedScrollSnap()
+    emblaThumbnailApi.value.scrollTo(emblaMainApi.value.selectedScrollSnap())
+}
+const onThumbClick = (index: number) => {
+    if (!emblaMainApi.value || !emblaThumbnailApi.value) return
+    emblaMainApi.value.scrollTo(index)
+}
+watchOnce(emblaMainApi, (emblaMainApi) => {
+    if (!emblaMainApi) return
+    onSelect()
+    emblaMainApi.on("select", onSelect)
+    emblaMainApi.on("reInit", onSelect)
+})
+const catHero = reactive([
+    {
+        'name': 'Music Events',
+        'icon': markRaw(I_music),
+    },
+    {
+        'name': 'Conferences',
+        'icon': markRaw(I_conferences),
+    },
+    {
+        'name': 'Celebration',
+        'icon': markRaw(I_celebration),
+    },
+    {
+        'name': 'Games',
+        'icon': markRaw(I_games),
+    },
+])
 // // AUTO-PLAY (opsional)
 // let timer: number | undefined
 // onMounted(() => {
 //     timer = window.setInterval(nextSlide, 5000)
 // })
 
-// FILTERS & CARDS (pengganti Alpine x-data/x-init)
-type Item = { id: number; eventname: string; startdate: string; price: number; imageicon_1: string; type?: string; university?: string }
-const loading = ref(true)
-const items = ref<Item[]>([])
-const filters = ref({ month: '', university: '', eventType: '' })
+// onMounted(async () => {
+//     // fetch data dari API Laravel-mu (contoh):
+//     // const res = await fetch('/api/events')
+//     // items.value = await res.json()
+//     // sementara dummy:
+//     items.value = [
+//         { id: 1, eventname: 'Music Fest', startdate: '2025-09-20', price: 150000, imageicon_1: heroImg, type: 'music', university: 'US' },
+//         { id: 2, eventname: 'Tech Conf', startdate: '2025-10-05', price: 0, imageicon_1: rectImg, type: 'conference', university: 'CA' },
+//         { id: 3, eventname: 'Games Day', startdate: '2025-11-02', price: 75000, imageicon_1: heroImg, type: 'games', university: 'DE' },
+//     ]
+//     loading.value = false
+// })
 
-onMounted(async () => {
-    // fetch data dari API Laravel-mu (contoh):
-    // const res = await fetch('/api/events')
-    // items.value = await res.json()
-    // sementara dummy:
-    items.value = [
-        { id: 1, eventname: 'Music Fest', startdate: '2025-09-20', price: 150000, imageicon_1: heroImg, type: 'music', university: 'US' },
-        { id: 2, eventname: 'Tech Conf', startdate: '2025-10-05', price: 0, imageicon_1: rectImg, type: 'conference', university: 'CA' },
-        { id: 3, eventname: 'Games Day', startdate: '2025-11-02', price: 75000, imageicon_1: heroImg, type: 'games', university: 'DE' },
-    ]
-    loading.value = false
-})
-
-const filtered = computed(() => {
-    return items.value.filter(it => {
-        const byUni = !filters.value.university || it.university === filters.value.university
-        const byType = !filters.value.eventType || it.type === filters.value.eventType
-        const byMonth = !filters.value.month || (it.startdate?.slice(0, 7) === filters.value.month)
-        return byUni && byType && byMonth
-    })
-})
-
-const formatPrice = (n: number) => n === 0 ? 'Free' : n.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })
-const buy = (item: Item) => {
-    // trigger ke route/checkout
-    alert(`Buy ${item.eventname}`)
-}
 </script>
 <template>
     <HeaderComponent/>
-    <!-- HERO -->
-    <section class="relative h-screen pt-16">
+    <section class="relative h-screen pt-16 bg-blue-600">
         <!-- <div class="absolute inset-0">
             <img :src="heroImg" alt="" class="w-full h-full object-cover" />
             <div class="absolute inset-0 bg-gradient-to-b from-pink-500/80 to-indigo-600/90"></div>
         </div> -->
         <div class="bg"></div>
         <div class="relative z-10 flex flex-col justify-center gap-24 items-center h-full text-white">
-            <div class="w-[87%] h-1/2">
+            <div class="w-[92%] h-1/2">
                 <div class="relative left-1/2 -translate-x-1/2 rounded-xl h-full">
-                    <!-- Carousel -->
-                    <div class="absolute z-0 inset-0 rounded-xl overflow-hidden">
-                        <img :src="rectImg"
-                            class="absolute block w-3/4 xl:w-[87%] h-full object-cover -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2"
-                            alt="bg rectangle" />
-                        <transition name="fade" mode="out-in">
-                        <img :key="activeSlide"
-                            :src="slides[activeSlide]"
-                            class="absolute block w-3/4 xl:w-[87%] h-full object-cover -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2"
-                            alt="slide" />
-                        </transition>
-                        <div class="absolute inset-0 bg-gradient-to-b from-pink-500/60 to-indigo-600/80"></div>
-                    </div>
-
-                    <!-- Content beside -->
-                    <div class="w-[95%] h-3/5 relative z-10 left-1/2 -translate-x-1/2 top-[10%] flex justify-around">
-                        <div class="w-2/5 h-4/5 self-center flex justify-between items-center">
-                        <button class="size-8 rounded-full bg-white/20 backdrop-blur hover:bg-white/30" @click="prevSlide" aria-label="Prev">‹</button>
-                        <div class="flex-1 h-full relative px-4">
-                            <h3 class="text-3xl">Mavisuru Ragasoba</h3>
-                            <span>University morawa</span>
-                            <p class="mt-2">Lorem ipsum dolor sit amet consectetur adipisicing elit...</p>
-                            <RouterLink to="/"
-                            class="w-35 h-10 rounded-lg absolute bottom-[10%] inline-flex justify-center items-center font-bold mt-5 text-lg text-white border-2 border-white">
-                            Learn More
-                            </RouterLink>
+                    <Carousel class="relative z-0 inset-0 rounded-xl overflow- w-full h-full bg-red-500" @init-api="(val) => emblaMainApi = val">
+                        <CarouselContent :customTW="'h-full'">
+                            <CarouselItem v-for="(_, index) in 10" :key="index">
+                                <div class="p-1 h-full">
+                                    <Card :customTW="'h-full'">
+                                        <CardContent class="flex aspect-square items-center justify-center p-6 h-full">
+                                            <span class="text-4xl font-semibold">{{ index + 1 }}</span>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            </CarouselItem>
+                        </CarouselContent>
+                        <div class="absolute w-full h-full top-0 left-0  flex justify-around">
+                            <div class="bg absolute w-full h-full"></div>
+                            <div class="self-center w-[47%] h-1/2 relative group">
+                                <CarouselPrevious :class="'left-0 bg-transparent border-transparent text-white/0 hover:bg-transparent hover:text-red-500 group-hover:text-red-500 group-hover:disabled:text-red-500/0 w-fit h-fit'" :cus-icon="I_VLeft" :cusIconClass="'!w-7 !h-7'"/>
+                                <div class="w-[87%] h-full relative left-1/2 -translate-x-1/2 px-4">
+                                    <h3 class="text-3xl">Mavisuru Ragasoba</h3>
+                                    <span>University morawa</span>
+                                    <p class="mt-2">Lorem ipsum dolor sit amet consectetur adipisicing elit...</p>
+                                    <RouterLink to="/"
+                                    class="w-35 h-10 rounded-lg absolute bottom-[10%] inline-flex justify-center items-center font-bold mt-5 text-lg text-white border-2 border-white">
+                                    Learn More
+                                    </RouterLink>
+                                </div>
+                                <CarouselNext :class="'right-0 bg-transparent border-transparent text-white/0 hover:bg-transparent hover:text-red-500 group-hover:text-red-500 group-hover:disabled:text-red-500/0 w-fit h-fit'" :cusIcon="I_VRight" :cusIconClass="'!w-7 !h-7'"/>
+                            </div>
+                            <div class="self-center w-[35%] h-1/2 relative">
+                                <h3 class="text-3xl">UNI EVENTS</h3>
+                                <p class="mt-2">Lorem ipsum dolor sit amet consectetur adipisicing elit...</p>
+                                <RouterLink to="/about" class="w-35 h-10 rounded-lg absolute bottom-[10%] inline-flex justify-center items-center font-bold mt-5 bg-red-500 text-lg text-white">About US</RouterLink>
+                            </div>
                         </div>
-                        <button class="size-8 rounded-full bg-white/20 backdrop-blur hover:bg-white/30" @click="nextSlide" aria-label="Next">›</button>
-                        </div>
-
-                        <div class="w-2/5 h-4/5 self-center relative">
-                        <h3 class="text-3xl">UNI EVENTS</h3>
-                        <p class="mt-2">Lorem ipsum dolor sit amet consectetur adipisicing elit...</p>
-                        <RouterLink to="/about" class="w-35 h-10 rounded-lg absolute bottom-[10%] inline-flex justify-center items-center font-bold mt-5 bg-red-500 text-lg text-white">About US</RouterLink>
-                        </div>
-                    </div>
-
-                    <!-- Dots -->
-                    <ul class="absolute left-1/2 -translate-x-1/2 bottom-5 flex gap-3">
-                        <li v-for="(s, i) in slides" :key="i"
-                            class="w-3 h-3 rounded-full cursor-pointer"
-                            :class="i===activeSlide ? 'bg-white' : 'bg-white/50'"
-                            @click="go(i)"></li>
-                    </ul>
-
-                <!-- Filters bar -->
+                    </Carousel>
                 </div>
             </div>
-
-            <!-- ICONS ROW -->
             <ul class="w-3/4 xl:w-[87%] flex justify-around text-white">
-                <li class="flex flex-col items-center gap-1">
-                <div class="bg-white inline-flex justify-center items-center size-16 rounded-full">
-                    <!-- svg inline kalau mau -->
-                </div>
-                <span class="block text-center">Music event</span>
-                </li>
-                <li class="flex flex-col items-center gap-1">
-                <div class="bg-white inline-flex justify-center items-center size-16 rounded-full"></div>
-                <span class="block text-center">Conferences</span>
-                </li>
-                <li class="flex flex-col items-center gap-1">
-                <div class="bg-white inline-flex justify-center items-center size-16 rounded-full"></div>
-                <span class="block text-center">Annual Celebrations</span>
-                </li>
-                <li class="flex flex-col items-center gap-1">
-                <div class="bg-white inline-flex justify-center items-center size-16 rounded-full"></div>
-                <span class="block text-center">Games</span>
-                </li>
+                <template v-for="(item, index) in catHero" :key="index">
+                    <li class="flex flex-col items-center gap-1">
+                        <div class="bg-white inline-flex justify-center items-center rounded-full w-fit">
+                            <component :is="item.icon" class="size-10 m-5"></component>
+                        </div>
+                        <span class="block text-center">{{ item.name }}</span>
+                    </li>
+                </template>
             </ul>
         </div>
     </section>
-
     <!-- CARDS / UPCOMING -->
     <section class="relative min-h-screen h-fit flex flex-col justify-between">
         <div class="relative w-[90%] self-center">
-            <div class="sticky top-20 w-full flex flex-row justify-between items-center z-10">
-                <div class="bg-white rounded-3xl">
-                <h2 class="text-[#242565] xl:text-3xl mt-4 mb-4 ml-6 mr-6">Upcoming Event</h2>
-                </div>
-                <div class="flex flex-row h-fit gap-5">
-                <div class="bg-white rounded-xl px-4 py-2">WeekDays</div>
-                <div class="bg-white rounded-xl px-4 py-2">Popular</div>
-                <div class="bg-white rounded-xl px-4 py-2">Latest</div>
-                </div>
-            </div>
-
+            <h1 class="font-bold text-3xl">Upcoming Events</h1>
             <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
                 <!-- Skeleton -->
                 <template v-if="loading && items.length === 0">
@@ -183,10 +166,7 @@ const buy = (item: Item) => {
                 </li>
             </ul>
 
-            <RouterLink to="/events"
-                class="relative left-1/2 -translate-x-1/2 mt-10 inline-block text-[#3D37F1] border border-[#3D37F1] px-4 py-2 rounded-2xl hover:bg-[#3D37F1] hover:text-white">
-                See All Events
-            </RouterLink>
+            <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 mt-10 inline-block text-[#3D37F1] border border-[#3D37F1] px-4 py-2 rounded-2xl hover:bg-[#3D37F1] hover:text-white">See All Events</RouterLink>
         </div>
 
         <div class="sm:h-30 xl:h-40 flex flex-row mt-20 justify-evenly overflow-y-visible">

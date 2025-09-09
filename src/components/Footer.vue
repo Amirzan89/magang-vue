@@ -39,7 +39,7 @@ const routeItems = reactive([
         'icon': markRaw(I_linkedln),
     },
 ])
-const planItems = reactive([
+const planItems = [
     {
         'label': 'Create And Set Up',
         'link': '/create',
@@ -56,7 +56,7 @@ const planItems = reactive([
         'label': 'Online EVents',
         'link': '/online-events',
     },
-])
+]
 const EventickItems = reactive([
     {
         'label': 'About Us',
