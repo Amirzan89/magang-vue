@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
+import HeaderComponent from '@/components/HeaderHome.vue'
+import FooterComponent from '@/components/Footer.vue'
 import Button from '@/components/ui/button/Button.vue'
 import heroImg from '@/assets/images/party-1.png'
 import rectImg from '@/assets/images/Rectangle-3859.png'
@@ -54,6 +56,7 @@ const buy = (item: Item) => {
 }
 </script>
 <template>
+    <HeaderComponent/>
     <!-- HERO -->
     <section class="relative h-screen pt-16">
         <!-- <div class="absolute inset-0">
@@ -200,10 +203,7 @@ const buy = (item: Item) => {
         <div class="absolute top-0 left-0 w-full h-full"></div>
         <img :src="cele3" alt="" class="absolute right-0" />
     </section>
-
-    <footer class="py-10 text-center text-sm text-gray-500">
-        <div>© 2025 Uni Events</div>
-    </footer>
+    <FooterComponent/>
 </template>
 <style scoped>
 </style>
