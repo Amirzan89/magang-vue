@@ -7,10 +7,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@plugin "flowbite/plugin";
 @source "./**/*.{vue,js,ts,jsx,tsx}";
-@source "../node_modules/flowbite";
-@source "../node_modules/flowbite-vue";
 
 :root{
   --col-pal1:#2C86FF;

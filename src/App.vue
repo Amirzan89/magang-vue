@@ -16,10 +16,6 @@ const layoutName = computed(() => {
     return route.matched[route.matched.length - 1]?.meta?.layout as string || 'default'
 })
 const Layout = computed(() => layouts[layoutName.value] ?? layouts.default)
-watchEffect(() => {
-    console.log('current layout:', layoutName.value)
-    console.log('Leaf meta:', route.matched.at(-1))
-})
 </script>
 <template>
     <component :is="Layout" :key="layoutName" />
