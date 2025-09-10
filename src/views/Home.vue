@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, markRaw } from 'vue'
+import { ref, reactive, markRaw } from 'vue'
 import { RouterLink } from 'vue-router'
-import { watchOnce } from "@vueuse/core"
+import Autoplay from "embla-carousel-autoplay"
 import HeaderComponent from '@/components/HeaderHome.vue'
 import FooterComponent from '@/components/Footer.vue'
-import Button from '@/components/ui/button/Button.vue'
 import { Card, CardContent } from '@/components/ui/card'
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi, } from '@/components/ui/carousel'
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, CarouselDots, type CarouselApi, } from '@/components/ui/carousel'
 import I_VLeft from '@/assets/icons/hero_home/vector-left.svg?component'
 import I_VRight from '@/assets/icons/hero_home/vector-right.svg?component'
 import I_music from '@/assets/icons/hero_home/music_note.svg?component'
@@ -17,25 +16,37 @@ import heroImg from '@/assets/images/party-1.png'
 import rectImg from '@/assets/images/Rectangle-3859.png'
 import img3 from '@/assets/images/image-3.png'
 import cele3 from '@/assets/images/cele-3.png'
-// CAROUSEL
 const emblaMainApi = ref<CarouselApi>()
-const emblaThumbnailApi = ref<CarouselApi>()
+const totalItemsCar = ref(0)
 const selectedIndex = ref(0)
-const onSelect = () => {
-    if (!emblaMainApi.value || !emblaThumbnailApi.value) return
-    selectedIndex.value = emblaMainApi.value.selectedScrollSnap()
-    emblaThumbnailApi.value.scrollTo(emblaMainApi.value.selectedScrollSnap())
+let autoplayTimer: ReturnType<typeof setTimeout> | null = null
+const onInitApiCar = (api?: CarouselApi) => {
+    if(!api) return
+    emblaMainApi.value = api
+    totalItemsCar.value = api.slideNodes().length
+    selectedIndex.value = api.selectedScrollSnap()
+    api.on('select', () => {
+        selectedIndex.value = api.selectedScrollSnap()
+    })
 }
-const onThumbClick = (index: number) => {
-    if (!emblaMainApi.value || !emblaThumbnailApi.value) return
-    emblaMainApi.value.scrollTo(index)
+const goToSlide = (index: number) => {
+    if(emblaMainApi.value){
+        selectedIndex.value = index
+        emblaMainApi.value.scrollTo(index)
+    }
 }
-watchOnce(emblaMainApi, (emblaMainApi) => {
-    if (!emblaMainApi) return
-    onSelect()
-    emblaMainApi.on("select", onSelect)
-    emblaMainApi.on("reInit", onSelect)
+const autoplayPlugin = Autoplay({
+    delay: 2500,
+    stopOnMouseEnter: true,
+    stopOnInteraction: false,
 })
+const restartAutoplay = () => {
+    if(autoplayTimer) clearTimeout(autoplayTimer)
+    autoplayTimer = setTimeout(() => {
+        autoplayPlugin.reset()
+        autoplayPlugin.play()
+    }, 150)
+}
 const catHero = reactive([
     {
         'name': 'Music Events',
@@ -54,11 +65,6 @@ const catHero = reactive([
         'icon': markRaw(I_games),
     },
 ])
-// // AUTO-PLAY (opsional)
-// let timer: number | undefined
-// onMounted(() => {
-//     timer = window.setInterval(nextSlide, 5000)
-// })
 
 // onMounted(async () => {
 //     // fetch data dari API Laravel-mu (contoh):
@@ -85,7 +91,7 @@ const catHero = reactive([
         <div class="relative z-10 flex flex-col justify-center gap-24 items-center h-full text-white">
             <div class="w-[92%] h-1/2">
                 <div class="relative left-1/2 -translate-x-1/2 rounded-xl h-full">
-                    <Carousel class="relative z-0 inset-0 rounded-xl overflow- w-full h-full bg-red-500" @init-api="(val) => emblaMainApi = val">
+                    <Carousel class="relative z-0 inset-0 rounded-xl overflow- w-full h-full bg-red-500" @init-api="onInitApiCar" :plugins="[autoplayPlugin]" @mouseenter="autoplayPlugin.stop" @mouseleave="restartAutoplay">
                         <CarouselContent :customTW="'h-full'">
                             <CarouselItem v-for="(_, index) in 10" :key="index">
                                 <div class="p-1 h-full">
@@ -117,6 +123,7 @@ const catHero = reactive([
                                 <p class="mt-2">Lorem ipsum dolor sit amet consectetur adipisicing elit...</p>
                                 <RouterLink to="/about" class="w-35 h-10 rounded-lg absolute bottom-[10%] inline-flex justify-center items-center font-bold mt-5 bg-red-500 text-lg text-white">About US</RouterLink>
                             </div>
+                            <CarouselDots v-model:currentIndex="selectedIndex" :totalItems="totalItemsCar" @goToSlide="goToSlide"/>
                         </div>
                     </Carousel>
                 </div>
