@@ -38,7 +38,7 @@ watch(() => fetchDataS.processFetch.isDone, async() => {
     if(!res || res.status == 'error' || !res.data){
         return;
     }
-    // local.fetchedViewData = res.data;
+    local.value.upcomingEvents = res.data;
 }, { immediate:true });
 const onInitApiCar = (api?: CarouselApi) => {
     if(!api) return
@@ -85,10 +85,11 @@ const catHero = reactive([
         'icon': markRaw(I_games),
     },
 ])
-const skeletonUpcoming = (inpVar: any) => {
-    return h('div', { class: 'absolute top-0 left-0' }, {
+const skeletonUpcoming = {
+    name: 'skeletonUpcoming',
+    render: (componentVar: any, inpData: any) => h('div', { class: 'absolute top-0 left-0' }, {
         default: () => [
-            h(Skeleton, { class: 'w-full rounded-xl'}),
+            componentVar.skeletonUpcoming.isErrorPhoto && !inpData.value.imgError ? h(Skeleton, { class: 'w-full rounded-xl'}) : null,
             h('div', { class: '' }, [
                 h(Skeleton, { class: 'rounded-xl'}),
                 h(Skeleton, { class: 'rounded-xl'}),
@@ -97,13 +98,18 @@ const skeletonUpcoming = (inpVar: any) => {
         ]
     })
 }
-const cardUpcoming = (inpVar: any) => {
-    //dynamic
-    return h(Card, { class: '' }, {
+const cardUpcoming = {
+    render: (componentVar: any, inpData: any) => h(Card, { class: '' }, {
         default: () => h(CardContent, { class: 'absolute rounded-xl' }, [
             h('div', { class: 'relative' }, [
-                h('img', { class: 'w-full', src: inpVar.img }),
-                inpVar.isFree ? h(I_free, { class: 'absolute top-0 right-0' }) : null
+                h('img', {
+                    src: inpData.img,
+                    alt: '',
+                    class: ['tw-w-full tw-h-full tw-object-contain', inpData.img === '' ? 'tw-hidden' : ''],
+                    onLoad: () => {componentVar.skeletonUpcoming.isErrorPhoto = false},
+                    onError: () => {componentVar.skeletonUpcoming.isErrorPhoto = true},
+                }),
+                inpData.isFree ? h(I_free, { class: 'absolute top-0 right-0' }) : null
             ]),
             h('div', { class: 'flex flex-col' }, [
                 h('div', { class: '' }, [
@@ -128,6 +134,7 @@ const cardUpcoming = (inpVar: any) => {
             ]),
         ])
     })
+}
     // //fixed
     // return h(Card, { class: '' }, {
     //     default: () => h(CardContent, { class: 'absolute rounded-xl' }, [
@@ -237,7 +244,7 @@ const cardUpcoming = (inpVar: any) => {
             <h2 class="text-4xl">Upcoming Events</h2>
             <div class="flex">
                 <template v-for="(item, index) in local.upcomingEvents" :key="index">
-                    <CustomCardWithSkeletonComponent :skeleton="skeletonUpcoming" :card="cardUpcoming" :inpVar="item"/>
+                    <CustomCardWithSkeletonComponent :componentUI="[skeletonUpcoming, cardUpcoming]" :inpData="item"/>
                 </template>
                 <!-- <template v-for="(item, index) in 10" :key="index">
                     <Card :customTW="'h-full'">

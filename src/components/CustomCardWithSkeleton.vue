@@ -1,26 +1,28 @@
 <script setup lang="ts">
-import { ref, reactive, type Component } from 'vue'
+import { reactive, onBeforeMount } from 'vue'
+interface componentItem{
+    name?: string,
+    render: CallableFunction
+}
 const props = defineProps<{
-    skeleton: Component
-    card: Component
-    inpVar?: Record<string, any>
+    componentUI: componentItem[]
+    inpData?: Record<string, any>
 }>()
-const inpVar: any = reactive({});
-const imgLoaded = ref(false)
-const imgFailed = ref(false)
-
-function handleImgLoad(){
-    imgLoaded.value = true
-}
-function handleImgError(){
-    imgFailed.value = true
-}
-defineExpose({ inpVar });
+const inpData: any = reactive({})
+const componentVar: any = reactive([])
+onBeforeMount(() => {
+    props.componentUI.forEach((item) => {
+        if(item.name) componentVar.push({[item.name]: {} })
+    });
+    Object.assign(inpData, props.inpData)
+})
+defineExpose({ inpData });
 </script>
 <template>
     <transition name="fade" mode="out-in">
-        <component :is="skeleton"></component>
-        <component :is="card"></component>
+        <template v-for="(item, index) in componentUI" :key="index">
+            <component :is="item.render(inpData)"></component>
+        </template>
     </transition>
 </template>
 <style scoped>
