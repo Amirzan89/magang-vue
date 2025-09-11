@@ -1,69 +1,74 @@
+// composables/api/axios.ts
 import axios from 'axios'
-import { useConfig } from '@/composables/useConfig'
 import Cookies from 'js-cookie'
+import { useConfig } from '@/composables/useConfig'
+import RSAComposables from '@/composables/RSA'
 const publicConfig = useConfig()
-export default () => {
-    const fetchCsrfToken = async () => {
-        return await axios.get('/sanctum/csrf-cookie')
+const api = axios.create({
+    baseURL: publicConfig.baseURL || 'http://localhost:8000',
+    withCredentials: true,
+})
+const fetchCsrfToken = async () => {
+    return await axios.get(`${publicConfig.baseURL}/sanctum/csrf-cookie`, { withCredentials: true })
+}
+api.interceptors.request.use(async (config) => {
+    let token = Cookies.get('XSRF-TOKEN')
+    if(!token){
+        await fetchCsrfToken()
+        token = Cookies.get('XSRF-TOKEN')
     }
-    const createInstance = () => {
-        let baseURL = ''
-        try {
-            baseURL = publicConfig.baseURL
-        } catch (err) {
-            baseURL = 'http://localhost:8000'
-            // baseURL = 'https://alcor'
-        }
-        const instance = axios.create({
-            baseURL: baseURL,
-            withCredentials: true
-        })
-        instance.interceptors.request.use(async (requestConfig) => {
-            let token = Cookies.get('XSRF-TOKEN')
-            if (!token) {
-                await axios.get(`${baseURL}/sanctum/csrf-cookie`, { withCredentials: true })
-                token = Cookies.get('XSRF-TOKEN')
-            }
-            requestConfig.headers['X-XSRF-TOKEN'] = token
-            return requestConfig
-        }, error => {
-            return Promise.reject(error)
-        })
-        return instance
+    if(token) config.headers['X-XSRF-TOKEN'] = token
+    return config
+})
+const axiosJson = async () => {
+    if(!sessionStorage.aes_key && !sessionStorage.hmac_key){
+        const rsaComp = RSAComposables()
+        await rsaComp.handshake()
     }
-    const axiosJson = () => {
-        const instance = createInstance()
-        instance.defaults.headers.common['Accept'] = 'application/json'
-        return instance
-    }
-    const reqData = async(url: string, method: string, data: any = '', isJson: boolean = false) => {
-        let retryCount = 0
-        const headers = isJson ? { Accept: 'application/json' } : {}
-        const req = async () => {
-            try {
-                const response = await createInstance().request({ url, method, data, headers })
-                return { status: 'success', message: response   .data.message, data: response.data.data }
-            } catch (err: any) {
-                if (err.response){
-                    switch(err.response.status){
-                        case 404: return { status:'error', message: 'not found', code: 404 }
-                        case 419:
-                        case 429:
-                            if (retryCount <= 3) {
-                                retryCount++
-                                await fetchCsrfToken()
-                                return req()
-                            } else {
-                                retryCount = 0
-                                return { status: 'error', message: 'Request failed' }
-                            }
-                        case 500: return { status:'error', message: err.response.message , code: 500 }
+    api.defaults.headers.common['Accept'] = 'application/json'
+    return api
+}
+const reqData = async (url: string, method: string, data: any = '', isJson = false, reqHeaders: any = null) => {
+    let retryCount = 0
+    const headers = Object.assign({}, isJson ? { Accept: 'application/json' } : {}, reqHeaders)
+    const req = async (): Promise<any> => {
+        try{
+            const response = await api.request({ url, method, data, headers})
+            return { status: 'success', message: response.data.message, data: response.data.data }
+        }catch(err: any){
+            if(err.response){
+                switch (err.response.status) {
+                case 404: return { status: 'error', message: 'not found', code: 404 }
+                case 419:
+                case 429:
+                    if (retryCount <= 3) {
+                    retryCount++
+                    await fetchCsrfToken()
+                    return await req()
                     }
+                    return { status: 'error', message: 'Request failed' }
+                case 500: return { status: 'error', message: err.response.message, code: 500 }
                 }
-                return { status: 'error', message: err.response ? err.response.data.message : err.message, link: err.response.data.link ?? '' }
             }
+            return { status: 'error', message: err.message }
         }
-        return req()
     }
-    return { axios: createInstance(), axiosJson: axiosJson(), createCSRF: fetchCsrfToken, reqData: reqData }
+    return await req()
+}
+
+const handshakeAPI = async (data: { pubB64: any, clientNonceB64: any }) => {
+    return (await api.post('/handshake', {
+        clientPublicSpkiB64: data.pubB64,
+        clientNonce: data.clientNonceB64,
+    })).data
+}
+
+export default () => {
+    return {
+        axios: api,
+        axiosJson,
+        fetchCsrfToken,
+        reqData,
+        handshakeAPI,
+    }
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, watch, markRaw, h } from 'vue'
+import { ref, reactive, onBeforeMount, markRaw, h } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import Autoplay from "embla-carousel-autoplay"
 import { useFetchDataStore } from '@/stores/FetchData'
@@ -14,15 +14,15 @@ import I_music from '@/assets/icons/hero_home/music_note.svg?component'
 import I_conferences from '@/assets/icons/hero_home/conferences.svg?component'
 import I_celebration from '@/assets/icons/hero_home/celebration.svg?component'
 import I_games from '@/assets/icons/hero_home/games.svg?component'
-import I_free from '@/assets/icons/hero_home/free-tag.svg?component'
-import I_lokasi from '@/assets/icons/hero_home/lokasi.svg?component'
-import I_save from '@/assets/icons/hero_home/save.svg?component'
+import I_free from '@/assets/icons/card_events/free-tag.svg?component'
+import I_lokasi from '@/assets/icons/card_events/lokasi.svg?component'
+import I_save from '@/assets/icons/card_events/save.svg?component'
 import heroImg from '@/assets/images/party-1.png'
 import rectImg from '@/assets/images/Rectangle-3859.png'
 import img3 from '@/assets/images/image-3.png'
 import cele3 from '@/assets/images/cele-3.png'
 import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
-const fetchDataS = useFetchDataStore();
+const fetchDataS = useFetchDataStore()
 const emblaMainApi = ref<CarouselApi>()
 const totalItemsCar = ref(0)
 const selectedIndex = ref(0)
@@ -32,14 +32,21 @@ const local = ref({
     pastEvents: null as any,
     reviews: null as any,
 })
-watch(() => fetchDataS.processFetch.isDone, async() => {
-    if(fetchDataS.processFetch.isDone == 'loading' || fetchDataS.processFetch.isDone == 'error') return;
-    const res = await fetchDataS.fetchPage('admin', useRoute().path);
-    if(!res || res.status == 'error' || !res.data){
-        return;
+onBeforeMount(async() =>{
+    const tableData = JSON.stringify({
+        "userid": "demo@demo.com",
+        "groupid": "XCYTUA",
+        "businessid": "PJLBBS",
+        "sql": "SELECT id, keybusinessgroup, keyregistered, eventgroup, eventid, eventname, eventdescription, startdate, enddate, quota, price, inclusion, imageicon_1, imageicon_2, imageicon_3, imageicon_4, imageicon_5, imageicon_6, imageicon_7, imageicon_8, imageicon_9 FROM event_schedule",
+        "order": ""
+    })
+    const res = await fetchDataS.fetchPage(useRoute().path, {}, tableData)
+    if(res ==  undefined || res.status == 'error'){
+        return
     }
-    local.value.upcomingEvents = res.data;
-}, { immediate:true });
+    console.log('enttokk dataa ', res.data)
+    // local.value.upcomingEvents = res.data
+})
 const onInitApiCar = (api?: CarouselApi) => {
     if(!api) return
     emblaMainApi.value = api
@@ -165,7 +172,6 @@ const cardUpcoming = {
     //         ]),
     //     ])
     // })
-}
 
 // onMounted(async () => {
 //     // fetch data dari API Laravel-mu (contoh):

@@ -19,11 +19,11 @@ onBeforeMount(() => {
 defineExpose({ inpData });
 </script>
 <template>
-    <transition name="fade" mode="out-in">
+    <TransitionGroup name="fade" mode="out-in">
         <template v-for="(item, index) in componentUI" :key="index">
             <component :is="item.render(inpData)"></component>
         </template>
-    </transition>
+    </TransitionGroup>
 </template>
 <style scoped>
     .shimmer{
