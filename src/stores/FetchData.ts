@@ -3,6 +3,7 @@ import { useRoute } from "vue-router"
 import router from "@/router"
 import createAxios from "@/composables/api/axios"
 import encryption from "@/composables/encryption"
+import RSAComposables from '@/composables/RSA'
 // import ImgBoy from '~/assets/images/profile/default_boy.jpg'
 // import ImgGirl from '~/assets/images/profile/default_girl.png'
 const { axiosJson, fetchCsrfToken } = createAxios()
@@ -36,6 +37,10 @@ export const useFetchDataStore = defineStore('fetchDataStore', {
                 }
                 if(this.publicPath.includes(routePath) && Object.keys(this.cacheAuth).length !== 0){
                     return { status: 'error', message: 'Already Login', data: { redirect: '/login' }}
+                }
+                if(!sessionStorage.aes_key && !sessionStorage.hmac_key){
+                    const rsaComp = RSAComposables()
+                    await rsaComp.handshake()
                 }
                 const encr = await encryptReq(reqBody || {})
                 const res: Record<string, any> = (await (await axiosJson()).post(routePath, {

@@ -25,7 +25,7 @@ export default () => {
             const res = await handshakeAPI({pubB64, clientNonceB64});
             const pkcs8 = Uint8Array.from(atob(sessionStorage.rsa_priv), c => c.charCodeAt(0)).buffer
             const priv = await crypto.subtle.importKey('pkcs8', pkcs8, { name: 'RSA-OAEP', hash: 'SHA-256' }, false, ['decrypt'])
-            const wrapped = hexToU8(res.data.data.encKey).buffer
+            const wrapped = hexToU8(res.data.encKey).buffer
             const result = new Uint8Array(await crypto.subtle.decrypt({ name: 'RSA-OAEP' }, priv, wrapped))
             // parse payload: [aes32 | hmac32 | keyId16 | clientNonce16 | serverNonce16 | exp8]
             let off=0
@@ -38,7 +38,7 @@ export default () => {
             if(btoa(String.fromCharCode(...clientNonce)) !== btoa(String.fromCharCode(...clientNonceEcho))){
                 throw new Error('nonce mismatch')
             }
-            sessionStorage.merseal = res.data.data.merseal
+            sessionStorage.merseal = res.data.merseal
             sessionStorage.keyId = [...keyIdBytes].map(x=>x.toString(16).padStart(2,'0')).join('')
             sessionStorage.serverNonce = btoa(String.fromCharCode(...serverNonceBytes))
             sessionStorage.aes_key = [...aes].map(x=>x.toString(16).padStart(2,'0')).join('')
