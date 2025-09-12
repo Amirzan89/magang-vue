@@ -180,6 +180,90 @@ const componentUIUpcoming = {
     skeleton: skeletonUpcoming,
     card: cardUpcoming,
 }
+const skeletonPast = (index: string) => {
+    return {
+        render: (componentVar: any, inpData: any) => {
+            return h('div', { class: 'skeleton-wrapper absolute top-0 left-0 flex flex-col space-y-2' }, {
+                default: () => {
+                    return [
+                        componentVar[`cardPast${index}`]?.isErrorPhoto && !inpData.value.imgError
+                            ? h(Skeleton, { class: 'h-12 w-12 rounded-full' })
+                            : null,
+                        // main skeleton items
+                        h('div', { class: 'space-y-2' }, { default: () => {
+                            return [
+                                h(Skeleton, { class: 'h-4 w-[250px]' }),
+                                h(Skeleton, { class: 'h-4 w-[200px]' }),
+                                h(Skeleton, { class: 'h-4 w-[150px]' }),
+                            ]
+                        }}
+                        )
+                    ]}
+                }
+            )
+        }
+    }
+}
+const cardPast = (index: string) => {
+    return {
+        name: 'cardPast' + index,
+        render: (componentVar: any, inpData: any) => {
+            return h(RouterLink, { to: inpData.event_id }, {
+                default: () => {
+                    return h(Card, { class: 'h-full' }, {
+                        default: () => h(CardContent, { class: 'relative rounded-xl' }, {
+                            default: () => {
+                                return [
+                                    h('div', { class: 'relative' }, [
+                                        h('img', {
+                                            src: inpData.img,
+                                            alt: '',
+                                            class: ['w-full h-full object-contain', inpData.img === '' ? 'hidden' : ''],
+                                            onLoad: () => {componentVar[`cardPast${index}`].isErrorPhoto = false},
+                                            onError: () => {componentVar[`cardPast${index}`].isErrorPhoto = true},
+                                        }),
+                                        inpData.isFree ? h(I_free, { class: 'absolute top-0 right-0' }) : null
+                                    ]),
+                                    h('div', { class: 'w-[90%] mx-auto flex flex-col' }, [
+                                        h('div', { class: 'flex gap-5' }, [
+                                            h('div', { class: 'flex flex-col' }, [
+                                                h('span', { class: 'text-[#3D37F1] font-bold' }, ['May']),
+                                                h('span', { class: 'text-black' }, ['11'])
+                                            ]),
+                                            h('div', { class: 'flex flex-col text-xl text-black' }, [
+                                                h('span', { class: '' }, ['Civil Padura']),
+                                                h('span', { class: '' }, ['By Civil Engineering Department'])
+                                            ]),
+                                        ]),
+                                        h('div', { class: 'flex flex-col text-xl' }, [
+                                            h('div', { class: 'flex gap-2 items-center' }, [
+                                                h(I_DRight, { class: 'w-5 h-5 text-red-500' }),
+                                                h('span', null, ['Musical Event']),
+                                            ]),
+                                            h('div', { class: 'flex gap-2 items-center' }, [
+                                                h(I_DRight, { class: 'w-5 h-5 text-red-500' }),
+                                                h('span', null, ['All Universities students can join']),
+                                            ]),
+                                        ]),
+                                        h('div', { class: 'flex justify-between items-center mt-3' }, [
+                                            h(I_Location, { class: 'w-8 h-8 text-red-500' }),
+                                            h('span', { class: 'text-xl font-medium' }, ['University of Morotuwa']),
+                                            h(I_Bookmark, { class: 'w-8 h-8 text-blue-500' }),
+                                        ]),
+                                    ]),
+                                ]
+                            }
+                        })
+                    })
+                }
+            })
+        }
+    }
+}
+const componentUIPast = {
+    skeleton: skeletonPast,
+    card: cardPast,
+}
 // onMounted(async () => {
 //     // fetch data dari API Laravel-mu (contoh):
 //     // const res = await fetch('/api/events')
@@ -269,46 +353,13 @@ const componentUIUpcoming = {
             </div>
         </div>
     </section>
-    <!-- <section class="relative min-h-screen h-fit flex flex-col justify-between">
-        <div class="relative w-[90%] self-center">
-            <h1 class="font-bold text-3xl">Upcoming Events</h1>
-            <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
-                <template v-if="loading && items.length === 0">
-                <li v-for="i in 6" :key="i" class="card bg-base-100 shadow-sm animate-pulse rounded-2xl">
-                    <div class="h-48 bg-base-200 rounded-t-2xl"></div>
-                    <div class="p-4 space-y-2">
-                    <div class="h-5 bg-base-200 rounded w-2/3"></div>
-                    <div class="h-4 bg-base-200 rounded w-full mt-2"></div>
-                    <div class="h-10 bg-base-200 rounded mt-4"></div>
-                    </div>
-                </li>
-                </template>
-                <li v-for="item in filtered" :key="String(item.id)" class="card bg-white shadow-sm rounded-2xl overflow-hidden">
-                <figure class="h-48">
-                    <img :src="item.imageicon_1" :alt="item.eventname" class="w-full h-full object-cover" loading="lazy" />
-                </figure>
-                <div class="p-4">
-                    <h2 class="font-semibold text-lg">{{ item.eventname }}</h2>
-                    <p class="text-sm text-gray-600">{{ item.startdate }}</p>
-                    <div class="mt-4 flex justify-between items-center">
-                    <span class="font-semibold">{{ formatPrice(item.price) }}</span>
-                    <button class="btn btn-primary px-4 py-2 rounded-lg bg-blue-600 text-white" @click="buy(item)">Buy Now</button>
-                    </div>
-                </div>
-                </li>
-            </ul>
-            <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 mt-10 inline-block text-[#3D37F1] border border-[#3D37F1] px-4 py-2 rounded-2xl hover:bg-[#3D37F1] hover:text-white">See All Events</RouterLink>
+    <section class="relative min-h-screen flex flex-col justify-between">
+        <div class="w-[95%] mx-auto h-fit">
+            <h2 class="text-4xl mt-5">Past Events</h2>
+            <CustomCardWithSkeletonComponent :componentUI="componentUIPast" :inpData="local.past_events" customTW="h-full mt-5" customCSS="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem;"/>
+            <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 mt-10 inline-block text-[#3D37F1] border border-[#3D37F1] px-4 py-2 rounded-2xl hover:bg-[#3D37F1] hover:text-white">Load More</RouterLink>
         </div>
-
-        <div class="sm:h-30 xl:h-40 flex flex-row mt-20 justify-evenly overflow-y-visible">
-            <img :src="img3" alt="" class="h-70 self-end" />
-            <div class="w-fit h-3/4 relative top-1/2 -translate-y-1/2 flex flex-col items-center text-white">
-                <h2>Add Your Loving Event</h2>
-                <p>Lorem, ipsum dolor sit amet consectetur adipisicing elit.</p>
-                <RouterLink to="/" class="px-4 py-2 rounded-2xl mt-2" style="background-color:#F5167E">View all events</RouterLink>
-            </div>
-        </div>
-    </section> -->
+    </section>
 
     <section class="relative min-h-screen h-fit flex flex-col justify-between border-black border-4">
         <div class="absolute top-0 left-0 w-full h-full"></div>
