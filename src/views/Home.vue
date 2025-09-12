@@ -15,8 +15,9 @@ import I_conferences from '@/assets/icons/hero_home/conferences.svg?component'
 import I_celebration from '@/assets/icons/hero_home/celebration.svg?component'
 import I_games from '@/assets/icons/hero_home/games.svg?component'
 import I_free from '@/assets/icons/card_events/free-tag.svg?component'
-import I_lokasi from '@/assets/icons/card_events/lokasi.svg?component'
-import I_save from '@/assets/icons/card_events/save.svg?component'
+import I_DRight from '@/assets/icons/card_events/double-right.svg?component'
+import I_Location from '@/assets/icons/card_events/location.svg?component'
+import I_Bookmark from '@/assets/icons/card_events/bookmark.svg?component'
 import heroImg from '@/assets/images/party-1.png'
 import rectImg from '@/assets/images/Rectangle-3859.png'
 import img3 from '@/assets/images/image-3.png'
@@ -119,49 +120,58 @@ const skeletonUpcoming = (index: string) => {
         }
     }
 }
-
 const cardUpcoming = (index: string) => {
     return {
         name: 'cardUpcoming' + index,
         render: (componentVar: any, inpData: any) => {
-            return h(Card, { class: '' }, {
-                default: () => h(CardContent, { class: 'absolute rounded-xl' }, {
-                    default: () => {
-                        return [
-                            h('div', { class: 'relative' }, [
-                                h('img', {
-                                    src: inpData.imageicon_1,
-                                    alt: '',
-                                    class: ['w-full h-full object-contain', inpData.img === '' ? 'hidden' : ''],
-                                    onLoad: () => {componentVar[`cardUpcoming${index}`].isErrorPhoto = false},
-                                    onError: () => {componentVar[`cardUpcoming${index}`].isErrorPhoto = true},
-                                }),
-                                inpData.isFree ? h(I_free, { class: 'absolute top-0 right-0' }) : null
-                            ]),
-                            h('div', { class: 'flex flex-col' }, [
-                                h('div', { class: '' }, [
-                                    h('div', { class: '' }, [
-                                        h('span', { class: 'text-blue-500' }, ['May']),
-                                        h('span', { class: 'text-black' }, ['11'])
+            return h(RouterLink, { to: inpData.event_id }, {
+                default: () => {
+                    return h(Card, { class: 'h-full' }, {
+                        default: () => h(CardContent, { class: 'relative rounded-xl' }, {
+                            default: () => {
+                                return [
+                                    h('div', { class: 'relative' }, [
+                                        h('img', {
+                                            src: inpData.img,
+                                            alt: '',
+                                            class: ['w-full h-full object-contain', inpData.img === '' ? 'hidden' : ''],
+                                            onLoad: () => {componentVar[`cardUpcoming${index}`].isErrorPhoto = false},
+                                            onError: () => {componentVar[`cardUpcoming${index}`].isErrorPhoto = true},
+                                        }),
+                                        inpData.isFree ? h(I_free, { class: 'absolute top-0 right-0' }) : null
                                     ]),
-                                    h('div', { class: 'text-black' }, [
-                                        h('span', { class: '' }, ['Civil Padura']),
-                                        h('span', { class: '' }, ['By Civil Engineering Department'])
+                                    h('div', { class: 'w-[90%] mx-auto flex flex-col' }, [
+                                        h('div', { class: 'flex gap-5' }, [
+                                            h('div', { class: 'flex flex-col' }, [
+                                                h('span', { class: 'text-[#3D37F1] font-bold' }, ['May']),
+                                                h('span', { class: 'text-black' }, ['11'])
+                                            ]),
+                                            h('div', { class: 'flex flex-col text-xl text-black' }, [
+                                                h('span', { class: '' }, ['Civil Padura']),
+                                                h('span', { class: '' }, ['By Civil Engineering Department'])
+                                            ]),
+                                        ]),
+                                        h('div', { class: 'flex flex-col text-xl' }, [
+                                            h('div', { class: 'flex gap-2 items-center' }, [
+                                                h(I_DRight, { class: 'w-5 h-5 text-red-500' }),
+                                                h('span', null, ['Musical Event']),
+                                            ]),
+                                            h('div', { class: 'flex gap-2 items-center' }, [
+                                                h(I_DRight, { class: 'w-5 h-5 text-red-500' }),
+                                                h('span', null, ['All Universities students can join']),
+                                            ]),
+                                        ]),
+                                        h('div', { class: 'flex justify-between items-center mt-3' }, [
+                                            h(I_Location, { class: 'w-8 h-8 text-red-500' }),
+                                            h('span', { class: 'text-xl font-medium' }, ['University of Morotuwa']),
+                                            h(I_Bookmark, { class: 'w-8 h-8 text-blue-500' }),
+                                        ]),
                                     ]),
-                                ]),
-                                h('div', { class: '' }, [
-                                    h('span', { class: '' }, ['>> Musical Event']),
-                                    h('span', { class: '' }, ['>> All Universities students can join']),
-                                ]),
-                                h('div', { class: '' }, [
-                                    h(I_lokasi, { class: '' }),
-                                    h('span', { class: '' }, ['University of Morotuwa']),
-                                    h(I_save, { class: '' }),
-                                ]),
-                            ]),
-                        ]
-                    }
-                })
+                                ]
+                            }
+                        })
+                    })
+                }
             })
         }
     }
@@ -170,37 +180,6 @@ const componentUIUpcoming = {
     skeleton: skeletonUpcoming,
     card: cardUpcoming,
 }
-    // //fixed
-    // return h(Card, { class: '' }, {
-    //     default: () => h(CardContent, { class: 'absolute rounded-xl' }, [
-    //         h('div', { class: 'relative' }, [
-    //             h('img', { class: 'w-full', src: 'localhost:8000/' }),
-    //             h(I_free, { class: 'absolute top-0 right-0' })
-    //         ]),
-    //         h('div', { class: 'flex flex-col' }, [
-    //             h('div', { class: '' }, [
-    //                 h('div', { class: '' }, [
-    //                     h('span', { class: 'text-blue-500' }, ['May']),
-    //                     h('span', { class: 'text-black' }, ['11'])
-    //                 ]),
-    //                 h('div', { class: 'text-black' }, [
-    //                     h('span', { class: '' }, ['Civil Padura']),
-    //                     h('span', { class: '' }, ['By Civil Engineering Department'])
-    //                 ]),
-    //             ]),
-    //             h('div', { class: '' }, [
-    //                 h('span', { class: '' }, ['>> Musical Event']),
-    //                 h('span', { class: '' }, ['>> All Universities students can join']),
-    //             ]),
-    //             h('div', { class: '' }, [
-    //                 h(I_lokasi, { class: '' }),
-    //                 h('span', { class: '' }, ['University of Morotuwa']),
-    //                 h(I_save, { class: '' }),
-    //             ]),
-    //         ]),
-    //     ])
-    // })
-
 // onMounted(async () => {
 //     // fetch data dari API Laravel-mu (contoh):
 //     // const res = await fetch('/api/events')
@@ -274,9 +253,9 @@ const componentUIUpcoming = {
     </section>
     <!-- CARDS / UPCOMING -->
     <section class="relative min-h-screen flex flex-col">
-        <div class="w-[97%] mx-auto bg-green-500 h-fit">
-            <h2 class="text-4xl">Upcoming Events</h2>
-            <CustomCardWithSkeletonComponent :componentUI="componentUIUpcoming" :inpData="local.upcoming_events" customTW="bg-red-500 h-full" customCSS="display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 1rem;"/>
+        <div class="w-[95%] mx-auto h-fit">
+            <h2 class="text-4xl mt-5">Upcoming Events</h2>
+            <CustomCardWithSkeletonComponent :componentUI="componentUIUpcoming" :inpData="local.upcoming_events" customTW="h-full mt-5" customCSS="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem;"/>
             <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 mt-10 inline-block text-[#3D37F1] border border-[#3D37F1] px-4 py-2 rounded-2xl hover:bg-[#3D37F1] hover:text-white">See All Events</RouterLink>
         </div>
         <div class="sm:h-55 xl:h-65 mt-50 bg-purple-500">
