@@ -2,11 +2,13 @@
 import { ref, reactive, onBeforeMount, markRaw, h } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import Autoplay from "embla-carousel-autoplay"
+import { useConfig } from '@/composables/useConfig'
 import { useFetchDataStore } from '@/stores/FetchData'
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, CarouselDots, type CarouselApi, } from '@/components/ui/carousel'
 import { Card, CardContent } from '@/components/ui/card'
-import CustomCardWithSkeletonComponent from '@/components/CustomCardWithSkeleton.vue'
+import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
 import HeaderComponent from '@/components/HeaderHome.vue'
+import CustomCardWithSkeletonComponent from '@/components/CustomCardWithSkeleton.vue'
 import FooterComponent from '@/components/Footer.vue'
 import I_VLeft from '@/assets/icons/hero_home/vector-left.svg?component'
 import I_VRight from '@/assets/icons/hero_home/vector-right.svg?component'
@@ -18,11 +20,12 @@ import I_free from '@/assets/icons/card_events/free-tag.svg?component'
 import I_DRight from '@/assets/icons/card_events/double-right.svg?component'
 import I_Location from '@/assets/icons/card_events/location.svg?component'
 import I_Bookmark from '@/assets/icons/card_events/bookmark.svg?component'
-import heroImg from '@/assets/images/party-1.png'
-import rectImg from '@/assets/images/Rectangle-3859.png'
-import img3 from '@/assets/images/image-3.png'
-import cele3 from '@/assets/images/cele-3.png'
-import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
+import I_FullStar from '@/assets/icons/reviews/full-star.svg?component'
+import I_HalfStar from '@/assets/icons/reviews/half-star.svg?component'
+import I_EmptyStar from '@/assets/icons/reviews/empty-star.svg?component'
+import defaultBoy from '@/assets/images/default_boy.jpg'
+import defaultGirl from '@/assets/images/default_girl.png'
+const publicConfig = useConfig()
 const fetchDataS = useFetchDataStore()
 const emblaMainApi = ref<CarouselApi>()
 const totalItemsCar = ref(0)
@@ -180,6 +183,9 @@ const componentUIUpcoming = {
     skeleton: skeletonUpcoming,
     card: cardUpcoming,
 }
+
+
+
 const skeletonPast = (index: string) => {
     return {
         render: (componentVar: any, inpData: any) => {
@@ -264,27 +270,90 @@ const componentUIPast = {
     skeleton: skeletonPast,
     card: cardPast,
 }
-// onMounted(async () => {
-//     // fetch data dari API Laravel-mu (contoh):
-//     // const res = await fetch('/api/events')
-//     // items.value = await res.json()
-//     // sementara dummy:
-//     items.value = [
-//         { id: 1, eventname: 'Music Fest', startdate: '2025-09-20', price: 150000, imageicon_1: heroImg, type: 'music', university: 'US' },
-//         { id: 2, eventname: 'Tech Conf', startdate: '2025-10-05', price: 0, imageicon_1: rectImg, type: 'conference', university: 'CA' },
-//         { id: 3, eventname: 'Games Day', startdate: '2025-11-02', price: 75000, imageicon_1: heroImg, type: 'games', university: 'DE' },
-//     ]
-//     loading.value = false
-// })
 
+
+
+const skeletonReviews = (index: string) => {
+    return {
+        render: (componentVar: any, inpData: any) => {
+            return h('div', { class: 'skeleton-wrapper absolute top-0 left-0 flex flex-col space-y-2' }, {
+                default: () => {
+                    return [
+                        componentVar[`cardReviews${index}`]?.isErrorPhoto && !inpData.value.imgError
+                            ? h(Skeleton, { class: 'h-12 w-12 rounded-full' })
+                            : null,
+                        // main skeleton items
+                        h('div', { class: 'space-y-2' }, { default: () => {
+                            return [
+                                h(Skeleton, { class: 'h-4 w-[250px]' }),
+                                h(Skeleton, { class: 'h-4 w-[200px]' }),
+                                h(Skeleton, { class: 'h-4 w-[150px]' }),
+                            ]
+                        }}
+                        )
+                    ]}
+                }
+            )
+        }
+    }
+}
+const cardReviews = (index: string) => {
+    return {
+        name: 'cardReviews' + index,
+        render: (componentVar: any, inpData: any) => {
+            return h(Card, { class: 'h-full' }, {
+                default: () => h(CardContent, { class: 'relative rounded-xl flex flex-col gap-2' }, {
+                    default: () => {
+                        return [
+                            h('div', { class: 'flex gap-2' }, [
+                                h('div', { class: 'relative right-0 w-15 h-15 rounded-full pointer-events-none' }, [
+                                    h('img', {
+                                        ref: "imageRefs",
+                                        src: publicConfig.baseURL + inpData.photo || [defaultBoy, defaultGirl][Math.floor(Math.random() * 2)],
+                                        alt: '',
+                                        class: ['absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-full h-full object-cover'],
+                                        style: ['clip-path: circle();'],
+                                        onLoad: () => {componentVar[`cardReviews${index}`].isLoadingImg = false},
+                                        onError: () => {componentVar[`cardReviews${index}`].isLoadingImg = true},
+                                    }),
+                                ]),
+                                h('div', { class: '' }, [
+                                    h('div', { class: 'flex' }, [
+                                        (() => {
+                                            const stars = []
+                                            const full = Math.floor(inpData.rating)
+                                            const half = inpData.rating % 1 >= 0.5
+                                            const empty = 5 - full - (half ? 1 : 0)
+                                            for(let i = 0; i < full; i++) stars.push(h(I_FullStar, { class: 'w-5 h-5 text-yellow-500' }))
+                                            for(let i = 0; i < empty; i++) stars.push(h(I_EmptyStar, { class: 'w-5 h-5 text-yellow-500' }))
+                                            if(half) stars.push(h(I_HalfStar, { class: 'w-6 h-6 text-yellow-500'}))
+                                            return stars
+                                        })()
+                                    ]),
+                                    h('h5', { class: '' }, ['Taylor Swifft']),
+                                    h('span', { class: '' }, ['20 Agustus 2025']),
+                                ])
+                            ]),
+                            h('p', { class: '' }, ['Sekarang, kamu bisa produksi tiket fisik untuk eventmu bersama Bostiketbos. Hanya perlu mengikuti beberapa langkah mudah.'])
+                        ]
+                    }
+                })
+            })
+        }
+    }
+}
+const componentUIReviews = {
+    skeleton: skeletonReviews,
+    card: cardReviews,
+}
 </script>
 <template>
     <HeaderComponent/>
     <section class="relative h-screen pt-16 bg-blue-600">
-        <!-- <div class="absolute inset-0">
-            <img :src="heroImg" alt="" class="w-full h-full object-cover" />
+        <div class="absolute inset-0">
+            <img src="@/assets/images/party-1.png" alt="" class="w-full h-full object-cover" />
             <div class="absolute inset-0 bg-gradient-to-b from-pink-500/80 to-indigo-600/90"></div>
-        </div> -->
+        </div>
         <div class="bg"></div>
         <div class="relative z-10 flex flex-col justify-center gap-24 items-center h-full text-white">
             <div class="w-[92%] h-1/2">
@@ -353,17 +422,20 @@ const componentUIPast = {
             </div>
         </div>
     </section>
-    <section class="relative min-h-screen flex flex-col justify-between">
+    <section class="relative min-h-screen">
         <div class="w-[95%] mx-auto h-fit">
             <h2 class="text-4xl mt-5">Past Events</h2>
             <CustomCardWithSkeletonComponent :componentUI="componentUIPast" :inpData="local.past_events" customTW="h-full mt-5" customCSS="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem;"/>
             <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 mt-10 inline-block text-[#3D37F1] border border-[#3D37F1] px-4 py-2 rounded-2xl hover:bg-[#3D37F1] hover:text-white">Load More</RouterLink>
         </div>
     </section>
-
-    <section class="relative min-h-screen h-fit flex flex-col justify-between border-black border-4">
-        <div class="absolute top-0 left-0 w-full h-full"></div>
-        <img :src="cele3" alt="" class="absolute right-0" />
+    <section class="relative min-h-screen">
+        <div class="w-[95%] mx-auto h-fit">
+            <h2 class="w-fit mx-auto text-4xl text-[#242565]">Reviews About Us</h2>
+            <p class="w-fit mx-auto text-xl text-[#242565]">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+            <CustomCardWithSkeletonComponent :componentUI="componentUIReviews" :inpData="local.reviews" customTW="h-full mt-5" customCSS="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem;"/>
+            <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 mt-10 inline-block text-[#3D37F1] border border-[#3D37F1] px-4 py-2 rounded-2xl hover:bg-[#3D37F1] hover:text-white">Load More</RouterLink>
+        </div>
     </section>
     <FooterComponent/>
 </template>
