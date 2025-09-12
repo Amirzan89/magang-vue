@@ -28,8 +28,8 @@ const totalItemsCar = ref(0)
 const selectedIndex = ref(0)
 let autoplayTimer: ReturnType<typeof setTimeout> | null = null
 const local = ref({
-    upcomingEvents: null as any,
-    pastEvents: null as any,
+    upcoming_events: null as any,
+    past_events: null as any,
     reviews: null as any,
 })
 onBeforeMount(async() =>{
@@ -45,7 +45,9 @@ onBeforeMount(async() =>{
         return
     }
     console.log('enttokk dataa ', res.data)
-    // local.value.upcomingEvents = res.data
+    local.value.upcoming_events = res.data.upcoming_events
+    local.value.past_events = res.data.past_events
+    local.value.reviews = res.data.reviews
 })
 const onInitApiCar = (api?: CarouselApi) => {
     if(!api) return
@@ -74,6 +76,7 @@ const restartAutoplay = () => {
         autoplayPlugin.play()
     }, 150)
 }
+
 const catHero = reactive([
     {
         'name': 'Music Events',
@@ -92,55 +95,80 @@ const catHero = reactive([
         'icon': markRaw(I_games),
     },
 ])
-const skeletonUpcoming = {
-    name: 'skeletonUpcoming',
-    render: (componentVar: any, inpData: any) => h('div', { class: 'absolute top-0 left-0' }, {
-        default: () => [
-            componentVar.skeletonUpcoming.isErrorPhoto && !inpData.value.imgError ? h(Skeleton, { class: 'w-full rounded-xl'}) : null,
-            h('div', { class: '' }, [
-                h(Skeleton, { class: 'rounded-xl'}),
-                h(Skeleton, { class: 'rounded-xl'}),
-                h(Skeleton, { class: 'rounded-xl'}),
-            ])
-        ]
-    })
+const skeletonUpcoming = (index: string) => {
+    return {
+        render: (componentVar: any, inpData: any) => {
+            return h('div', { class: 'skeleton-wrapper absolute top-0 left-0 flex flex-col space-y-2' }, {
+                default: () => {
+                    return [
+                        componentVar[`cardUpcoming${index}`]?.isErrorPhoto && !inpData.value.imgError
+                            ? h(Skeleton, { class: 'h-12 w-12 rounded-full' })
+                            : null,
+                        // main skeleton items
+                        h('div', { class: 'space-y-2' }, { default: () => {
+                            return [
+                                h(Skeleton, { class: 'h-4 w-[250px]' }),
+                                h(Skeleton, { class: 'h-4 w-[200px]' }),
+                                h(Skeleton, { class: 'h-4 w-[150px]' }),
+                            ]
+                        }}
+                        )
+                    ]}
+                }
+            )
+        }
+    }
 }
-const cardUpcoming = {
-    render: (componentVar: any, inpData: any) => h(Card, { class: '' }, {
-        default: () => h(CardContent, { class: 'absolute rounded-xl' }, [
-            h('div', { class: 'relative' }, [
-                h('img', {
-                    src: inpData.img,
-                    alt: '',
-                    class: ['tw-w-full tw-h-full tw-object-contain', inpData.img === '' ? 'tw-hidden' : ''],
-                    onLoad: () => {componentVar.skeletonUpcoming.isErrorPhoto = false},
-                    onError: () => {componentVar.skeletonUpcoming.isErrorPhoto = true},
-                }),
-                inpData.isFree ? h(I_free, { class: 'absolute top-0 right-0' }) : null
-            ]),
-            h('div', { class: 'flex flex-col' }, [
-                h('div', { class: '' }, [
-                    h('div', { class: '' }, [
-                        h('span', { class: 'text-blue-500' }, ['May']),
-                        h('span', { class: 'text-black' }, ['11'])
-                    ]),
-                    h('div', { class: 'text-black' }, [
-                        h('span', { class: '' }, ['Civil Padura']),
-                        h('span', { class: '' }, ['By Civil Engineering Department'])
-                    ]),
-                ]),
-                h('div', { class: '' }, [
-                    h('span', { class: '' }, ['>> Musical Event']),
-                    h('span', { class: '' }, ['>> All Universities students can join']),
-                ]),
-                h('div', { class: '' }, [
-                    h(I_lokasi, { class: '' }),
-                    h('span', { class: '' }, ['University of Morotuwa']),
-                    h(I_save, { class: '' }),
-                ]),
-            ]),
-        ])
-    })
+
+const cardUpcoming = (index: string) => {
+    return {
+        name: 'cardUpcoming' + index,
+        render: (componentVar: any, inpData: any) => {
+            return h(Card, { class: '' }, {
+                default: () => h(CardContent, { class: 'absolute rounded-xl' }, {
+                    default: () => {
+                        return [
+                            h('div', { class: 'relative' }, [
+                                h('img', {
+                                    src: inpData.imageicon_1,
+                                    alt: '',
+                                    class: ['w-full h-full object-contain', inpData.img === '' ? 'hidden' : ''],
+                                    onLoad: () => {componentVar[`cardUpcoming${index}`].isErrorPhoto = false},
+                                    onError: () => {componentVar[`cardUpcoming${index}`].isErrorPhoto = true},
+                                }),
+                                inpData.isFree ? h(I_free, { class: 'absolute top-0 right-0' }) : null
+                            ]),
+                            h('div', { class: 'flex flex-col' }, [
+                                h('div', { class: '' }, [
+                                    h('div', { class: '' }, [
+                                        h('span', { class: 'text-blue-500' }, ['May']),
+                                        h('span', { class: 'text-black' }, ['11'])
+                                    ]),
+                                    h('div', { class: 'text-black' }, [
+                                        h('span', { class: '' }, ['Civil Padura']),
+                                        h('span', { class: '' }, ['By Civil Engineering Department'])
+                                    ]),
+                                ]),
+                                h('div', { class: '' }, [
+                                    h('span', { class: '' }, ['>> Musical Event']),
+                                    h('span', { class: '' }, ['>> All Universities students can join']),
+                                ]),
+                                h('div', { class: '' }, [
+                                    h(I_lokasi, { class: '' }),
+                                    h('span', { class: '' }, ['University of Morotuwa']),
+                                    h(I_save, { class: '' }),
+                                ]),
+                            ]),
+                        ]
+                    }
+                })
+            })
+        }
+    }
+}
+const componentUIUpcoming = {
+    skeleton: skeletonUpcoming,
+    card: cardUpcoming,
 }
     // //fixed
     // return h(Card, { class: '' }, {
@@ -245,21 +273,10 @@ const cardUpcoming = {
         </div>
     </section>
     <!-- CARDS / UPCOMING -->
-    <section class="relative min-h-screen">
-        <div class="w-[95%] mx-auto bg-green-500">
+    <section class="relative min-h-screen flex flex-col">
+        <div class="w-[97%] mx-auto bg-green-500 h-fit">
             <h2 class="text-4xl">Upcoming Events</h2>
-            <div class="flex">
-                <template v-for="(item, index) in local.upcomingEvents" :key="index">
-                    <CustomCardWithSkeletonComponent :componentUI="[skeletonUpcoming, cardUpcoming]" :inpData="item"/>
-                </template>
-                <!-- <template v-for="(item, index) in 10" :key="index">
-                    <Card :customTW="'h-full'">
-                        <CardContent class="flex aspect-square items-center justify-center p-6 h-full">
-                            <span class="text-4xl font-semibold">{{ index + 1 }}</span>
-                        </CardContent>
-                    </Card>
-                </template> -->
-            </div>
+            <CustomCardWithSkeletonComponent :componentUI="componentUIUpcoming" :inpData="local.upcoming_events" customTW="bg-red-500 h-full" customCSS="display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 1rem;"/>
             <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 mt-10 inline-block text-[#3D37F1] border border-[#3D37F1] px-4 py-2 rounded-2xl hover:bg-[#3D37F1] hover:text-white">See All Events</RouterLink>
         </div>
         <div class="sm:h-55 xl:h-65 mt-50 bg-purple-500">

@@ -1,27 +1,36 @@
 <script setup lang="ts">
-import { reactive, onBeforeMount } from 'vue'
-interface componentItem{
+import { reactive, onBeforeMount, watch, type VNode } from 'vue'
+interface ComponentItem{
     name?: string,
-    render: CallableFunction
+    render: (componentVar: any, inpData: any) => VNode
 }
 const props = defineProps<{
-    componentUI: componentItem[]
+    customTW?: string,
+    customCSS?: string,
+    componentUI: { skeleton: (index: string) => ComponentItem; card: (index: string) => ComponentItem }
     inpData?: Record<string, any>
 }>()
 const inpData: any = reactive({})
 const componentVar: any = reactive([])
 onBeforeMount(() => {
-    props.componentUI.forEach((item) => {
-        if(item.name) componentVar.push({[item.name]: {} })
-    });
-    Object.assign(inpData, props.inpData)
 })
+watch(() => props.inpData, (newData) => {
+    if(!newData) return
+    newData.forEach((item: any, index: number) => {
+        Object.values(props.componentUI).forEach((element: any) => {
+            const name = typeof element === 'function' ? element(index).name : element.name
+            if(name) componentVar.push({ [name]: {} })
+        });
+    });
+    Object.assign(inpData, newData)
+}, { immediate:true })
 defineExpose({ inpData });
 </script>
 <template>
-    <TransitionGroup name="fade" mode="out-in">
-        <template v-for="(item, index) in componentUI" :key="index">
-            <component :is="item.render(inpData)"></component>
+    <TransitionGroup v-if="props.inpData && props.inpData.length" tag="div" name="fade" mode="out-in" key="annn" :class="customTW" :style="customCSS">
+        <template v-for="(item, index) in props.inpData" :key="item.id">
+            <!-- <component :is="componentUI.skeleton(index).render(componentVar, item)" /> -->
+            <component :is="componentUI.card(index).render(componentVar, item)" />
         </template>
     </TransitionGroup>
 </template>
