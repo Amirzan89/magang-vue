@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, onBeforeMount, watch, type VNode } from 'vue'
+import { reactive, onBeforeMount, watch, type VNode, type Component } from 'vue'
 import Card from './ui/card/Card.vue';
 import CardContent from './ui/card/CardContent.vue';
 interface ComponentItem{
@@ -8,6 +8,7 @@ interface ComponentItem{
 }
 const props = defineProps<{
     metaData: {
+        wrapper: (inpData: any) => Component,
         totalItems: number
         customTWTransition?: string,
         customTWCard?: string,
@@ -24,7 +25,7 @@ const props = defineProps<{
     inpData?: Record<string, any>[]
 }>()
 const inpData: any = reactive({})
-const componentVar: any = reactive([])
+const componentVar: any = reactive({})
 onBeforeMount(() => {
 })
 watch(() => props.inpData, (newData) => {
@@ -32,29 +33,26 @@ watch(() => props.inpData, (newData) => {
     newData.forEach((item: any, index: number) => {
         Object.values(props.componentUI).forEach((element: any) => {
             const name = typeof element === 'function' ? element(index).name : element.name
-            if(name) componentVar.push({ [name]: {} })
+            if(name) componentVar[name] = {}
         });
     });
     Object.assign(inpData, newData)
 }, { immediate:true })
-defineExpose({ inpData });
 </script>
 <template>
     <TransitionGroup v-if="props.inpData && props.inpData.length > 0" tag="div" name="fade" mode="out-in" key="annn" :class="metaData.customTWTransition" :style="metaData.customCSSTransition">
         <template v-for="indexPar in Math.min(metaData.totalItems, props.inpData.length + 1)" :key="indexPar">
-            <template v-if="indexPar <= (props.inpData.length + 1)">
-                <Card class="relative" :class="metaData.customTWCard" :style="metaData.customCSSCard">
-                    <CardContent :class="metaData.customTWCardContent" :style="metaData.customCSSCardContent">
-                        <template v-if="indexPar <= props.inpData.length">
-                            <component :is="componentUI.card(indexPar - 1).render(componentVar, props.inpData[indexPar - 1])" />
-                            <component :is="componentUI.skeleton(indexPar - 1).render(componentUI, props.inpData[indexPar - 1])" />
-                        </template>
-                        <template v-else-if="placeholderItems">
-                            <component :is="placeholderItems.card" />
-                            <component v-if="placeholderItems.skeleton" :is="placeholderItems.skeleton"/>
-                        </template>
-                    </CardContent>
-                </Card>
+            <template v-if="indexPar <= (props.inpData.length + (props.placeholderItems ? 1 : 0))">
+                <component :is="metaData.wrapper(props.inpData[indexPar - 1])">
+                    <component v-if="indexPar <= props.inpData.length" :is="componentUI.skeleton(indexPar - 1).render(componentUI, props.inpData[indexPar - 1])" />
+                    <component v-else-if="placeholderItems" :is="placeholderItems.skeleton"/>
+                    <Card class="relative" :class="metaData.customTWCard" :style="metaData.customCSSCard">
+                        <CardContent :class="metaData.customTWCardContent" :style="metaData.customCSSCardContent">
+                            <component v-if="indexPar <= props.inpData.length" :is="componentUI.card(indexPar - 1).render(componentVar, props.inpData[indexPar - 1])" />
+                            <component v-else-if="placeholderItems" :is="placeholderItems.card" />
+                        </CardContent>
+                    </Card>
+                </component>
             </template>
         </template>
     </TransitionGroup>
