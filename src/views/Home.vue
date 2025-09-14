@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onBeforeMount, markRaw, h, useSlots, defineComponent, Fragment } from 'vue'
+import { ref, reactive, onBeforeMount, markRaw, h, useSlots, defineComponent, Fragment, type VNodeRef } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import Autoplay from "embla-carousel-autoplay"
 import { useConfig } from '@/composables/useConfig'
@@ -101,21 +101,19 @@ const catHero = reactive([
 ])
 const skeletonUpcoming = (index: number) => {
     return {
-        render: (componentVar: any, inpData: any) => {
-            return h('div', { class: 'skeleton-wrapper absolute top-0 left-0 flex flex-col w-full h-full' }, {
+        name: `skeletonUpcoming${index}`,
+        render: () => {
+            return h('div', { class: 'skeleton-wrapper absolute top-0 left-0 flex flex-col w-full h-full bg-red-500' }, {
                 default: () => {
                     return [
-                        componentVar[`cardUpcoming${index}`]?.isErrorPhoto && !inpData.value.imgError
-                            ? h(Skeleton, { class: 'h-12 w-12 rounded-full' })
-                            : null,
-                        h('div', { class: 'space-y-2' }, { default: () => {
-                            return [
+                        h(Skeleton, { class: 'h-12 w-12 rounded-full', }),
+                        h('div', { class: 'space-y-2' }, {
+                            default: () => [
                                 h(Skeleton, { class: 'h-4 w-[250px]' }),
                                 h(Skeleton, { class: 'h-4 w-[200px]' }),
                                 h(Skeleton, { class: 'h-4 w-[150px]' }),
                             ]
-                        }}
-                        )
+                        })
                     ]}
                 }
             )
@@ -124,46 +122,64 @@ const skeletonUpcoming = (index: number) => {
 }
 const cardUpcoming = (index: number) => {
     return {
-        name: 'cardUpcoming' + index,
-        render: (componentVar: any, inpData: any) => h(Fragment, null, [
-            h('div', { class: 'relative' }, [
-                h('img', {
-                    src: inpData.img,
-                    alt: '',
-                    class: ['w-full h-full object-contain', inpData.img === '' ? 'hidden' : ''],
-                    onLoad: () => {componentVar[`cardUpcoming${index}`].isErrorPhoto = false},
-                    onError: () => {componentVar[`cardUpcoming${index}`].isErrorPhoto = true},
-                }),
-                inpData.isFree ? h(I_free, { class: 'absolute top-0 right-0' }) : null
-            ]),
-            h('div', { class: 'w-[90%] mx-auto flex flex-col' }, [
-                h('div', { class: 'flex gap-5' }, [
-                    h('div', { class: 'flex flex-col' }, [
-                        h('span', { class: 'text-[#3D37F1] font-bold' }, ['May']),
-                        h('span', { class: 'text-black' }, ['11'])
-                    ]),
-                    h('div', { class: 'flex flex-col text-xl text-black' }, [
-                        h('span', { class: '' }, ['Civil Padura']),
-                        h('span', { class: '' }, ['By Civil Engineering Department'])
-                    ]),
-                ]),
-                h('div', { class: 'flex flex-col text-xl' }, [
-                    h('div', { class: 'flex gap-2 items-center' }, [
-                        h(I_DRight, { class: 'w-5 h-5 text-red-500' }),
-                        h('span', null, ['Musical Event']),
-                    ]),
-                    h('div', { class: 'flex gap-2 items-center' }, [
-                        h(I_DRight, { class: 'w-5 h-5 text-red-500' }),
-                        h('span', null, ['All Universities students can join']),
-                    ]),
-                ]),
-                h('div', { class: 'flex justify-between items-center mt-3' }, [
-                    h(I_Location, { class: 'w-8 h-8 text-red-500' }),
-                    h('span', { class: 'text-xl font-medium' }, ['University of Morotuwa']),
-                    h(I_Bookmark, { class: 'w-8 h-8 text-blue-500' }),
-                ]),
-            ]),
-        ])
+        render: (inpData: any) => defineComponent({
+            emits: ['toggleSkeleton'],
+            setup(_, { emit }){
+                let imgLoad = false
+                const handleLoad = () => {
+                    imgLoad = true
+                    emit('toggleSkeleton', { name: `skeletonUpcoming${index}`, showSkeleton: false })
+                }
+                const handleComplete = () => emit('toggleSkeleton', { name: `skeletonUpcoming${index}`, showSkeleton: false })
+                const handleError = () => emit('toggleSkeleton', { name: `skeletonUpcoming${index}`, showSkeleton: false })
+                return () => h(Card, { class: 'h-full' }, {
+                    default: () => h(CardContent, { class: 'relative rounded-xl' }, {
+                        default: () => h(Fragment, null, [
+                            h('div', { class: 'relative' }, [
+                                h('img', {
+                                    src: inpData.img,
+                                    alt: '',
+                                    class: ['w-full h-full object-contain', inpData.img === '' ? 'hidden' : ''],
+                                    ref: ((el: HTMLImageElement | null) => {
+                                        if (el?.complete && el.naturalWidth !== 0 && !imgLoad) handleComplete()
+                                    }) as VNodeRef,
+                                    onLoad: () => handleLoad(),
+                                    onError: () => handleError(),
+                                }),
+                                inpData.isFree ? h(I_free, { class: 'absolute top-0 right-0' }) : null
+                            ]),
+                            h('div', { class: 'w-[90%] mx-auto flex flex-col' }, [
+                                h('div', { class: 'flex gap-5' }, [
+                                    h('div', { class: 'flex flex-col' }, [
+                                        h('span', { class: 'text-[#3D37F1] font-bold' }, ['May']),
+                                        h('span', { class: 'text-black' }, ['11'])
+                                    ]),
+                                    h('div', { class: 'flex flex-col text-xl text-black' }, [
+                                        h('span', { class: '' }, ['Civil Padura']),
+                                        h('span', { class: '' }, ['By Civil Engineering Department'])
+                                    ]),
+                                ]),
+                                h('div', { class: 'flex flex-col text-xl' }, [
+                                    h('div', { class: 'flex gap-2 items-center' }, [
+                                        h(I_DRight, { class: 'w-5 h-5 text-red-500' }),
+                                        h('span', null, ['Musical Event']),
+                                    ]),
+                                    h('div', { class: 'flex gap-2 items-center' }, [
+                                        h(I_DRight, { class: 'w-5 h-5 text-red-500' }),
+                                        h('span', null, ['All Universities students can join']),
+                                    ]),
+                                ]),
+                                h('div', { class: 'flex justify-between items-center mt-3' }, [
+                                    h(I_Location, { class: 'w-8 h-8 text-red-500' }),
+                                    h('span', { class: 'text-xl font-medium' }, ['University of Morotuwa']),
+                                    h(I_Bookmark, { class: 'w-8 h-8 text-blue-500' }),
+                                ]),
+                            ]),
+                        ])
+                    })
+                })
+            }
+        })
     }
 }
 const componentUIUpcoming = {
@@ -183,8 +199,6 @@ const metaDataUpcoming = {
     }),
     totalItems: 6,
     customTWTransition: 'h-full mt-5',
-    customTWCard: 'h-full',
-    customTWCardContent: 'relative rounded-xl',
     customCSSTransition: 'display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem;',
 }
 
@@ -192,14 +206,12 @@ const metaDataUpcoming = {
 
 const skeletonPast = (index: number) => {
     return {
-        render: (componentVar: any, inpData: any) => {
+        name: `skeletonPast${index}`,
+        render: () => {
             return h('div', { class: 'skeleton-wrapper absolute top-0 left-0 flex flex-col space-y-2' }, {
                 default: () => {
                     return [
-                        componentVar[`cardPast${index}`]?.isErrorPhoto && !inpData.value.imgError
-                            ? h(Skeleton, { class: 'h-12 w-12 rounded-full' })
-                            : null,
-                        // main skeleton items
+                        h(Skeleton, { class: 'h-12 w-12 rounded-full' }),
                         h('div', { class: 'space-y-2' }, { default: () => {
                             return [
                                 h(Skeleton, { class: 'h-4 w-[250px]' }),
@@ -216,46 +228,64 @@ const skeletonPast = (index: number) => {
 }
 const cardPast = (index: number) => {
     return {
-        name: 'cardPast' + index,
-        render: (componentVar: any, inpData: any) => h(Fragment, null, [
-            h('div', { class: 'relative' }, [
-                h('img', {
-                    src: inpData.img,
-                    alt: '',
-                    class: ['w-full h-full object-contain', inpData.img === '' ? 'hidden' : ''],
-                    onLoad: () => {componentVar[`cardPast${index}`].isErrorPhoto = false},
-                    onError: () => {componentVar[`cardPast${index}`].isErrorPhoto = true},
-                }),
-                inpData.isFree ? h(I_free, { class: 'absolute top-0 right-0' }) : null
-            ]),
-            h('div', { class: 'w-[90%] mx-auto flex flex-col' }, [
-                h('div', { class: 'flex gap-5' }, [
-                    h('div', { class: 'flex flex-col' }, [
-                        h('span', { class: 'text-[#3D37F1] font-bold' }, ['May']),
-                        h('span', { class: 'text-black' }, ['11'])
-                    ]),
-                    h('div', { class: 'flex flex-col text-xl text-black' }, [
-                        h('span', { class: '' }, ['Civil Padura']),
-                        h('span', { class: '' }, ['By Civil Engineering Department'])
-                    ]),
-                ]),
-                h('div', { class: 'flex flex-col text-xl' }, [
-                    h('div', { class: 'flex gap-2 items-center' }, [
-                        h(I_DRight, { class: 'w-5 h-5 text-red-500' }),
-                        h('span', null, ['Musical Event']),
-                    ]),
-                    h('div', { class: 'flex gap-2 items-center' }, [
-                        h(I_DRight, { class: 'w-5 h-5 text-red-500' }),
-                        h('span', null, ['All Universities students can join']),
-                    ]),
-                ]),
-                h('div', { class: 'flex justify-between items-center mt-3' }, [
-                    h(I_Location, { class: 'w-8 h-8 text-red-500' }),
-                    h('span', { class: 'text-xl font-medium' }, ['University of Morotuwa']),
-                    h(I_Bookmark, { class: 'w-8 h-8 text-blue-500' }),
-                ]),
-            ]),
-        ])
+        render: (inpData: any) => defineComponent({
+            emits: ['toggleSkeleton'],
+            setup(_, { emit }){
+                let imgLoad = false
+                const handleLoad = () => {
+                    imgLoad = true
+                    emit('toggleSkeleton', { name: `skeletonPast${index}`, showSkeleton: false })
+                }
+                const handleComplete = () => emit('toggleSkeleton', { name: `skeletonPast${index}`, showSkeleton: false })
+                const handleError = () => emit('toggleSkeleton', { name: `skeletonPast${index}`, showSkeleton: false })
+                return () => h(Card, { class: 'h-full' }, {
+                    default: () => h(CardContent, { class: 'relative rounded-xl' }, {
+                        default: () => h(Fragment, null, [
+                            h('div', { class: 'relative' }, [
+                                h('img', {
+                                    src: inpData.img,
+                                    alt: '',
+                                    class: ['w-full h-full object-contain', inpData.img === '' ? 'hidden' : ''],
+                                    ref: ((el: HTMLImageElement | null) => {
+                                        if (el?.complete && el.naturalWidth !== 0 && !imgLoad) handleComplete()
+                                    }) as VNodeRef,
+                                    onLoad: () => handleLoad(),
+                                    onError: () => handleError(),
+                                }),
+                                inpData.isFree ? h(I_free, { class: 'absolute top-0 right-0' }) : null
+                            ]),
+                            h('div', { class: 'w-[90%] mx-auto flex flex-col' }, [
+                                h('div', { class: 'flex gap-5' }, [
+                                    h('div', { class: 'flex flex-col' }, [
+                                        h('span', { class: 'text-[#3D37F1] font-bold' }, ['May']),
+                                        h('span', { class: 'text-black' }, ['11'])
+                                    ]),
+                                    h('div', { class: 'flex flex-col text-xl text-black' }, [
+                                        h('span', { class: '' }, ['Civil Padura']),
+                                        h('span', { class: '' }, ['By Civil Engineering Department'])
+                                    ]),
+                                ]),
+                                h('div', { class: 'flex flex-col text-xl' }, [
+                                    h('div', { class: 'flex gap-2 items-center' }, [
+                                        h(I_DRight, { class: 'w-5 h-5 text-red-500' }),
+                                        h('span', null, ['Musical Event']),
+                                    ]),
+                                    h('div', { class: 'flex gap-2 items-center' }, [
+                                        h(I_DRight, { class: 'w-5 h-5 text-red-500' }),
+                                        h('span', null, ['All Universities students can join']),
+                                    ]),
+                                ]),
+                                h('div', { class: 'flex justify-between items-center mt-3' }, [
+                                    h(I_Location, { class: 'w-8 h-8 text-red-500' }),
+                                    h('span', { class: 'text-xl font-medium' }, ['University of Morotuwa']),
+                                    h(I_Bookmark, { class: 'w-8 h-8 text-blue-500' }),
+                                ]),
+                            ]),
+                        ])
+                    })
+                })
+            }
+        })
     }
 }
 const componentUIPast = {
@@ -284,14 +314,12 @@ const metaDataPast = {
 
 const skeletonReviews = (index: number) => {
     return {
-        render: (componentVar: any, inpData: any) => {
+        name: `skeletonReview${index}`,
+        render: () => {
             return h('div', { class: 'skeleton-wrapper absolute top-0 left-0 flex flex-col space-y-2' }, {
                 default: () => {
                     return [
-                        componentVar[`cardReviews${index}`]?.isErrorPhoto && !inpData.value.imgError
-                            ? h(Skeleton, { class: 'h-12 w-12 rounded-full' })
-                            : null,
-                        // main skeleton items
+                        h(Skeleton, { class: 'h-12 w-12 rounded-full' }),
                         h('div', { class: 'space-y-2' }, { default: () => {
                             return [
                                 h(Skeleton, { class: 'h-4 w-[250px]' }),
@@ -308,39 +336,56 @@ const skeletonReviews = (index: number) => {
 }
 const cardReviews = (index: number) => {
     return {
-        name: 'cardReviews' + index,
-        render: (componentVar: any, inpData: any) => h(Fragment, null, [
-            h('div', { class: 'flex gap-2' }, [
-                h('div', { class: 'relative right-0 w-15 h-15 rounded-full pointer-events-none' }, [
-                    h('img', {
-                        ref: "imageRefs",
-                        src: publicConfig.baseURL + inpData.photo || [defaultBoy, defaultGirl][Math.floor(Math.random() * 2)],
-                        alt: '',
-                        class: ['absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-full h-full object-cover'],
-                        style: ['clip-path: circle();'],
-                        onLoad: () => {componentVar[`cardReviews${index}`].isLoadingImg = false},
-                        onError: () => {componentVar[`cardReviews${index}`].isLoadingImg = true},
-                    }),
-                ]),
-                h('div', { class: '' }, [
-                    h('div', { class: 'flex' }, [
-                        (() => {
-                            const stars = []
-                            const full = Math.floor(inpData.rating)
-                            const half = inpData.rating % 1 >= 0.5
-                            const empty = 5 - full - (half ? 1 : 0)
-                            for(let i = 0; i < full; i++) stars.push(h(I_FullStar, { class: 'w-5 h-5 text-yellow-500' }))
-                            for(let i = 0; i < empty; i++) stars.push(h(I_EmptyStar, { class: 'w-5 h-5 text-yellow-500' }))
-                            if(half) stars.push(h(I_HalfStar, { class: 'w-6 h-6 text-yellow-500'}))
-                            return stars
-                        })()
-                    ]),
-                    h('h5', { class: '' }, ['Taylor Swifft']),
-                    h('span', { class: '' }, ['20 Agustus 2025']),
-                ])
-            ]),
-            h('p', { class: '' }, ['Sekarang, kamu bisa produksi tiket fisik untuk eventmu bersama Bostiketbos. Hanya perlu mengikuti beberapa langkah mudah.'])
-        ])
+        render: (inpData: any) => defineComponent({
+            emits: ['toggleSkeleton'],
+            setup(_, { emit }){
+                let imgLoad = false
+                const handleLoad = () => {
+                    imgLoad = true
+                    emit('toggleSkeleton', { name: `skeletonReview${index}`, showSkeleton: false })
+                }
+                const handleComplete = () => emit('toggleSkeleton', { name: `skeletonReview${index}`, showSkeleton: false })
+                const handleError = () => emit('toggleSkeleton', { name: `skeletonReview${index}`, showSkeleton: false })
+                return () => h(Card, { class: 'h-full' }, {
+                    default: () => h(CardContent, { class: 'relative rounded-xl flex flex-col gap-2' }, {
+                        default: () => h(Fragment, null, [
+                            h('div', { class: 'flex gap-2' }, [
+                                h('div', { class: 'relative right-0 w-15 h-15 rounded-full pointer-events-none' }, [
+                                    h('img', {
+                                        src: publicConfig.baseURL + inpData.photo || [defaultBoy, defaultGirl][Math.floor(Math.random() * 2)],
+                                        alt: '',
+                                        class: ['absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-full h-full object-cover'],
+                                        style: ['clip-path: circle();'],
+                                        ref: ((el: HTMLImageElement | null) => {
+                                            if (el?.complete && el.naturalWidth !== 0 && !imgLoad) handleComplete()
+                                        }) as VNodeRef,
+                                        onLoad: () => handleLoad(),
+                                        onError: () => handleError(),
+                                    }),
+                                ]),
+                                h('div', { class: '' }, [
+                                    h('div', { class: 'flex' }, [
+                                        (() => {
+                                            const stars = []
+                                            const full = Math.floor(inpData.rating)
+                                            const half = inpData.rating % 1 >= 0.5
+                                            const empty = 5 - full - (half ? 1 : 0)
+                                            for(let i = 0; i < full; i++) stars.push(h(I_FullStar, { class: 'w-5 h-5 text-yellow-500' }))
+                                            for(let i = 0; i < empty; i++) stars.push(h(I_EmptyStar, { class: 'w-5 h-5 text-yellow-500' }))
+                                            if(half) stars.push(h(I_HalfStar, { class: 'w-6 h-6 text-yellow-500'}))
+                                            return stars
+                                        })()
+                                    ]),
+                                    h('h5', { class: '' }, ['Taylor Swifft']),
+                                    h('span', { class: '' }, ['20 Agustus 2025']),
+                                ])
+                            ]),
+                            h('p', { class: '' }, ['Sekarang, kamu bisa produksi tiket fisik untuk eventmu bersama Bostiketbos. Hanya perlu mengikuti beberapa langkah mudah.'])
+                        ])
+                    })
+                })
+            }
+        })
     }
 }
 const componentUIReviews = {
@@ -365,8 +410,6 @@ const metaDataReviews = {
     }),
     totalItems: 6,
     customTWTransition: 'h-full',
-    customTWTCard: 'h-full',
-    customTWCardContent: 'relative rounded-xl flex flex-col gap-2',
     customCSSTransition: 'display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem;',
 }
 </script>

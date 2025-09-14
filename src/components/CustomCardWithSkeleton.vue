@@ -1,21 +1,15 @@
 <script setup lang="ts">
-import { reactive, onBeforeMount, watch, type VNode, type Component } from 'vue'
-import Card from './ui/card/Card.vue';
-import CardContent from './ui/card/CardContent.vue';
+import { reactive, type VNode, type Component } from 'vue'
 interface ComponentItem{
     name?: string,
-    render: (componentVar: any, inpData: any) => VNode
+    render: (inpData: any) => Component
 }
 const props = defineProps<{
     metaData: {
         wrapper: (inpData: any) => Component,
         totalItems: number
         customTWTransition?: string,
-        customTWCard?: string,
-        customTWCardContent?: string,
         customCSSTransition?: string,
-        customCSSCard?: string,
-        customCSSCardContent?: string,
     }
     placeholderItems?: {
         skeleton?: VNode
@@ -24,34 +18,28 @@ const props = defineProps<{
     componentUI: { skeleton: (index: number) => ComponentItem; card: (index: number) => ComponentItem }
     inpData?: Record<string, any>[]
 }>()
-const inpData: any = reactive({})
-const componentVar: any = reactive({})
-onBeforeMount(() => {
-})
-watch(() => props.inpData, (newData) => {
-    if(!newData) return
-    newData.forEach((item: any, index: number) => {
-        Object.values(props.componentUI).forEach((element: any) => {
-            const name = typeof element === 'function' ? element(index).name : element.name
-            if(name) componentVar[name] = {}
-        });
-    });
-    Object.assign(inpData, newData)
-}, { immediate:true })
+const toggleSkeleton: any = reactive({})
+const handleToggleSkeleton = (data: { name: string, showSkeleton: boolean }) => {
+    const { name, ...restValues } = data
+    const prev = toggleSkeleton[name] || {}
+    const next = { ...prev, ...restValues }
+    if (JSON.stringify(prev) === JSON.stringify(next)) return
+    toggleSkeleton[name] = next
+}
 </script>
 <template>
     <TransitionGroup v-if="props.inpData && props.inpData.length > 0" tag="div" name="fade" mode="out-in" key="annn" :class="metaData.customTWTransition" :style="metaData.customCSSTransition">
         <template v-for="indexPar in Math.min(metaData.totalItems, props.inpData.length + 1)" :key="indexPar">
             <template v-if="indexPar <= (props.inpData.length + (props.placeholderItems ? 1 : 0))">
                 <component :is="metaData.wrapper(props.inpData[indexPar - 1])">
-                    <component v-if="indexPar <= props.inpData.length" :is="componentUI.skeleton(indexPar - 1).render(componentUI, props.inpData[indexPar - 1])" />
-                    <component v-else-if="placeholderItems" :is="placeholderItems.skeleton"/>
-                    <Card class="relative" :class="metaData.customTWCard" :style="metaData.customCSSCard">
-                        <CardContent :class="metaData.customTWCardContent" :style="metaData.customCSSCardContent">
-                            <component v-if="indexPar <= props.inpData.length" :is="componentUI.card(indexPar - 1).render(componentVar, props.inpData[indexPar - 1])" />
-                            <component v-else-if="placeholderItems" :is="placeholderItems.card" />
-                        </CardContent>
-                    </Card>
+                    <template v-if="(toggleSkeleton[componentUI.skeleton(indexPar - 1).name!]?.showSkeleton ?? true) && (componentUI.skeleton || placeholderItems)">
+                        <component v-if="indexPar <= props.inpData.length" :is="componentUI.skeleton(indexPar - 1).render(props.inpData[indexPar - 1])" />
+                        <component v-else-if="placeholderItems" :is="placeholderItems.skeleton"/>
+                    </template>
+                    <template v-if="componentUI.card || placeholderItems">
+                        <component v-if="indexPar <= props.inpData.length" :is="componentUI.card(indexPar - 1).render(props.inpData[indexPar - 1])" @toggleSkeleton="handleToggleSkeleton" />
+                        <component v-else-if="placeholderItems" :is="placeholderItems.card" @toggleSkeleton="handleToggleSkeleton" />
+                    </template>
                 </component>
             </template>
         </template>
