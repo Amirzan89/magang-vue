@@ -345,14 +345,18 @@ const cardReviews = (index: number) => {
                     emit('toggleSkeleton', { name: `skeletonReview${index}`, showSkeleton: false })
                 }
                 const handleComplete = () => emit('toggleSkeleton', { name: `skeletonReview${index}`, showSkeleton: false })
-                const handleError = () => emit('toggleSkeleton', { name: `skeletonReview${index}`, showSkeleton: false })
+                const handleError = (e: Event) => {
+                    const imgEl = e.target as HTMLImageElement
+                    imgEl.src = [defaultBoy, defaultGirl][Math.floor(Math.random() * 2)]
+                    emit('toggleSkeleton', { name: `skeletonReview${index}`, showSkeleton: false })
+                }
                 return () => h(Card, { class: 'h-full' }, {
                     default: () => h(CardContent, { class: 'relative rounded-xl flex flex-col gap-2' }, {
                         default: () => h(Fragment, null, [
                             h('div', { class: 'flex gap-2' }, [
                                 h('div', { class: 'relative right-0 w-15 h-15 rounded-full pointer-events-none' }, [
                                     h('img', {
-                                        src: publicConfig.baseURL + inpData.photo || [defaultBoy, defaultGirl][Math.floor(Math.random() * 2)],
+                                        src: inpData.photo ? publicConfig.baseURL + inpData.photo : [defaultBoy, defaultGirl][Math.floor(Math.random() * 2)],
                                         alt: '',
                                         class: ['absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-full h-full object-cover'],
                                         style: ['clip-path: circle();'],
@@ -360,7 +364,7 @@ const cardReviews = (index: number) => {
                                             if (el?.complete && el.naturalWidth !== 0 && !imgLoad) handleComplete()
                                         }) as VNodeRef,
                                         onLoad: () => handleLoad(),
-                                        onError: () => handleError(),
+                                        onError: (e: Event) => handleError(e),
                                     }),
                                 ]),
                                 h('div', { class: '' }, [
