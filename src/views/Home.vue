@@ -132,14 +132,15 @@ const cardUpcoming = (index: number) => {
                 }
                 const handleComplete = () => emit('toggleSkeleton', { name: `skeletonUpcoming${index}`, showSkeleton: false })
                 const handleError = () => emit('toggleSkeleton', { name: `skeletonUpcoming${index}`, showSkeleton: false })
-                return () => h(Card, { class: 'h-full' }, {
+                return () => h(Card, { class: 'w-fit h-fit', style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, {
                     default: () => h(CardContent, { class: 'relative rounded-xl' }, {
                         default: () => h(Fragment, null, [
                             h('div', { class: 'relative' }, [
                                 h('img', {
                                     src: inpData.img,
                                     alt: '',
-                                    class: ['w-full h-full object-contain', inpData.img === '' ? 'hidden' : ''],
+                                    class: ['object-contain', inpData.img === '' ? 'hidden' : ''],
+                                    style: 'height: 197px',
                                     ref: ((el: HTMLImageElement | null) => {
                                         if (el?.complete && el.naturalWidth !== 0 && !imgLoad) handleComplete()
                                     }) as VNodeRef,
@@ -191,7 +192,7 @@ const metaDataUpcoming = {
         setup(){
             const slots = useSlots()
             return () => {
-                return h(RouterLink, { to: inpData.event_id, class: 'relative' }, {
+                return h(RouterLink, { to: inpData.event_id, class: 'relative w-fit' }, {
                     default: () => slots.default ? slots.default() : null
                 });
             }
@@ -238,7 +239,7 @@ const cardPast = (index: number) => {
                 }
                 const handleComplete = () => emit('toggleSkeleton', { name: `skeletonPast${index}`, showSkeleton: false })
                 const handleError = () => emit('toggleSkeleton', { name: `skeletonPast${index}`, showSkeleton: false })
-                return () => h(Card, { class: 'h-full' }, {
+                return () => h(Card, { class: 'h-full', style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, {
                     default: () => h(CardContent, { class: 'relative rounded-xl' }, {
                         default: () => h(Fragment, null, [
                             h('div', { class: 'relative' }, [
@@ -304,10 +305,10 @@ const metaDataPast = {
         }
     }),
     totalItems: 10,
-    customTWTransition: 'h-full mt-5',
+    customTWTransition: 'min-h-full h-full mt-5',
     customTWCard: 'h-full',
-    customTWCardContent: 'relative rounded-xl',
-    customCSSTransition: 'display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem;',
+    customTWCardContent: 'relative rounded-xl ',
+    customCSSTransition: 'display: grid; grid-template-columns: repeat(auto-fit, minmax(0px, 200px)); gap: 1.5rem;',
 }
 
 
@@ -350,7 +351,7 @@ const cardReviews = (index: number) => {
                     imgEl.src = [defaultBoy, defaultGirl][Math.floor(Math.random() * 2)]
                     emit('toggleSkeleton', { name: `skeletonReview${index}`, showSkeleton: false })
                 }
-                return () => h(Card, { class: 'h-full' }, {
+                return () => h(Card, { class: 'h-full', style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, {
                     default: () => h(CardContent, { class: 'relative rounded-xl flex flex-col gap-2' }, {
                         default: () => h(Fragment, null, [
                             h('div', { class: 'flex gap-2' }, [
@@ -413,18 +414,17 @@ const metaDataReviews = {
         }
     }),
     totalItems: 6,
-    customTWTransition: 'h-full',
+    customTWTransition: 'min-h-full h-full',
     customCSSTransition: 'display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem;',
 }
 </script>
 <template>
     <HeaderComponent/>
-    <section class="relative h-screen pt-16 bg-blue-600">
-        <div class="absolute inset-0">
-            <img src="@/assets/images/party-1.png" alt="" class="w-full h-full object-cover" />
-            <div class="absolute inset-0 bg-gradient-to-b from-pink-500/80 to-indigo-600/90"></div>
+    <section class="relative h-screen pt-16">
+        <div class="absolute top-0 left-0 w-full h-full -z-1">
+            <img src="@/assets/images/party-1.png" alt="" class="w-full object-cover" />
+            <div class="absolute top-0 left-0 w-full h-full opacity-90" style="background-image:linear-gradient(156deg, #ed4690 0%, #5522cc 111.39%)"></div>
         </div>
-        <div class="bg"></div>
         <div class="relative z-10 flex flex-col justify-center gap-24 items-center h-full text-white">
             <div class="w-[92%] h-1/2">
                 <div class="relative left-1/2 -translate-x-1/2 rounded-xl h-full">
@@ -477,7 +477,8 @@ const metaDataReviews = {
     <!-- CARDS / UPCOMING -->
     <section class="relative min-h-screen flex flex-col">
         <div class="w-[95%] mx-auto h-fit">
-            <h2 class="text-4xl mt-5">Upcoming Events</h2>
+            <h2 class="w-fit mx-auto text-4xl mt-5">Upcoming Events</h2>
+            <p class="w-fit mx-auto text-xl text-[#242565] mb-15">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
             <CustomCardWithSkeletonComponent :metaData="metaDataUpcoming" :componentUI="componentUIUpcoming" :inpData="local.upcoming_events"/>
             <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 mt-10 inline-block text-[#3D37F1] border border-[#3D37F1] px-4 py-2 rounded-2xl hover:bg-[#3D37F1] hover:text-white">See All Events</RouterLink>
         </div>
@@ -492,17 +493,18 @@ const metaDataReviews = {
             </div>
         </div>
     </section>
-    <section class="relative min-h-screen">
+    <section class="relative min-h-screen mt-10">
         <div class="w-[95%] mx-auto h-fit">
-            <h2 class="text-4xl mt-5">Past Events</h2>
+            <h2 class="w-fit mx-auto text-4xl mt-5">Past Events</h2>
+            <p class="w-fit mx-auto text-xl text-[#242565] mb-15">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
             <CustomCardWithSkeletonComponent :metaData="metaDataPast" :componentUI="componentUIPast" :inpData="local.past_events"/>
             <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 mt-10 inline-block text-[#3D37F1] border border-[#3D37F1] px-4 py-2 rounded-2xl hover:bg-[#3D37F1] hover:text-white">Load More</RouterLink>
         </div>
     </section>
-    <section class="relative min-h-screen">
+    <section class="relative h-fit mb-20">
         <div class="w-[95%] mx-auto h-fit">
             <h2 class="w-fit mx-auto text-4xl text-[#242565]">Reviews About Us</h2>
-            <p class="w-fit mx-auto text-xl text-[#242565]">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+            <p class="w-fit mx-auto text-xl text-[#242565] mb-15">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
             <CustomCardWithSkeletonComponent :metaData="metaDataReviews" :componentUI="componentUIReviews" :placeholderItems="placeholderReviews" :inpData="local.reviews"/>
             <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 mt-10 inline-block text-[#3D37F1] border border-[#3D37F1] px-4 py-2 rounded-2xl hover:bg-[#3D37F1] hover:text-white">Load More</RouterLink>
         </div>
