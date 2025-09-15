@@ -52,15 +52,11 @@ window.onresize = () => {
 }
 </script>
 <template>
-    <component :is="Layout" :key="layoutName" />
-    <!-- <LoadingComponent/> -->
-    <!-- <ToastComponent/> -->
-    <!-- kalau mau animasi antar layout -->
-    <!--
     <transition name="fade" mode="out-in">
         <component :is="Layout" :key="layoutName" />
     </transition>
-    -->
+    <LoadingComponent/>
+    <ToastComponent/>
 </template>
 <style>
 .fade-enter-active,.fade-leave-active { transition: opacity .15s }
