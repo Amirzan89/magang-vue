@@ -38,6 +38,8 @@ import I_free from '@/assets/icons/card_events/free-tag.svg?component'
 import I_DRight from '@/assets/icons/card_events/double-right.svg?component'
 import I_Location from '@/assets/icons/card_events/location.svg?component'
 import I_Bookmark from '@/assets/icons/card_events/bookmark.svg?component'
+import router from '@/router'
+const route = useRoute()
 const publicConfig = useConfig()
 const { axiosJson, fetchCsrfToken } = useAxios()
 const { encryptReq, decryptRes } = useEncryption()
@@ -47,49 +49,54 @@ interface Viewport {
     isDesktop: ComputedRef<boolean>
 }
 const viewPortCus = inject<Viewport>('viewport')
-const input = reactive({
-    search: '',
-    popular: '' as any,
-    university: '',
-    category: '',
-    range_date: '',
-    pay: '',
-})
-console.log('entok view ', viewPortCus)
 const fetchDataS = useFetchDataStore()
 const local = reactive({
     fetchData: [] as any,
     past_events: null as any,
     reviews: null as any,
-    inpSearch: '',
-    keyword: ''
 })
+const input = reactive({
+    oldSearch: '',
+    search: '',
+    keyword: '',
+    // popular: '' as any,
+    // university: '',
+    category: '',
+    pay: '',
+})
+const isDialogOpen = ref(false)
+const inpTanggal = ref({
+    start: undefined,
+    end: undefined,
+}) as Ref<DateRange>
 onBeforeMount(async() => {
-    console.log('current ', useRoute().path)
-    const res = await fetchDataS.fetchPage(useRoute().path, useRoute().query, {})
+    if(Object.keys(route.query).length === 0){
+        console.log('Tidak ada query parameter. Hentikan eksekusi.')
+        return
+    }
+    const res = await fetchDataS.fetchPage(route.path, route.query, {})
     if(res ==  undefined || res.status == 'error'){
         return
     }
-    console.log('enttokk dataa ', res.data)
+    console.log('enttook dataa ', res.data)
+    const findQuery = route.query.find
+    const searchValue = Array.isArray(findQuery) ? findQuery[0] : findQuery
+    input.oldSearch = searchValue ?? ''
+    input.search = searchValue ?? ''
     local.fetchData = res.data
 })
 const posFilter = computed(() => {
-    if(viewPortCus?.isDesktop.value){
+    if(viewPortCus?.isDesktop.value && local.fetchData.length > 0){
         return '#filterSide'
-    }else if (viewPortCus?.isMobile.value && isDialogOpen.value){
+    }else if(viewPortCus?.isMobile.value && isDialogOpen.value){
         return '#reka-dialog-content-v-0'
     }
     return null
 })
-const isDialogOpen = ref(false)
-const inpTanggal = ref({
-    start: today(getLocalTimeZone()).subtract({ days: 10 }),
-    end: today(getLocalTimeZone()).add({ days: 10 }),
-}) as Ref<DateRange>
 const locale = ref("en-US")
 const formatter = useDateFormatter(locale.value)
-const RTPlaceholder = ref(inpTanggal.value.start) as Ref<DateValue>
-const secondMonthPlaceholder = ref(inpTanggal.value.end) as Ref<DateValue>
+const RTPlaceholder = ref(today("Asia/Jakarta")) as Ref<DateValue>
+const secondMonthPlaceholder = ref(today("Asia/Jakarta").add({ months: 1 })) as Ref<DateValue>
 const firstMonth = ref(
     createMonth({
         dateObj: RTPlaceholder.value,
@@ -136,32 +143,48 @@ watch(secondMonthPlaceholder, (_secondMonthPlaceholder) => {
     })
     if (isEqualMonth(_secondMonthPlaceholder, RTPlaceholder.value)) RTPlaceholder.value = RTPlaceholder.value.subtract({ months: 1 })
 })
+const queryParamHandler = () => {
+    let categoryQuery = null
+    if(Array.isArray(input.category) && input.category.length > 0){
+        categoryQuery = input.category.join(',')
+    }else if(input.category){
+        categoryQuery = input.category
+    }
+    const queryParams: Record<string, any> = {
+        find: input.search || null,
+        f_category: categoryQuery,
+        f_pay: input.pay || null,
+        f_sr_date: inpTanggal.value.start ? inpTanggal.value.start.toString() : null,
+        f_er_date: inpTanggal.value.end ? inpTanggal.value.end.toString() : null,
+    }
+    const filteredParams: Record<string, any> = {}
+    for(const key in queryParams){
+        const value = queryParams[key]
+        if(value){
+            filteredParams[key] = value
+        }
+    }
+    return filteredParams
+}
 const formSearchFilter = async() => {
-    console.log('')
-    console.log('tanggal', inpTanggal.value.start?.toString())
-    console.log('tanggal', inpTanggal.value.end?.toString())
-    console.log('gannttiii')
-    console.log('')
+    if(input.search == input.oldSearch) return
     let retryCount = 0
     const searchFilterAPI = async() => {
         try{
-            const params = {
-                search: input.search || null,
-                // f_pop: input.popular || null,
-                // f_univ: input.university || null,
-                f_category: input.category || null,
-                f_pay: input.pay || null,
-                f_sr_date: inpTanggal.value.start ? inpTanggal.value.start.toString() : null,
-                f_er_date: inpTanggal.value.end ? inpTanggal.value.end.toString() : null,
-            }
+            router.push({
+                query: queryParamHandler()
+            })
             const encr = await encryptReq({})
-            const res = await(await axiosJson()).post('/search', {
+            const res = (await(await axiosJson()).post('/search', {
                 uniqueid: encr.iv,
                 cipher: encr.data,
                 mac: encr.mac,
-            }, { params: { ...params, _: Date.now() }, headers: { 'X-Merseal': sessionStorage.merseal }})
+            }, { params: { ...route.query, _: Date.now() }, headers: { 'X-Merseal': sessionStorage.merseal }})).data
             const decRes = decryptRes(res.data, encr.iv)
-            console.log(decRes)
+            console.log('desccc ress', decRes)
+            local.fetchData = decRes
+            input.keyword = input.search
+            input.oldSearch = input.search
         }catch(err: any){
             if (err.response){
                 let cusRedirect: string | null = null
@@ -195,11 +218,6 @@ const formSearchFilter = async() => {
         }
     }
     searchFilterAPI()
-}
-const doSearch = () => {
-    console.log('clickckk btnn searchh', local.inpSearch)
-    local.keyword = local.inpSearch
-    console.log('updatee keywrod btnn', local.keyword)
 }
 const skeletonSearch = (index: number) => {
     return {
@@ -308,7 +326,7 @@ const metaDataSearch = {
 <template>
     <Teleport v-if="posFilter" :to="posFilter" defer>
         <form class="w-150 h-full rounded-xl pt-3 pb-5 pl-5 pr-5" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
-            <div>
+            <!-- <div>
                 <Label>Pilih Populer</Label>
                 <Select v-model="input.popular" @update:model-value="formSearchFilter()">
                     <SelectTrigger class="w-[180px]">
@@ -324,7 +342,7 @@ const metaDataSearch = {
                         </SelectGroup>
                     </SelectContent>
                 </Select>
-            </div>
+            </div> -->
             <div>
                 <Label>Pilih Kategori</Label>
                 <Select v-model="input.category" @update:model-value="formSearchFilter()">
@@ -364,7 +382,7 @@ const metaDataSearch = {
                                     <button :class="cn(buttonVariants({ variant: 'outline' }), 'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100',)" @click="updateMonth('first', -1)">
                                         <ChevronLeft class="h-4 w-4" />
                                     </button>
-                                    <div :class="cn('text-sm font-medium')"> {{ formatter.fullMonthAndYear(toDate(firstMonth.value),)}}</div>
+                                    <div :class="cn('text-sm font-medium')"> {{ formatter.fullMonthAndYear(toDate(firstMonth.value))}}</div>
                                     <button :class="cn(buttonVariants({ variant: 'outline' }),'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100',)" @click="updateMonth('first', 1)">
                                         <ChevronRight class="h-4 w-4" />
                                     </button>
@@ -389,7 +407,7 @@ const metaDataSearch = {
                                         <button :class="cn(buttonVariants({ variant: 'outline' }), 'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100',)" @click="updateMonth('second', -1)">
                                             <ChevronLeft class="h-4 w-4" />
                                         </button>
-                                        <div :class="cn('text-sm font-medium')">{{ formatter.fullMonthAndYear(toDate(secondMonth.value),) }}</div>
+                                        <div :class="cn('text-sm font-medium')">{{ formatter.fullMonthAndYear(toDate(secondMonth.value)) }}</div>
                                         <button :class="cn(buttonVariants({ variant: 'outline' }),'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100',)" @click="updateMonth('second', 1)">
                                             <ChevronRight class="h-4 w-4" />
                                         </button>
@@ -425,7 +443,7 @@ const metaDataSearch = {
                             <SelectItem value="/">None</SelectItem>
                             <SelectItem value="free">free</SelectItem>
                             <SelectItem value="all">all</SelectItem>
-                            <SelectItem value="bayar">bayar</SelectItem>
+                            <SelectItem value="pay">bayar</SelectItem>
                         </SelectGroup>
                     </SelectContent>
                 </Select>
@@ -434,25 +452,24 @@ const metaDataSearch = {
     </Teleport>
     <section class="relative h-screen flex flex-col">
         <Dialog  v-model:open="isDialogOpen">
-            <DialogTrigger v-if="viewPortCus?.isMobile.value">Filters</DialogTrigger>
+            <DialogTrigger v-if="viewPortCus?.isMobile.value && local.fetchData.length > 0">Filters</DialogTrigger>
             <div class="w-[95%] mx-auto mt-7">
                 <div class="relative flex items-center justify-between">
                     <h2 class="w-fit text-4xl">Search Events</h2>
                     <div class="flex gap-5">
-                        <Input id="email" type="email" class="w-50" placeholder="Cari Event" v-model="local.inpSearch"/>
-                        <Button @click="doSearch()">Search</Button>
+                        <Input id="email" type="email" class="w-50" placeholder="Cari Event" v-model="input.search" @keyup.enter="formSearchFilter()"/>
+                        <Button @click="formSearchFilter()">Search</Button>
                     </div>
                 </div>
                 <div class="relative h-full">
-                    <p>Menampilkan Event "{{ local.keyword }}" menemukan {{ local.fetchData.length }}</p>
+                    <p v-if="local.fetchData.length > 0">Menampilkan Event "{{ input.keyword }}" menemukan {{ local.fetchData.length }}</p>
                     <div class="flex gap-5">
                         <div id="filterSide"/>
-                        <div class="w-full bg-green-500">ikiii</div>
                         <CustomCardWithSkeletonComponent :metaData="metaDataSearch" :componentUI="componentUISearch" :inpData="local.fetchData"/>
                     </div>
                 </div>
             </div>
-            <DialogContent v-if="viewPortCus?.isMobile.value">
+            <DialogContent>
                 <VisuallyHidden>
                     <DialogHeader>
                         <DialogTitle>Edit profile</DialogTitle>
