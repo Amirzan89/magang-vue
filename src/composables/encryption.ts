@@ -18,6 +18,7 @@ export default () => {
         return new Uint8Array(await crypto.subtle.sign('HMAC', cryptoKey, mergedInput)).slice(0, 16)
     }
     const encryptReq = async (requestBody: any) => {
+        requestBody = requestBody && Object.keys(requestBody).length > 0 ? JSON.stringify(requestBody) : "{}"
         const iv = await genIV()
         const cipherHex = CryptoJS.AES.encrypt(requestBody, CryptoJS.enc.Hex.parse(sessionStorage.aes_key), { iv: CryptoJS.enc.Hex.parse(rsaComp.hexCus.enc(iv)), mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 }).ciphertext.toString(CryptoJS.enc.Hex)
         const hmacKey = await crypto.subtle.importKey('raw', rsaComp.hexCus.dec(sessionStorage.hmac_key), { name:'HMAC', hash:'SHA-256' }, false, ['sign'])

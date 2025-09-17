@@ -7,9 +7,7 @@ import { useFetchDataStore } from '@/stores/FetchData'
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, CarouselDots, type CarouselApi, } from '@/components/ui/carousel'
 import { Card, CardContent } from '@/components/ui/card'
 import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
-import HeaderComponent from '@/components/HeaderHome.vue'
 import CustomCardWithSkeletonComponent from '@/components/CustomCardWithSkeleton.vue'
-import FooterComponent from '@/components/Footer.vue'
 import I_VLeft from '@/assets/icons/hero_home/vector-left.svg?component'
 import I_VRight from '@/assets/icons/hero_home/vector-right.svg?component'
 import I_music from '@/assets/icons/hero_home/music_note.svg?component'
@@ -31,27 +29,20 @@ const emblaMainApi = ref<CarouselApi>()
 const totalItemsCar = ref(0)
 const selectedIndex = ref(0)
 let autoplayTimer: ReturnType<typeof setTimeout> | null = null
-const local = ref({
+const local = reactive({
     upcoming_events: null as any,
     past_events: null as any,
     reviews: null as any,
 })
 onBeforeMount(async() =>{
-    const tableData = JSON.stringify({
-        "userid": "demo@demo.com",
-        "groupid": "XCYTUA",
-        "businessid": "PJLBBS",
-        "sql": "SELECT id, keybusinessgroup, keyregistered, eventgroup, eventid, eventname, eventdescription, startdate, enddate, quota, price, inclusion, imageicon_1, imageicon_2, imageicon_3, imageicon_4, imageicon_5, imageicon_6, imageicon_7, imageicon_8, imageicon_9 FROM event_schedule",
-        "order": ""
-    })
-    const res = await fetchDataS.fetchPage(useRoute().path, {}, tableData)
+    const res = await fetchDataS.fetchPage(useRoute().path, {})
     if(res ==  undefined || res.status == 'error'){
         return
     }
     console.log('enttokk dataa ', res.data)
-    local.value.upcoming_events = res.data.upcoming_events
-    local.value.past_events = res.data.past_events
-    local.value.reviews = res.data.reviews
+    local.upcoming_events = res.data.upcoming_events
+    local.past_events = res.data.past_events
+    local.reviews = res.data.reviews
 })
 const onInitApiCar = (api?: CarouselApi) => {
     if(!api) return
@@ -419,7 +410,6 @@ const metaDataReviews = {
 }
 </script>
 <template>
-    <HeaderComponent/>
     <section class="relative h-screen pt-16">
         <div class="absolute top-0 left-0 w-full h-full -z-1">
             <img src="@/assets/images/party-1.png" alt="" class="w-full object-cover" />
@@ -509,7 +499,6 @@ const metaDataReviews = {
             <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 mt-10 inline-block text-[#3D37F1] border border-[#3D37F1] px-4 py-2 rounded-2xl hover:bg-[#3D37F1] hover:text-white">Load More</RouterLink>
         </div>
     </section>
-    <FooterComponent/>
 </template>
 <style scoped>
 </style>

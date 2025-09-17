@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { computed, onBeforeMount } from 'vue'
+import { computed, onBeforeMount, provide } from 'vue'
 import { useRoute } from 'vue-router'
 import theme from '@/theme'
+import { useViewport } from '@/composables/useViewPort'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import EmptyLayout from '@/layouts/EmptyLayout.vue'
 import LoadingComponent from './components/Loading.vue'
 import ToastComponent from './components/CustomToast/ToastContainer.vue'
+const { width, isMobile, isDesktop } = useViewport()
+provide('viewport', { width, isMobile, isDesktop })
 const route = useRoute()
 const layouts: any = {
     default: DefaultLayout,
@@ -26,35 +29,35 @@ const dynamicPad: any = {
     'xl':'70px',
     '2xl':'120px',
 }
-let screenCon: any = null;
-const Layout = computed(() => layouts[layoutName.value] ?? layouts.default)
+let screenCon: any = null
+const Layout = computed(() => layouts[layoutName.value] ?? layouts.empty)
 const updatePadding = () => {
-    const currentWidth = window.innerWidth;
-    const breakpoints = [...screenCon].sort((a, b) => b - a);
+    const currentWidth = width
+    const breakpoints = [...screenCon].sort((a, b) => b - a)
     const breakpoint = breakpoints.find((fixWidth) => {
-        return currentWidth >= fixWidth;
-    });
+        return currentWidth >= fixWidth
+    })
     if(!breakpoint){
-        document.documentElement.style.setProperty('--paddTop', '50');
-        return;
+        document.documentElement.style.setProperty('--paddTop', '50')
+        return
     }
-    document.documentElement.style.setProperty('--paddTop', `${dynamicPad[Object.keys(dynamicPad)[screenCon.indexOf(breakpoint)]]}`);
-    return;
+    document.documentElement.style.setProperty('--paddTop', `${dynamicPad[Object.keys(dynamicPad)[screenCon.indexOf(breakpoint)]]}`)
+    return
 }
 onBeforeMount(() => {
     screenCon = Object.values(theme.screens).map((item) => {
-        return parseInt(item.replace('px', ''));
-    });
-    updatePadding();
-});
+        return parseInt(item.replace('px', ''))
+    })
+    updatePadding()
+})
 window.onresize = () => {
-    updatePadding();
+    updatePadding()
 }
 </script>
 <template>
-    <transition name="fade" mode="out-in">
+    <!-- <transition name="fade" mode="out-in"> -->
         <component :is="Layout" :key="layoutName" />
-    </transition>
+    <!-- </transition> -->
     <LoadingComponent/>
     <ToastComponent/>
 </template>

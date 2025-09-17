@@ -99,8 +99,9 @@ import type { ZodSchema } from 'zod'
 import { useLoadingStore } from '@/stores/Loading'
 const loading = useLoadingStore()
 import { useCustomForm } from '@/composables/createUseForm'
-import I_eye from '~/assets/icons/eye.svg'
-import I_eye_slash from '~/assets/icons/eye-slash.svg'
+import { Form, FormDescription, FormItem, FormLabel } from './ui/form'
+import I_eye from '@/assets/icons/eye.svg'
+import I_eye_slash from '@/assets/icons/eye-slash.svg'
 interface Fields{
     nameField: string,
     typeInput: 'text' | 'email' | 'password' | 'radio' | 'date' | 'file',

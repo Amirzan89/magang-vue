@@ -22,12 +22,6 @@ export function setupGuards(router: Router){
             }
             return true
         }
-        const resAuth = await fetchDataS.fetchAuth(to.path)
-        if(resAuth?.data?.redirect){
-            if(resAuth.data.redirect === '/beranda' && to.path === '/beranda') return true
-            if(resAuth.data.redirect === '/login' && to.path === '/login') return true
-            return{ path: resAuth.data.redirect }
-        }
         return true
     })
     router.beforeEach((to, from) =>{

@@ -67,8 +67,8 @@ export const useFetchDataStore = defineStore('fetchDataStore', {
                 return { status:'error', message: err }
             }
         },
-        async fetchPage(routePath: string, params?: {}, reqBody? :{}): Promise<Response>{
-            return await this.fetchData(routePath, params, reqBody)
+        async fetchPage(routePath: string, query?: {}, reqBody? :{}): Promise<Response>{
+            return await this.fetchData(routePath, query, reqBody)
         },
     },
 })
