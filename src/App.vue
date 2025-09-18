@@ -1,58 +1,33 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, provide } from 'vue'
+import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import theme from '@/theme'
-import { useViewport } from '@/composables/useViewPort'
+import { width } from '@/composables/useScreenSize'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import EmptyLayout from '@/layouts/EmptyLayout.vue'
 import LoadingComponent from './components/Loading.vue'
 import ToastComponent from './components/CustomToast/ToastContainer.vue'
-const { width, isMobile, isDesktop } = useViewport()
-provide('viewport', { width, isMobile, isDesktop })
 const route = useRoute()
-const layouts: any = {
+const layouts: Record<string, any> = {
     default: DefaultLayout,
     auth: AuthLayout,
     empty: EmptyLayout,
 }
-const layoutName = computed(() => {
-    return route.matched[route.matched.length - 1]?.meta?.layout as string || 'default'
-})
-const dynamicPad: any = {
-    '3xs':'30px',
-    '2xs':'30px',
-    'xs':'30px',
-    'sm':'40px',
-    'md':'50px',
-    'lg':'60px',
-    'xl':'70px',
-    '2xl':'120px',
-}
-let screenCon: any = null
+const layoutName = computed(() => route.matched[route.matched.length - 1]?.meta?.layout || 'default')
 const Layout = computed(() => layouts[layoutName.value] ?? layouts.empty)
-const updatePadding = () => {
-    const currentWidth = width
-    const breakpoints = [...screenCon].sort((a, b) => b - a)
-    const breakpoint = breakpoints.find((fixWidth) => {
-        return currentWidth >= fixWidth
-    })
-    if(!breakpoint){
-        document.documentElement.style.setProperty('--paddTop', '50')
-        return
+const dynamicPad: Record<string, string> = {
+    '3xs':'30px','2xs':'30px','xs':'30px','sm':'40px',
+    'md':'50px','lg':'60px','xl':'70px','2xl':'120px',
     }
-    document.documentElement.style.setProperty('--paddTop', `${dynamicPad[Object.keys(dynamicPad)[screenCon.indexOf(breakpoint)]]}`)
-    return
+    const screenCon = Object.values(theme.screens).map(s => parseInt(s.replace('px','')))
+    const updatePadding = () => {
+    const breakpoint = [...screenCon].sort((a,b) => b-a).find(b => width.value >= b)
+    const pad = breakpoint ? dynamicPad[Object.keys(dynamicPad)[screenCon.indexOf(breakpoint)]] : '50px'
+    document.documentElement.style.setProperty('--paddTop', pad)
 }
-onBeforeMount(() => {
-    screenCon = Object.values(theme.screens).map((item) => {
-        return parseInt(item.replace('px', ''))
-    })
-    updatePadding()
-})
-window.onresize = () => {
-    updatePadding()
-}
+updatePadding()
+watch(width, updatePadding)
 </script>
 <template>
     <!-- <transition name="fade" mode="out-in"> -->

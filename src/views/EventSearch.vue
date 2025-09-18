@@ -10,6 +10,7 @@ import { formatTgl } from "@/utils/global"
 import { useConfig } from '@/composables/useConfig'
 import useAxios from '@/composables/api/axios'
 import useEncryption from '@/composables/encryption'
+import { isMobile, isDesktop } from '@/composables/useScreenSize'
 import { useFetchDataStore } from '@/stores/FetchData'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -43,12 +44,6 @@ const route = useRoute()
 const publicConfig = useConfig()
 const { axiosJson, fetchCsrfToken } = useAxios()
 const { encryptReq, decryptRes } = useEncryption()
-interface Viewport {
-    isMobile: ComputedRef<boolean>
-    isTablet: ComputedRef<boolean>
-    isDesktop: ComputedRef<boolean>
-}
-const viewPortCus = inject<Viewport>('viewport')
 const fetchDataS = useFetchDataStore()
 const local = reactive({
     fetchData: [] as any,
@@ -86,9 +81,9 @@ onBeforeMount(async() => {
     local.fetchData = res.data
 })
 const posFilter = computed(() => {
-    if(viewPortCus?.isDesktop.value && local.fetchData.length > 0){
+    if(isDesktop.value && local.fetchData.length > 0){
         return '#filterSide'
-    }else if(viewPortCus?.isMobile.value && isDialogOpen.value){
+    }else if(isMobile.value && isDialogOpen.value){
         return '#reka-dialog-content-v-0'
     }
     return null
@@ -452,7 +447,7 @@ const metaDataSearch = {
     </Teleport>
     <section class="relative h-screen flex flex-col">
         <Dialog  v-model:open="isDialogOpen">
-            <DialogTrigger v-if="viewPortCus?.isMobile.value && local.fetchData.length > 0">Filters</DialogTrigger>
+            <DialogTrigger v-if="isMobile && local.fetchData.length > 0">Filters</DialogTrigger>
             <div class="w-[95%] mx-auto mt-7">
                 <div class="relative flex items-center justify-between">
                     <h2 class="w-fit text-4xl">Search Events</h2>
