@@ -13,7 +13,10 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3000
+    port: 3000,
+    allowedHosts: [
+      'a32e0ccf8675.ngrok-free.app'
+    ]
   },
   plugins: [
     vue(),
