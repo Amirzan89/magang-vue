@@ -50,15 +50,21 @@ const local = reactive({
     past_events: null as any,
     reviews: null as any,
 })
-const input = reactive({
-    oldSearch: '',
+const oldInput = reactive({
     search: '',
-    keyword: '',
     // popular: '' as any,
     // university: '',
-    category: '',
-    pay: '',
+    category: null,
+    pay: null,
 })
+const currentInput = reactive({
+    search: '',
+    // popular: '' as any,
+    // university: '',
+    category: null,
+    pay: null,
+})
+const keyword = ref('')
 const isDialogOpen = ref(false)
 const inpTanggal = ref({
     start: undefined,
@@ -76,8 +82,8 @@ onBeforeMount(async() => {
     console.log('enttook dataa ', res.data)
     const findQuery = route.query.find
     const searchValue = Array.isArray(findQuery) ? findQuery[0] : findQuery
-    input.oldSearch = searchValue ?? ''
-    input.search = searchValue ?? ''
+    oldInput.search = searchValue ?? ''
+    currentInput.search = searchValue ?? ''
     local.fetchData = res.data
 })
 const posFilter = computed(() => {
@@ -140,15 +146,15 @@ watch(secondMonthPlaceholder, (_secondMonthPlaceholder) => {
 })
 const queryParamHandler = () => {
     let categoryQuery = null
-    if(Array.isArray(input.category) && input.category.length > 0){
-        categoryQuery = input.category.join(',')
-    }else if(input.category){
-        categoryQuery = input.category
+    if(Array.isArray(currentInput.category) && currentInput.category.length > 0){
+        categoryQuery = currentInput.category.join(',')
+    }else if(currentInput.category){
+        categoryQuery = currentInput.category
     }
     const queryParams: Record<string, any> = {
-        find: input.search || null,
+        find: currentInput.search || null,
         f_category: categoryQuery,
-        f_pay: input.pay || null,
+        f_pay: currentInput.pay || null,
         f_sr_date: inpTanggal.value.start ? inpTanggal.value.start.toString() : null,
         f_er_date: inpTanggal.value.end ? inpTanggal.value.end.toString() : null,
     }
@@ -162,7 +168,14 @@ const queryParamHandler = () => {
     return filteredParams
 }
 const formSearchFilter = async() => {
-    if(input.search == input.oldSearch) return
+    let isUpdated = false
+    for(const key of Object.keys(oldInput) as (keyof typeof oldInput)[]){
+        if(oldInput[key] !== currentInput[key]){
+            isUpdated = true
+            break
+        }
+    }
+    if(!isUpdated) return
     let retryCount = 0
     const searchFilterAPI = async() => {
         try{
@@ -178,8 +191,10 @@ const formSearchFilter = async() => {
             const decRes = decryptRes(res.data, encr.iv)
             console.log('desccc ress', decRes)
             local.fetchData = decRes
-            input.keyword = input.search
-            input.oldSearch = input.search
+            keyword.value = currentInput.search
+            oldInput.search = currentInput.search
+            oldInput.category = currentInput.category
+            oldInput.pay = currentInput.pay
         }catch(err: any){
             if (err.response){
                 let cusRedirect: string | null = null
@@ -234,7 +249,7 @@ const metaDataSearch = {
         <form class="w-150 h-full rounded-xl pt-3 pb-5 pl-5 pr-5" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
             <!-- <div>
                 <Label>Pilih Populer</Label>
-                <Select v-model="input.popular" @update:model-value="formSearchFilter()">
+                <Select v-model="currentInput.popular" @update:model-value="formSearchFilter()">
                     <SelectTrigger class="w-[180px]">
                         <SelectValue RTPlaceholder="Select a Popularity" />
                     </SelectTrigger>
@@ -251,7 +266,7 @@ const metaDataSearch = {
             </div> -->
             <div>
                 <Label>Pilih Kategori</Label>
-                <Select v-model="input.category" @update:model-value="formSearchFilter()">
+                <Select v-model="currentInput.category" @update:model-value="formSearchFilter()">
                     <SelectTrigger class="w-[180px]">
                         <SelectValue RTPlaceholder="Select a fruit" />
                     </SelectTrigger>
@@ -340,7 +355,7 @@ const metaDataSearch = {
             </div>
             <div>
                 <Label>free ?</Label>
-                <Select v-model="input.pay" @update:model-value="formSearchFilter()">
+                <Select v-model="currentInput.pay" @update:model-value="formSearchFilter()">
                     <SelectTrigger class="w-[180px]">
                         <SelectValue RTPlaceholder="Select a Popularity" />
                     </SelectTrigger>
@@ -363,12 +378,12 @@ const metaDataSearch = {
                 <div class="relative flex items-center justify-between">
                     <h2 class="w-fit text-4xl">Search Events</h2>
                     <div class="flex gap-5">
-                        <Input id="email" type="email" class="w-50" placeholder="Cari Event" v-model="input.search" @keyup.enter="formSearchFilter()"/>
+                        <Input id="email" type="email" class="w-50" placeholder="Cari Event" v-model="currentInput.search" @keyup.enter="formSearchFilter()"/>
                         <Button @click="formSearchFilter()">Search</Button>
                     </div>
                 </div>
                 <div class="relative h-full">
-                    <p v-if="local.fetchData.length > 0">Menampilkan Event "{{ input.keyword }}" menemukan {{ local.fetchData.length }}</p>
+                    <p v-if="local.fetchData.length > 0">Menampilkan Event "{{ keyword }}" menemukan {{ local.fetchData.length }}</p>
                     <div class="flex gap-5">
                         <div id="filterSide"/>
                         <CustomCardWithSkeletonComponent :metaData="metaDataSearch" :inpData="local.fetchData">
