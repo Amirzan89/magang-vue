@@ -1,47 +1,56 @@
 <script setup lang="ts">
-import { reactive, type VNode, type Component } from 'vue'
-interface ComponentItem{
-    name?: string,
-    render: (inpData: any) => Component
-}
+import { ref, useSlots, type Component } from 'vue'
+const slots = useSlots()
 const props = defineProps<{
+    inpVar?: Record<string, any>
     metaData: {
         wrapper: (inpData: any) => Component,
-        totalItems: number
         customTWTransition?: string,
         customCSSTransition?: string,
     }
-    placeholderItems?: {
-        skeleton?: VNode
-        card: VNode
-    },
-    componentUI: { skeleton: (index: number) => ComponentItem; card: (index: number) => ComponentItem }
     inpData?: Record<string, any>[]
 }>()
-const toggleSkeleton: any = reactive({})
-const handleToggleSkeleton = (data: { name: string, showSkeleton: boolean }) => {
-    const { name, ...restValues } = data
-    const prev = toggleSkeleton[name] || {}
-    const next = { ...prev, ...restValues }
-    if (JSON.stringify(prev) === JSON.stringify(next)) return
-    toggleSkeleton[name] = next
+const slotSkeleton = (indexPar: number) => {
+    if(indexPar <= props.inpData!.length){
+        return 'skeleton'
+    }else if(slots['placeholder-skeleton']){
+        return 'placeholder-skeleton'
+    }
+    return undefined
+}
+const slotCard = (indexPar: number) => {
+    if(indexPar <= props.inpData!.length){
+        return 'card'
+    }else if(slots['placeholder-card']){
+        return 'placeholder-card'
+    }
+    return undefined
+}
+const toggleSkeleton: any = ref([])
+const queue: number[] = []
+let processing = false
+const processQueue = () => {
+    if(processing || queue.length === 0) return
+    processing = true
+    const index = queue.shift()!
+    setTimeout(() => {
+        toggleSkeleton.value[index]?.remove()
+        processing = false
+        processQueue()
+    }, 50)
+}
+const handleToggleSkeleton = (index: number) => {
+    queue.push(index)
+    processQueue()
 }
 </script>
 <template>
     <TransitionGroup v-if="props.inpData && props.inpData.length > 0" tag="div" name="fade" mode="out-in" key="annn" :class="metaData.customTWTransition" :style="metaData.customCSSTransition">
-        <template v-for="indexPar in Math.min(metaData.totalItems, props.inpData.length + 1)" :key="indexPar">
-            <template v-if="indexPar <= (props.inpData.length + (props.placeholderItems ? 1 : 0))">
-                <component :is="metaData.wrapper(props.inpData[indexPar - 1])">
-                    <template v-if="(toggleSkeleton[componentUI.skeleton(indexPar - 1).name!]?.showSkeleton ?? true) && (componentUI.skeleton || placeholderItems)">
-                        <component v-if="indexPar <= props.inpData.length" :is="componentUI.skeleton(indexPar - 1).render(props.inpData[indexPar - 1])" />
-                        <component v-else-if="placeholderItems" :is="placeholderItems.skeleton"/>
-                    </template>
-                    <template v-if="componentUI.card || placeholderItems">
-                        <component v-if="indexPar <= props.inpData.length" :is="componentUI.card(indexPar - 1).render(props.inpData[indexPar - 1])" @toggleSkeleton="handleToggleSkeleton" />
-                        <component v-else-if="placeholderItems" :is="placeholderItems.card" @toggleSkeleton="handleToggleSkeleton" />
-                    </template>
-                </component>
-            </template>
+        <template v-for="indexPar in props.inpData.length + (slots['placeholder-card'] ? 1 : 0)" :key="indexPar">
+            <component :is="metaData.wrapper(props.inpData[indexPar - 1])">
+                <slot :name="slotSkeleton(indexPar)" :index="indexPar" :skeletonRefs="toggleSkeleton"/>
+                <slot :name="slotCard(indexPar)" :index="indexPar" :inpData="props.inpData[indexPar - 1]" :toggleSkeleton="handleToggleSkeleton"/>
+            </component>
         </template>
     </TransitionGroup>
 </template>

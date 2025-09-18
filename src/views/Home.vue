@@ -4,6 +4,7 @@ import { RouterLink, useRoute } from 'vue-router'
 import Autoplay from "embla-carousel-autoplay"
 import { useConfig } from '@/composables/useConfig'
 import { useFetchDataStore } from '@/stores/FetchData'
+import { getImgURL } from '@/utils/global'
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, CarouselDots, type CarouselApi, } from '@/components/ui/carousel'
 import { Card, CardContent } from '@/components/ui/card'
 import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
@@ -90,94 +91,6 @@ const catHero = reactive([
         'icon': markRaw(I_games),
     },
 ])
-const skeletonUpcoming = (index: number) => {
-    return {
-        name: `skeletonUpcoming${index}`,
-        render: () => {
-            return h('div', { class: 'skeleton-wrapper absolute top-0 left-0 flex flex-col w-full h-full bg-red-500' }, {
-                default: () => {
-                    return [
-                        h(Skeleton, { class: 'h-12 w-12 rounded-full', }),
-                        h('div', { class: 'space-y-2' }, {
-                            default: () => [
-                                h(Skeleton, { class: 'h-4 w-[250px]' }),
-                                h(Skeleton, { class: 'h-4 w-[200px]' }),
-                                h(Skeleton, { class: 'h-4 w-[150px]' }),
-                            ]
-                        })
-                    ]}
-                }
-            )
-        }
-    }
-}
-const cardUpcoming = (index: number) => {
-    return {
-        render: (inpData: any) => defineComponent({
-            emits: ['toggleSkeleton'],
-            setup(_, { emit }){
-                let imgLoad = false
-                const handleLoad = () => {
-                    imgLoad = true
-                    emit('toggleSkeleton', { name: `skeletonUpcoming${index}`, showSkeleton: false })
-                }
-                const handleComplete = () => emit('toggleSkeleton', { name: `skeletonUpcoming${index}`, showSkeleton: false })
-                const handleError = () => emit('toggleSkeleton', { name: `skeletonUpcoming${index}`, showSkeleton: false })
-                return () => h(Card, { class: 'w-fit h-fit', style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, {
-                    default: () => h(CardContent, { class: 'relative rounded-xl' }, {
-                        default: () => h(Fragment, null, [
-                            h('div', { class: 'relative' }, [
-                                h('img', {
-                                    src: inpData.img,
-                                    alt: '',
-                                    class: ['object-contain', inpData.img === '' ? 'hidden' : ''],
-                                    style: 'height: 197px',
-                                    ref: ((el: HTMLImageElement | null) => {
-                                        if (el?.complete && el.naturalWidth !== 0 && !imgLoad) handleComplete()
-                                    }) as VNodeRef,
-                                    onLoad: () => handleLoad(),
-                                    onError: () => handleError(),
-                                }),
-                                inpData.isFree ? h(I_free, { class: 'absolute top-0 right-0' }) : null
-                            ]),
-                            h('div', { class: 'w-[90%] mx-auto flex flex-col' }, [
-                                h('div', { class: 'flex gap-5' }, [
-                                    h('div', { class: 'flex flex-col' }, [
-                                        h('span', { class: 'text-[#3D37F1] font-bold' }, ['May']),
-                                        h('span', { class: 'text-black' }, ['11'])
-                                    ]),
-                                    h('div', { class: 'flex flex-col text-xl text-black' }, [
-                                        h('span', { class: '' }, ['Civil Padura']),
-                                        h('span', { class: '' }, ['By Civil Engineering Department'])
-                                    ]),
-                                ]),
-                                h('div', { class: 'flex flex-col text-xl' }, [
-                                    h('div', { class: 'flex gap-2 items-center' }, [
-                                        h(I_DRight, { class: 'w-5 h-5 text-red-500' }),
-                                        h('span', null, ['Musical Event']),
-                                    ]),
-                                    h('div', { class: 'flex gap-2 items-center' }, [
-                                        h(I_DRight, { class: 'w-5 h-5 text-red-500' }),
-                                        h('span', null, ['All Universities students can join']),
-                                    ]),
-                                ]),
-                                h('div', { class: 'flex justify-between items-center mt-3' }, [
-                                    h(I_Location, { class: 'w-8 h-8 text-red-500' }),
-                                    h('span', { class: 'text-xl font-medium' }, ['University of Morotuwa']),
-                                    h(I_Bookmark, { class: 'w-8 h-8 text-blue-500' }),
-                                ]),
-                            ]),
-                        ])
-                    })
-                })
-            }
-        })
-    }
-}
-const componentUIUpcoming = {
-    skeleton: skeletonUpcoming,
-    card: cardUpcoming,
-}
 const metaDataUpcoming = {
     wrapper: (inpData: any) => defineComponent({
         setup(){
@@ -189,209 +102,22 @@ const metaDataUpcoming = {
             }
         }
     }),
-    totalItems: 6,
     customTWTransition: 'h-full mt-5',
     customCSSTransition: 'display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem;',
-}
-
-
-
-const skeletonPast = (index: number) => {
-    return {
-        name: `skeletonPast${index}`,
-        render: () => {
-            return h('div', { class: 'skeleton-wrapper absolute top-0 left-0 flex flex-col space-y-2' }, {
-                default: () => {
-                    return [
-                        h(Skeleton, { class: 'h-12 w-12 rounded-full' }),
-                        h('div', { class: 'space-y-2' }, { default: () => {
-                            return [
-                                h(Skeleton, { class: 'h-4 w-[250px]' }),
-                                h(Skeleton, { class: 'h-4 w-[200px]' }),
-                                h(Skeleton, { class: 'h-4 w-[150px]' }),
-                            ]
-                        }}
-                        )
-                    ]}
-                }
-            )
-        }
-    }
-}
-const cardPast = (index: number) => {
-    return {
-        render: (inpData: any) => defineComponent({
-            emits: ['toggleSkeleton'],
-            setup(_, { emit }){
-                let imgLoad = false
-                const handleLoad = () => {
-                    imgLoad = true
-                    emit('toggleSkeleton', { name: `skeletonPast${index}`, showSkeleton: false })
-                }
-                const handleComplete = () => emit('toggleSkeleton', { name: `skeletonPast${index}`, showSkeleton: false })
-                const handleError = () => emit('toggleSkeleton', { name: `skeletonPast${index}`, showSkeleton: false })
-                return () => h(Card, { class: 'h-full', style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, {
-                    default: () => h(CardContent, { class: 'relative rounded-xl' }, {
-                        default: () => h(Fragment, null, [
-                            h('div', { class: 'relative' }, [
-                                h('img', {
-                                    src: inpData.img,
-                                    alt: '',
-                                    class: ['w-full h-full object-contain', inpData.img === '' ? 'hidden' : ''],
-                                    ref: ((el: HTMLImageElement | null) => {
-                                        if (el?.complete && el.naturalWidth !== 0 && !imgLoad) handleComplete()
-                                    }) as VNodeRef,
-                                    onLoad: () => handleLoad(),
-                                    onError: () => handleError(),
-                                }),
-                                inpData.isFree ? h(I_free, { class: 'absolute top-0 right-0' }) : null
-                            ]),
-                            h('div', { class: 'w-[90%] mx-auto flex flex-col' }, [
-                                h('div', { class: 'flex gap-5' }, [
-                                    h('div', { class: 'flex flex-col' }, [
-                                        h('span', { class: 'text-[#3D37F1] font-bold' }, ['May']),
-                                        h('span', { class: 'text-black' }, ['11'])
-                                    ]),
-                                    h('div', { class: 'flex flex-col text-xl text-black' }, [
-                                        h('span', { class: '' }, ['Civil Padura']),
-                                        h('span', { class: '' }, ['By Civil Engineering Department'])
-                                    ]),
-                                ]),
-                                h('div', { class: 'flex flex-col text-xl' }, [
-                                    h('div', { class: 'flex gap-2 items-center' }, [
-                                        h(I_DRight, { class: 'w-5 h-5 text-red-500' }),
-                                        h('span', null, ['Musical Event']),
-                                    ]),
-                                    h('div', { class: 'flex gap-2 items-center' }, [
-                                        h(I_DRight, { class: 'w-5 h-5 text-red-500' }),
-                                        h('span', null, ['All Universities students can join']),
-                                    ]),
-                                ]),
-                                h('div', { class: 'flex justify-between items-center mt-3' }, [
-                                    h(I_Location, { class: 'w-8 h-8 text-red-500' }),
-                                    h('span', { class: 'text-xl font-medium' }, ['University of Morotuwa']),
-                                    h(I_Bookmark, { class: 'w-8 h-8 text-blue-500' }),
-                                ]),
-                            ]),
-                        ])
-                    })
-                })
-            }
-        })
-    }
-}
-const componentUIPast = {
-    skeleton: skeletonPast,
-    card: cardPast,
 }
 const metaDataPast = {
     wrapper: (inpData: any) => defineComponent({
         setup(){
             const slots = useSlots()
             return () => {
-                return h(RouterLink, { to: inpData.event_id, class: 'relative' }, {
+                return h(RouterLink, { to: inpData.event_id, class: 'relative w-fit' }, {
                     default: () => slots.default ? slots.default() : null
                 });
             }
         }
     }),
-    totalItems: 10,
     customTWTransition: 'min-h-full h-full mt-5',
-    customTWCard: 'h-full',
-    customTWCardContent: 'relative rounded-xl ',
     customCSSTransition: 'display: grid; grid-template-columns: repeat(auto-fit, minmax(0px, 200px)); gap: 1.5rem;',
-}
-
-
-
-const skeletonReviews = (index: number) => {
-    return {
-        name: `skeletonReview${index}`,
-        render: () => {
-            return h('div', { class: 'skeleton-wrapper absolute top-0 left-0 flex flex-col space-y-2' }, {
-                default: () => {
-                    return [
-                        h(Skeleton, { class: 'h-12 w-12 rounded-full' }),
-                        h('div', { class: 'space-y-2' }, { default: () => {
-                            return [
-                                h(Skeleton, { class: 'h-4 w-[250px]' }),
-                                h(Skeleton, { class: 'h-4 w-[200px]' }),
-                                h(Skeleton, { class: 'h-4 w-[150px]' }),
-                            ]
-                        }}
-                        )
-                    ]}
-                }
-            )
-        }
-    }
-}
-const cardReviews = (index: number) => {
-    return {
-        render: (inpData: any) => defineComponent({
-            emits: ['toggleSkeleton'],
-            setup(_, { emit }){
-                let imgLoad = false
-                const handleLoad = () => {
-                    imgLoad = true
-                    emit('toggleSkeleton', { name: `skeletonReview${index}`, showSkeleton: false })
-                }
-                const handleComplete = () => emit('toggleSkeleton', { name: `skeletonReview${index}`, showSkeleton: false })
-                const handleError = (e: Event) => {
-                    const imgEl = e.target as HTMLImageElement
-                    imgEl.src = [defaultBoy, defaultGirl][Math.floor(Math.random() * 2)]
-                    emit('toggleSkeleton', { name: `skeletonReview${index}`, showSkeleton: false })
-                }
-                return () => h(Card, { class: 'h-full', style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, {
-                    default: () => h(CardContent, { class: 'relative rounded-xl flex flex-col gap-2' }, {
-                        default: () => h(Fragment, null, [
-                            h('div', { class: 'flex gap-2' }, [
-                                h('div', { class: 'relative right-0 w-15 h-15 rounded-full pointer-events-none' }, [
-                                    h('img', {
-                                        src: inpData.photo ? publicConfig.baseURL + inpData.photo : [defaultBoy, defaultGirl][Math.floor(Math.random() * 2)],
-                                        alt: '',
-                                        class: ['absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-full h-full object-cover'],
-                                        style: ['clip-path: circle();'],
-                                        ref: ((el: HTMLImageElement | null) => {
-                                            if (el?.complete && el.naturalWidth !== 0 && !imgLoad) handleComplete()
-                                        }) as VNodeRef,
-                                        onLoad: () => handleLoad(),
-                                        onError: (e: Event) => handleError(e),
-                                    }),
-                                ]),
-                                h('div', { class: '' }, [
-                                    h('div', { class: 'flex' }, [
-                                        (() => {
-                                            const stars = []
-                                            const full = Math.floor(inpData.rating)
-                                            const half = inpData.rating % 1 >= 0.5
-                                            const empty = 5 - full - (half ? 1 : 0)
-                                            for(let i = 0; i < full; i++) stars.push(h(I_FullStar, { class: 'w-5 h-5 text-yellow-500' }))
-                                            for(let i = 0; i < empty; i++) stars.push(h(I_EmptyStar, { class: 'w-5 h-5 text-yellow-500' }))
-                                            if(half) stars.push(h(I_HalfStar, { class: 'w-6 h-6 text-yellow-500'}))
-                                            return stars
-                                        })()
-                                    ]),
-                                    h('h5', { class: '' }, ['Taylor Swifft']),
-                                    h('span', { class: '' }, ['20 Agustus 2025']),
-                                ])
-                            ]),
-                            h('p', { class: '' }, ['Sekarang, kamu bisa produksi tiket fisik untuk eventmu bersama Bostiketbos. Hanya perlu mengikuti beberapa langkah mudah.'])
-                        ])
-                    })
-                })
-            }
-        })
-    }
-}
-const componentUIReviews = {
-    skeleton: skeletonReviews,
-    card: cardReviews,
-}
-const placeholderReviews = {
-    card: h('div', { class: '' }, [
-        h('p', { class: '' }, ['ggpegk'])
-    ]),
 }
 const metaDataReviews = {
     wrapper: () => defineComponent({
@@ -404,7 +130,6 @@ const metaDataReviews = {
             }
         }
     }),
-    totalItems: 6,
     customTWTransition: 'min-h-full h-full',
     customCSSTransition: 'display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem;',
 }
@@ -469,7 +194,61 @@ const metaDataReviews = {
         <div class="w-[95%] mx-auto h-fit">
             <h2 class="w-fit mx-auto text-4xl mt-5">Upcoming Events</h2>
             <p class="w-fit mx-auto text-xl text-[#242565] mb-15">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
-            <CustomCardWithSkeletonComponent :metaData="metaDataUpcoming" :componentUI="componentUIUpcoming" :inpData="local.upcoming_events"/>
+            <CustomCardWithSkeletonComponent :metaData="metaDataUpcoming" :inpData="local.upcoming_events">
+                <template #skeleton="{ index, skeletonRefs }">
+                    <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute top-0 left-0 flex flex-col w-full h-full bg-red-500">
+                        <Skeleton class="h-12 w-12 rounded-full"/>
+                        <div class="space-y-2">
+                            <Skeleton class="w-[250px] h-4"/>
+                            <Skeleton class="w-[250px] h-4"/>
+                            <Skeleton class="w-[250px] h-4"/>
+                        </div>
+                    </div>
+                </template>
+                <template #card="{ index, inpData, toggleSkeleton }">
+                    <Card class="w-fit h-fit" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
+                        <CardContent class="relative rounded-xl">
+                            <div class="relative">
+                                <img :src="getImgURL(inpData.img)" alt="" class="object-contain" style="height: 197px" :ref="((el: any) => {
+                                        if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
+                                    })"
+                                    @load="() => {
+                                        inpData.imgLoad = true
+                                        toggleSkeleton(index)
+                                    }" @error="() => toggleSkeleton(index)"/>
+                                <I_free v-if="inpData.isFree" class="absolute top-0 right-0" />
+                            </div>
+                            <div class="w-[90%] mx-auto flex flex-col">
+                                <div class="flex gap-5">
+                                    <div class="flex flex-col">
+                                        <span class="text-[#3D37F1] font-bold">May</span>
+                                        <span class="text-black">11</span>
+                                    </div>
+                                    <div class="flex flex-col text-xl text-black">
+                                    <span>Civil Padura</span>
+                                    <span>By Civil Engineering Department</span>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col text-xl">
+                                    <div class="flex gap-2 items-center">
+                                    <I_DRight class="w-5 h-5 text-red-500" />
+                                    <span>Musical Event</span>
+                                    </div>
+                                    <div class="flex gap-2 items-center">
+                                    <I_DRight class="w-5 h-5 text-red-500" />
+                                    <span>All Universities students can join</span>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center mt-3">
+                                    <I_Location class="w-8 h-8 text-red-500" />
+                                    <span class="text-xl font-medium">University of Morotuwa</span>
+                                    <I_Bookmark class="w-8 h-8 text-blue-500" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </template>
+            </CustomCardWithSkeletonComponent>
             <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 mt-10 inline-block text-[#3D37F1] border border-[#3D37F1] px-4 py-2 rounded-2xl hover:bg-[#3D37F1] hover:text-white">See All Events</RouterLink>
         </div>
         <div class="sm:h-55 xl:h-65 mt-50 bg-purple-500">
@@ -487,7 +266,61 @@ const metaDataReviews = {
         <div class="w-[95%] mx-auto h-fit">
             <h2 class="w-fit mx-auto text-4xl mt-5">Past Events</h2>
             <p class="w-fit mx-auto text-xl text-[#242565] mb-15">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
-            <CustomCardWithSkeletonComponent :metaData="metaDataPast" :componentUI="componentUIPast" :inpData="local.past_events"/>
+            <CustomCardWithSkeletonComponent :metaData="metaDataPast" :inpData="local.past_events">
+                <template #skeleton="{ index, skeletonRefs }">
+                    <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute top-0 left-0 flex flex-col w-full h-full bg-red-500">
+                        <Skeleton class="h-12 w-12 rounded-full"/>
+                        <div class="space-y-2">
+                            <Skeleton class="w-[250px] h-4"/>
+                            <Skeleton class="w-[250px] h-4"/>
+                            <Skeleton class="w-[250px] h-4"/>
+                        </div>
+                    </div>
+                </template>
+                <template #card="{ index, inpData, toggleSkeleton }">
+                    <Card class="w-fit h-fit" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
+                        <CardContent class="relative rounded-xl">
+                            <div class="relative">
+                                <img :src="getImgURL(inpData.img)" alt="" class="object-contain" style="height: 197px" :ref="((el: any) => {
+                                        if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
+                                    })"
+                                    @load="() => {
+                                        inpData.imgLoad = true
+                                        toggleSkeleton(index)
+                                    }" @error="() => toggleSkeleton(index)"/>
+                                <I_free v-if="inpData.isFree" class="absolute top-0 right-0" />
+                            </div>
+                            <div class="w-[90%] mx-auto flex flex-col">
+                                <div class="flex gap-5">
+                                    <div class="flex flex-col">
+                                        <span class="text-[#3D37F1] font-bold">May</span>
+                                        <span class="text-black">11</span>
+                                    </div>
+                                    <div class="flex flex-col text-xl text-black">
+                                    <span>Civil Padura</span>
+                                    <span>By Civil Engineering Department</span>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col text-xl">
+                                    <div class="flex gap-2 items-center">
+                                    <I_DRight class="w-5 h-5 text-red-500" />
+                                    <span>Musical Event</span>
+                                    </div>
+                                    <div class="flex gap-2 items-center">
+                                    <I_DRight class="w-5 h-5 text-red-500" />
+                                    <span>All Universities students can join</span>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center mt-3">
+                                    <I_Location class="w-8 h-8 text-red-500" />
+                                    <span class="text-xl font-medium">University of Morotuwa</span>
+                                    <I_Bookmark class="w-8 h-8 text-blue-500" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </template>
+            </CustomCardWithSkeletonComponent>
             <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 mt-10 inline-block text-[#3D37F1] border border-[#3D37F1] px-4 py-2 rounded-2xl hover:bg-[#3D37F1] hover:text-white">Load More</RouterLink>
         </div>
     </section>
@@ -495,7 +328,59 @@ const metaDataReviews = {
         <div class="w-[95%] mx-auto h-fit">
             <h2 class="w-fit mx-auto text-4xl text-[#242565]">Reviews About Us</h2>
             <p class="w-fit mx-auto text-xl text-[#242565] mb-15">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
-            <CustomCardWithSkeletonComponent :metaData="metaDataReviews" :componentUI="componentUIReviews" :placeholderItems="placeholderReviews" :inpData="local.reviews"/>
+            <CustomCardWithSkeletonComponent :metaData="metaDataReviews" :inpData="local.reviews">
+                <template #skeleton="{ index, skeletonRefs }">
+                    <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute top-0 left-0 flex flex-col w-full h-full bg-red-500">
+                        <Skeleton class="h-12 w-12 rounded-full"/>
+                        <div class="space-y-2">
+                            <Skeleton class="w-[250px] h-4"/>
+                            <Skeleton class="w-[250px] h-4"/>
+                            <Skeleton class="w-[250px] h-4"/>
+                        </div>
+                    </div>
+                </template>
+                <template #card="{ index, inpData, toggleSkeleton }">
+                    <Card class="h-full" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
+                        <CardContent class="relative rounded-xl flex flex-col gap-2">
+                            <div class="flex gap-2">
+                                <div class="relative right-0 w-15 h-15 rounded-full pointer-events-none">
+                                    <img :src="inpData.photo ? publicConfig.baseURL + inpData.photo : [defaultBoy, defaultGirl][Math.floor(Math.random() * 2)]" alt="" class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-full h-full object-cover" style="clip-path: circle();" :ref="((el: any) => {
+                                        if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
+                                    })"
+                                    @load="() => {
+                                        inpData.imgLoad = true
+                                        toggleSkeleton(index)
+                                    }" @error="(e: Event) => {
+                                        const imgEl = e.target as HTMLImageElement
+                                        imgEl.src = [defaultBoy, defaultGirl][Math.floor(Math.random() * 2)]
+                                        toggleSkeleton(index)
+                                    }">
+                                    <!-- <img src="" alt="" class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-full h-full object-cover" style="clip-path: circle();"> -->
+                                </div>
+                                <div>
+                                    <div class="flex">
+                                        <template v-for="i in 5" :key="i">
+                                            <I_FullStar v-if="i <= Math.floor(inpData.rating)" class="w-5 h-5 text-yellow-500"/>
+                                            <I_HalfStar v-else-if="i === Math.ceil(inpData.rating) && inpData.rating % 1 >= 0.5" class="w-6 h-6 text-yellow-500"/>
+                                            <I_EmptyStar v-else class="w-5 h-5 text-yellow-500"/>
+                                        </template>
+                                    </div>
+                                    <h5 class="">{{ 'Tayloard switch' }}</h5>
+                                    <span class="">{{ 'spannn' }}</span>
+                                </div>
+                            </div>
+                            <p>{{ 'Sekarang, kamu bisa produksi tiket fisik untuk eventmu bersama Bostiketbos. Hanya perlu mengikuti beberapa langkah mudah' }}</p>
+                        </CardContent>
+                    </Card>
+                </template>
+                <template #placeholder-card>
+                    <Card class="h-full" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
+                        <CardContent class="relative rounded-xl flex flex-col gap-2">
+                            <p>iki placeholder</p>
+                        </CardContent>
+                    </Card>
+                </template>
+            </CustomCardWithSkeletonComponent>
             <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 mt-10 inline-block text-[#3D37F1] border border-[#3D37F1] px-4 py-2 rounded-2xl hover:bg-[#3D37F1] hover:text-white">Load More</RouterLink>
         </div>
     </section>
