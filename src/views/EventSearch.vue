@@ -24,6 +24,7 @@ import DialogTitle from '@/components/ui/dialog/DialogTitle.vue'
 import DialogDescription from '@/components/ui/dialog/DialogDescription.vue'
 import Label from "@/components/ui/label/Label.vue"
 import { Select, SelectTrigger, SelectContent, SelectGroup, SelectLabel, SelectItem, SelectValue } from '@/components/ui/select'
+import Checkbox from '@/components/ui/checkbox/Checkbox.vue'
 import Popover from '@/components/ui/popover/Popover.vue'
 import PopoverTrigger from '@/components/ui/popover/PopoverTrigger.vue'
 import PopoverContent from '@/components/ui/popover/PopoverContent.vue'
@@ -54,43 +55,60 @@ const filterRules = {
     pay: ["pay", "free", "all"] as const,
     category: ["tech", "design", "games", "olahraga", "seni"] as const,
 } as const
-type FilterRules = typeof filterRules
-type FilterKey = keyof FilterRules
+type FilterKey = keyof typeof filterRules
 type FilterValues = {
-    [K in FilterKey]: FilterRules[K][number] | null | ""
+    [K in FilterKey]: K extends "category" ? (typeof filterRules[K][number])[] : typeof filterRules[K][number] | ""
 }
 type InputForm = FilterValues & {
     search: string
-    // popular?: string | null
 }
 const oldInput = reactive<InputForm>({
     search: '',
     // popular: '' as any,
     // university: '',
-    category: null,
+    category: [],
     pay: '' as 'pay' | 'free' | 'all',
 })
 const currentInput = reactive<InputForm>({
     search: '',
     // popular: '' as any,
     // university: '',
-    category: '',
+    category: [],
     pay: '' as 'pay' | 'free' | 'all',
 })
+let debounceTimer: ReturnType<typeof setTimeout> | null = null
+const triggerForm = () => {
+    if(debounceTimer) clearTimeout(debounceTimer)
+    debounceTimer = setTimeout(async () => {
+        await formSearchFilter()
+    }, 500)
+}
+const toggleCategory = (opt: (typeof currentInput.category)[number], checked: boolean) => {
+    if(checked && !currentInput.category.includes(opt)){
+        currentInput.category.push(opt)
+    }else{
+        currentInput.category = currentInput.category.filter(c => c !== opt)
+    }
+    triggerForm()
+}
 const keyword = ref('')
 const isDialogOpen = ref(false)
 const inpTanggal = ref({
     start: undefined,
     end: undefined,
 }) as Ref<DateRange>
-function sanitizeQuery<T extends FilterKey>(key: T, value: unknown): InputForm[T] | null {
+const sanitizeQuery = <T extends FilterKey>(key: T, value: unknown): InputForm[T] | null => {
     const allowed = filterRules[key] as readonly string[]
-    if(typeof value === "string" && allowed.includes(value)){
-        return value as InputForm[T]
+    if(typeof value === "string"){
+        return (allowed.includes(value) ? [value] : []) as InputForm[T]
+    }
+    if(Array.isArray(value)){
+        const filtered = value.filter((v) => typeof v === "string" && allowed.includes(v))
+        return (filtered as InputForm[T]) ?? null
     }
     return null
 }
-function sanitizeAllQuery(rawQuery: Record<string, unknown>): InputForm {
+const sanitizeAllQuery = (rawQuery: Record<string, unknown>): InputForm => {
     const query = {
         search: rawQuery.find,
         category: rawQuery.f_category,
@@ -100,20 +118,14 @@ function sanitizeAllQuery(rawQuery: Record<string, unknown>): InputForm {
     clean.search = Array.isArray(query.search) ? query.search[0] : (query.search as string) ?? ""
     for(const key of Object.keys(filterRules) as FilterKey[]){
         const value = query[key]
-        clean[key] = sanitizeQuery(key, value) ?? (key === "category" ? null : "")
+        clean[key] = sanitizeQuery(key, value) ?? (key === "category" ? [] : "")
     }
     return clean as InputForm
 }
 const queryParamHandler = (inp: Record<string, any>) => {
-    let categoryQuery = null
-    if(Array.isArray(inp.category) && inp.category.length > 0){
-        categoryQuery = inp.category.join(',')
-    }else if(inp.category){
-        categoryQuery = inp.category
-    }
     const queryParams: Record<string, any> = {
         find: inp.search || null,
-        f_category: categoryQuery,
+        f_category: Array.isArray(inp.category) && inp.category.length > 0 ? inp.category : null,
         f_pay: inp.pay || null,
         f_sr_date: inpTanggal.value.start ? inpTanggal.value.start.toString() : null,
         f_er_date: inpTanggal.value.end ? inpTanggal.value.end.toString() : null,
@@ -141,8 +153,14 @@ onBeforeMount(async() => {
         console.log("Tidak ada query parameter. Hentikan eksekusi.")
         return
     }
-    Object.assign(oldInput, sanitized)
-    Object.assign(currentInput, sanitized)
+    Object.assign(oldInput, {
+        ...sanitized,
+        category: sanitized.category ? [...sanitized.category] : []
+    })
+    Object.assign(currentInput, {
+        ...sanitized,
+        category: sanitized.category ? [...sanitized.category] : []
+    })
     const res = await fetchDataS.fetchPage(route.path, newQuery, {})
     if(res ==  undefined || res.status == 'error'){
         return
@@ -209,8 +227,15 @@ watch(secondMonthPlaceholder, (_secondMonthPlaceholder) => {
 })
 const formSearchFilter = async() => {
     let isUpdated = false
+    const isEqual = (a: unknown, b: unknown): boolean => {
+        if(Array.isArray(a) && Array.isArray(b)){
+            if (a.length !== b.length) return false
+            return a.every((val, idx) => val === b[idx])
+        }
+        return a === b
+    }
     for(const key of Object.keys(oldInput) as (keyof typeof oldInput)[]){
-        if(oldInput[key] !== currentInput[key]){
+        if(!isEqual(oldInput[key], currentInput[key])){
             isUpdated = true
             break
         }
@@ -233,7 +258,7 @@ const formSearchFilter = async() => {
             local.fetchData = decRes
             keyword.value = currentInput.search
             oldInput.search = currentInput.search
-            oldInput.category = currentInput.category
+            oldInput.category = { ...currentInput.category }
             oldInput.pay = currentInput.pay
         }catch(err: any){
             if (err.response){
@@ -303,7 +328,7 @@ const metaDataSearch = {
                     </SelectContent>
                 </Select>
             </div> -->
-            <div>
+            <!-- <div>
                 <Label>Pilih Kategori</Label>
                 <Select v-model="currentInput.category" @update:model-value="formSearchFilter()">
                     <SelectTrigger class="w-[180px]">
@@ -320,6 +345,18 @@ const metaDataSearch = {
                         </SelectGroup>
                     </SelectContent>
                 </Select>
+            </div> -->
+            <div>
+                <Label>Pilih Kategori</Label>
+                <div class="flex flex-col gap-2">
+                    <div v-for="opt in filterRules.category" :key="opt" class="flex items-center space-x-2">
+                        <!-- <Checkbox :id="`cat-${opt}`" :model-value="currentInput.category.includes(opt)" @click="toggleCategory(opt)"/> -->
+                        <Checkbox :id="`cat-${opt}`" :model-value="currentInput.category.includes(opt)" @update:model-value="(val) => toggleCategory(opt, val as boolean)"/>
+                        <!-- <Checkbox :id="`cat-${opt}`" v-model:checked="categoryModel(opt).value"/> -->
+                        <!-- <Checkbox :id="`cat-${opt}`" v-model="currentInput.category" @update:checked="(val: any) => toggleCategory(opt, val)"/> -->
+                        <Label :for="`cat-${opt}`" class="capitalize"> {{ opt }}</Label>
+                    </div>
+                </div>
             </div>
             <div>
                 <Label>Pilih Rentang Tanggal</Label>
