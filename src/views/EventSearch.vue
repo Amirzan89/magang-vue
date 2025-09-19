@@ -50,19 +50,32 @@ const local = reactive({
     past_events: null as any,
     reviews: null as any,
 })
-const oldInput = reactive({
+const filterRules = {
+    pay: ["pay", "free", "all"] as const,
+    category: ["tech", "design", "games", "olahraga", "seni"] as const,
+} as const
+type FilterRules = typeof filterRules
+type FilterKey = keyof FilterRules
+type FilterValues = {
+    [K in FilterKey]: FilterRules[K][number] | null | ""
+}
+type InputForm = FilterValues & {
+    search: string
+    // popular?: string | null
+}
+const oldInput = reactive<InputForm>({
     search: '',
     // popular: '' as any,
     // university: '',
     category: null,
-    pay: null,
+    pay: '' as 'pay' | 'free' | 'all',
 })
-const currentInput = reactive({
+const currentInput = reactive<InputForm>({
     search: '',
     // popular: '' as any,
     // university: '',
-    category: null,
-    pay: null,
+    category: '',
+    pay: '' as 'pay' | 'free' | 'all',
 })
 const keyword = ref('')
 const isDialogOpen = ref(false)
@@ -70,20 +83,70 @@ const inpTanggal = ref({
     start: undefined,
     end: undefined,
 }) as Ref<DateRange>
+function sanitizeQuery<T extends FilterKey>(key: T, value: unknown): InputForm[T] | null {
+    const allowed = filterRules[key] as readonly string[]
+    if(typeof value === "string" && allowed.includes(value)){
+        return value as InputForm[T]
+    }
+    return null
+}
+function sanitizeAllQuery(rawQuery: Record<string, unknown>): InputForm {
+    const query = {
+        search: rawQuery.find,
+        category: rawQuery.f_category,
+        pay: rawQuery.f_pay
+    }
+    const clean: any = {}
+    clean.search = Array.isArray(query.search) ? query.search[0] : (query.search as string) ?? ""
+    for(const key of Object.keys(filterRules) as FilterKey[]){
+        const value = query[key]
+        clean[key] = sanitizeQuery(key, value) ?? (key === "category" ? null : "")
+    }
+    return clean as InputForm
+}
+const queryParamHandler = (inp: Record<string, any>) => {
+    let categoryQuery = null
+    if(Array.isArray(inp.category) && inp.category.length > 0){
+        categoryQuery = inp.category.join(',')
+    }else if(inp.category){
+        categoryQuery = inp.category
+    }
+    const queryParams: Record<string, any> = {
+        find: inp.search || null,
+        f_category: categoryQuery,
+        f_pay: inp.pay || null,
+        f_sr_date: inpTanggal.value.start ? inpTanggal.value.start.toString() : null,
+        f_er_date: inpTanggal.value.end ? inpTanggal.value.end.toString() : null,
+    }
+    const filteredParams: Record<string, any> = {}
+    for(const key in queryParams){
+        const value = queryParams[key]
+        if(value){
+            filteredParams[key] = value
+        }
+    }
+    return filteredParams
+}
 onBeforeMount(async() => {
-    if(Object.keys(route.query).length === 0){
-        console.log('Tidak ada query parameter. Hentikan eksekusi.')
+    if(!route.query || Object.keys(route.query).length === 0){
+        console.log('Tidak ada query parameter. Hentikan eksekusi.eee')
         return
     }
-    const res = await fetchDataS.fetchPage(route.path, route.query, {})
+    const sanitized = sanitizeAllQuery(route.query)
+    const newQuery = queryParamHandler(sanitized)
+    if(Object.keys(newQuery).length > 0){
+        router.replace({ query: newQuery }).catch(() => {})
+    }
+    if(Object.keys(newQuery).length === 0){
+        console.log("Tidak ada query parameter. Hentikan eksekusi.")
+        return
+    }
+    Object.assign(oldInput, sanitized)
+    Object.assign(currentInput, sanitized)
+    const res = await fetchDataS.fetchPage(route.path, newQuery, {})
     if(res ==  undefined || res.status == 'error'){
         return
     }
-    console.log('enttook dataa ', res.data)
-    const findQuery = route.query.find
-    const searchValue = Array.isArray(findQuery) ? findQuery[0] : findQuery
-    oldInput.search = searchValue ?? ''
-    currentInput.search = searchValue ?? ''
     local.fetchData = res.data
 })
 const posFilter = computed(() => {
@@ -144,29 +207,6 @@ watch(secondMonthPlaceholder, (_secondMonthPlaceholder) => {
     })
     if (isEqualMonth(_secondMonthPlaceholder, RTPlaceholder.value)) RTPlaceholder.value = RTPlaceholder.value.subtract({ months: 1 })
 })
-const queryParamHandler = () => {
-    let categoryQuery = null
-    if(Array.isArray(currentInput.category) && currentInput.category.length > 0){
-        categoryQuery = currentInput.category.join(',')
-    }else if(currentInput.category){
-        categoryQuery = currentInput.category
-    }
-    const queryParams: Record<string, any> = {
-        find: currentInput.search || null,
-        f_category: categoryQuery,
-        f_pay: currentInput.pay || null,
-        f_sr_date: inpTanggal.value.start ? inpTanggal.value.start.toString() : null,
-        f_er_date: inpTanggal.value.end ? inpTanggal.value.end.toString() : null,
-    }
-    const filteredParams: Record<string, any> = {}
-    for(const key in queryParams){
-        const value = queryParams[key]
-        if(value){
-            filteredParams[key] = value
-        }
-    }
-    return filteredParams
-}
 const formSearchFilter = async() => {
     let isUpdated = false
     for(const key of Object.keys(oldInput) as (keyof typeof oldInput)[]){
@@ -180,7 +220,7 @@ const formSearchFilter = async() => {
     const searchFilterAPI = async() => {
         try{
             router.push({
-                query: queryParamHandler()
+                query: queryParamHandler(currentInput)
             })
             const encr = await encryptReq({})
             const res = (await(await axiosJson()).post('/search', {
