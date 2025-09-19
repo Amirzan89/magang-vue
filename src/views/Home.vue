@@ -96,32 +96,26 @@ const metaDataUpcoming = {
         setup(){
             const slots = useSlots()
             return () => {
-                return h(RouterLink, { to: inpData.event_id, class: 'relative w-full bg-green-500' }, {
+                return h(RouterLink, { to: inpData.event_id, class: 'relative' }, {
                     default: () => slots.default ? slots.default() : null
                 });
             }
         }
     }),
-    customTWTransition: 'h-full mt-5 bg-red-500',
-    customCSSTransition: 'display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 400px)); gap: 0rem;',
-    // customCSSTransition: 'display: grid; grid-template-columns: repeat(auto-fit, 1fr); gap: 0rem;',
-    // customCSSTransition: 'display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem;',
-    // customCSSTransition: 'display: grid; grid-template-columns: repeat(3, minmax(150px, 1fr)); gap: 1.5rem;',
-    // customCSSTransition: 'display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;',
+    customTWTransition: 'h-full mt-5 grid grid-cols-1 phone:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4',
 }
 const metaDataPast = {
     wrapper: (inpData: any) => defineComponent({
         setup(){
             const slots = useSlots()
             return () => {
-                return h(RouterLink, { to: inpData.event_id, class: 'relative w-fit' }, {
+                return h(RouterLink, { to: inpData.event_id, class: 'relative' }, {
                     default: () => slots.default ? slots.default() : null
                 });
             }
         }
     }),
-    customTWTransition: 'min-h-full h-full mt-5',
-    customCSSTransition: 'display: grid; grid-template-columns: repeat(auto-fit, minmax(0px, 200px)); gap: 1.5rem;',
+    customTWTransition: 'h-full mt-5 grid grid-cols-1 phone:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4',
 }
 const metaDataReviews = {
     wrapper: () => defineComponent({
@@ -134,8 +128,7 @@ const metaDataReviews = {
             }
         }
     }),
-    customTWTransition: 'min-h-full h-full',
-    customCSSTransition: 'display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem;',
+    customTWTransition: 'h-full mt-5 grid grid-cols-1 phone:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4',
 }
 </script>
 <template>
@@ -209,7 +202,7 @@ const metaDataReviews = {
                     </div>
                 </template>
                 <template #card="{ index, inpData, toggleSkeleton }">
-                    <Card class="w-full h-fit" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
+                    <Card class="h-fit" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
                         <CardContent class="relative rounded-xl">
                             <div class="relative">
                                 <img :src="getImgURL(inpData.img)" alt="" class="object-contain" style="height: 197px" :ref="((el: any) => {
@@ -269,7 +262,7 @@ const metaDataReviews = {
         <div class="w-[95%] mx-auto h-fit">
             <h2 class="w-fit mx-auto text-4xl mt-5">Past Events</h2>
             <p class="w-fit mx-auto text-xl text-[#242565] mb-15">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
-            <!-- <CustomCardWithSkeletonComponent :metaData="metaDataPast" :inpData="local.past_events">
+            <CustomCardWithSkeletonComponent :metaData="metaDataPast" :inpData="local.past_events">
                 <template #skeleton="{ index, skeletonRefs }">
                     <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute top-0 left-0 flex flex-col w-full h-full bg-red-500">
                         <Skeleton class="h-12 w-12 rounded-full"/>
@@ -281,7 +274,7 @@ const metaDataReviews = {
                     </div>
                 </template>
                 <template #card="{ index, inpData, toggleSkeleton }">
-                    <Card class="w-fit h-fit" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
+                    <Card class="h-fit" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
                         <CardContent class="relative rounded-xl">
                             <div class="relative">
                                 <img :src="getImgURL(inpData.img)" alt="" class="object-contain" style="height: 197px" :ref="((el: any) => {
@@ -323,7 +316,7 @@ const metaDataReviews = {
                         </CardContent>
                     </Card>
                 </template>
-            </CustomCardWithSkeletonComponent> -->
+            </CustomCardWithSkeletonComponent>
             <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 mt-10 inline-block text-[#3D37F1] border border-[#3D37F1] px-4 py-2 rounded-2xl hover:bg-[#3D37F1] hover:text-white">Load More</RouterLink>
         </div>
     </section>
@@ -331,7 +324,7 @@ const metaDataReviews = {
         <div class="w-[95%] mx-auto h-fit">
             <h2 class="w-fit mx-auto text-4xl text-[#242565]">Reviews About Us</h2>
             <p class="w-fit mx-auto text-xl text-[#242565] mb-15">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
-            <!-- <CustomCardWithSkeletonComponent :metaData="metaDataReviews" :inpData="local.reviews">
+            <CustomCardWithSkeletonComponent :metaData="metaDataReviews" :inpData="local.reviews">
                 <template #skeleton="{ index, skeletonRefs }">
                     <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute top-0 left-0 flex flex-col w-full h-full bg-red-500">
                         <Skeleton class="h-12 w-12 rounded-full"/>
@@ -343,7 +336,7 @@ const metaDataReviews = {
                     </div>
                 </template>
                 <template #card="{ index, inpData, toggleSkeleton }">
-                    <Card class="h-full" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
+                    <Card class="h-fit" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
                         <CardContent class="relative rounded-xl flex flex-col gap-2">
                             <div class="flex gap-2">
                                 <div class="relative right-0 w-15 h-15 rounded-full pointer-events-none">
@@ -383,7 +376,7 @@ const metaDataReviews = {
                         </CardContent>
                     </Card>
                 </template>
-            </CustomCardWithSkeletonComponent> -->
+            </CustomCardWithSkeletonComponent>
             <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 mt-10 inline-block text-[#3D37F1] border border-[#3D37F1] px-4 py-2 rounded-2xl hover:bg-[#3D37F1] hover:text-white">Load More</RouterLink>
         </div>
     </section>

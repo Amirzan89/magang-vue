@@ -274,14 +274,13 @@ const metaDataSearch = {
         setup(){
             const slots = useSlots()
             return () => {
-                return h(RouterLink, { to: inpData.event_id, class: 'relative w-fit' }, {
+                return h(RouterLink, { to: inpData.event_id, class: 'relative' }, {
                     default: () => slots.default ? slots.default() : null
                 })
             }
         }
     }),
-    customTWTransition: 'h-full mt-5',
-    customCSSTransition: 'display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem;',
+    customTWTransition: 'h-full mt-5 grid grid-cols-1 phone:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4',
 }
 </script>
 <template>
@@ -438,7 +437,7 @@ const metaDataSearch = {
                                 </div>
                             </template>
                             <template #card="{ index, inpData, toggleSkeleton }">
-                                <Card class="w-fit h-fit" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
+                                <Card class="h-fit" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
                                     <CardContent class="relative rounded-xl">
                                         <div class="relative">
                                             <img :src="getImgURL(inpData.img)" alt="" class="object-contain" style="height: 197px" :ref="((el: any) => {
