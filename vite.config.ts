@@ -15,7 +15,7 @@ export default defineConfig({
   server: {
     port: 3000,
     allowedHosts: [
-      'a32e0ccf8675.ngrok-free.app'
+      'app.amtest.my.id'
     ]
   },
   plugins: [
