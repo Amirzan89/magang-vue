@@ -96,14 +96,18 @@ const metaDataUpcoming = {
         setup(){
             const slots = useSlots()
             return () => {
-                return h(RouterLink, { to: inpData.event_id, class: 'relative w-fit' }, {
+                return h(RouterLink, { to: inpData.event_id, class: 'relative w-full bg-green-500' }, {
                     default: () => slots.default ? slots.default() : null
                 });
             }
         }
     }),
-    customTWTransition: 'h-full mt-5',
-    customCSSTransition: 'display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem;',
+    customTWTransition: 'h-full mt-5 bg-red-500',
+    customCSSTransition: 'display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 400px)); gap: 0rem;',
+    // customCSSTransition: 'display: grid; grid-template-columns: repeat(auto-fit, 1fr); gap: 0rem;',
+    // customCSSTransition: 'display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem;',
+    // customCSSTransition: 'display: grid; grid-template-columns: repeat(3, minmax(150px, 1fr)); gap: 1.5rem;',
+    // customCSSTransition: 'display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;',
 }
 const metaDataPast = {
     wrapper: (inpData: any) => defineComponent({
@@ -143,20 +147,19 @@ const metaDataReviews = {
         <div class="relative z-10 flex flex-col justify-center gap-24 items-center h-full text-white">
             <div class="w-[92%] h-1/2">
                 <div class="relative left-1/2 -translate-x-1/2 rounded-xl h-full">
-                    <Carousel class="relative z-0 inset-0 rounded-xl overflow- w-full h-full bg-red-500" @init-api="onInitApiCar" :plugins="[autoplayPlugin]" @mouseenter="autoplayPlugin.stop" @mouseleave="restartAutoplay">
+                    <Carousel class="relative z-0 inset-0 rounded-xl overflow- w-full h-full border-black border-width-1" @init-api="onInitApiCar" :plugins="[autoplayPlugin]" @mouseenter="autoplayPlugin.stop" @mouseleave="restartAutoplay">
                         <CarouselContent :customTW="'h-full'">
-                            <CarouselItem v-for="(_, index) in 10" :key="index">
-                                <div class="p-1 h-full">
-                                    <Card :customTW="'h-full'">
-                                        <CardContent class="flex aspect-square items-center justify-center p-6 h-full">
-                                            <span class="text-4xl font-semibold">{{ index + 1 }}</span>
-                                        </CardContent>
-                                    </Card>
+                            <CarouselItem v-for="(item, index) in local.upcoming_events" :key="index">
+                                <div class="relative h-full" :style="{
+                                    backgroundImage: `url(${getImgURL(item.img)})`,
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center'
+                                }">
                                 </div>
                             </CarouselItem>
                         </CarouselContent>
                         <div class="absolute w-full h-full top-0 left-0 flex justify-around">
-                            <div class="bg absolute w-full h-full"></div>
+                            <div class="bg absolute w-full h-full" style="background: linear-gradient(47deg, rgba(0, 0, 0, 0.8) 18.46%, rgba(84, 32, 180, 0) 137.6%);"></div>
                             <div class="self-center w-[47%] h-1/2 relative group">
                                 <CarouselPrevious :class="'left-0 bg-transparent border-transparent text-white/0 hover:bg-transparent hover:text-red-500 group-hover:text-red-500 group-hover:disabled:text-red-500/0 w-fit h-fit'" :cus-icon="I_VLeft" :cusIconClass="'!w-7 !h-7'"/>
                                 <div class="w-[87%] h-full relative left-1/2 -translate-x-1/2 px-4">
@@ -206,7 +209,7 @@ const metaDataReviews = {
                     </div>
                 </template>
                 <template #card="{ index, inpData, toggleSkeleton }">
-                    <Card class="w-fit h-fit" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
+                    <Card class="w-full h-fit" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
                         <CardContent class="relative rounded-xl">
                             <div class="relative">
                                 <img :src="getImgURL(inpData.img)" alt="" class="object-contain" style="height: 197px" :ref="((el: any) => {
@@ -266,7 +269,7 @@ const metaDataReviews = {
         <div class="w-[95%] mx-auto h-fit">
             <h2 class="w-fit mx-auto text-4xl mt-5">Past Events</h2>
             <p class="w-fit mx-auto text-xl text-[#242565] mb-15">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
-            <CustomCardWithSkeletonComponent :metaData="metaDataPast" :inpData="local.past_events">
+            <!-- <CustomCardWithSkeletonComponent :metaData="metaDataPast" :inpData="local.past_events">
                 <template #skeleton="{ index, skeletonRefs }">
                     <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute top-0 left-0 flex flex-col w-full h-full bg-red-500">
                         <Skeleton class="h-12 w-12 rounded-full"/>
@@ -320,7 +323,7 @@ const metaDataReviews = {
                         </CardContent>
                     </Card>
                 </template>
-            </CustomCardWithSkeletonComponent>
+            </CustomCardWithSkeletonComponent> -->
             <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 mt-10 inline-block text-[#3D37F1] border border-[#3D37F1] px-4 py-2 rounded-2xl hover:bg-[#3D37F1] hover:text-white">Load More</RouterLink>
         </div>
     </section>
@@ -328,7 +331,7 @@ const metaDataReviews = {
         <div class="w-[95%] mx-auto h-fit">
             <h2 class="w-fit mx-auto text-4xl text-[#242565]">Reviews About Us</h2>
             <p class="w-fit mx-auto text-xl text-[#242565] mb-15">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
-            <CustomCardWithSkeletonComponent :metaData="metaDataReviews" :inpData="local.reviews">
+            <!-- <CustomCardWithSkeletonComponent :metaData="metaDataReviews" :inpData="local.reviews">
                 <template #skeleton="{ index, skeletonRefs }">
                     <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute top-0 left-0 flex flex-col w-full h-full bg-red-500">
                         <Skeleton class="h-12 w-12 rounded-full"/>
@@ -355,7 +358,7 @@ const metaDataReviews = {
                                         imgEl.src = [defaultBoy, defaultGirl][Math.floor(Math.random() * 2)]
                                         toggleSkeleton(index)
                                     }">
-                                    <!-- <img src="" alt="" class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-full h-full object-cover" style="clip-path: circle();"> -->
+                                    <img src="" alt="" class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-full h-full object-cover" style="clip-path: circle();">
                                 </div>
                                 <div>
                                     <div class="flex">
@@ -380,7 +383,7 @@ const metaDataReviews = {
                         </CardContent>
                     </Card>
                 </template>
-            </CustomCardWithSkeletonComponent>
+            </CustomCardWithSkeletonComponent> -->
             <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 mt-10 inline-block text-[#3D37F1] border border-[#3D37F1] px-4 py-2 rounded-2xl hover:bg-[#3D37F1] hover:text-white">Load More</RouterLink>
         </div>
     </section>
