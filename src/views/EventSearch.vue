@@ -4,7 +4,7 @@ import { Icon } from '@iconify/vue'
 import { Calendar, ChevronLeft, ChevronRight} from "lucide-vue-next"
 import { createMonth, toDate, type Grid } from "reka-ui/date"
 import { CalendarDate, getLocalTimeZone, isEqualMonth, today, type DateValue } from "@internationalized/date"
-import { ref, reactive, computed, watch, onBeforeMount, h, useSlots, defineComponent, Fragment, inject, Teleport, type Ref, type VNodeRef, type ComputedRef } from 'vue'
+import { ref, reactive, computed, watch, onBeforeMount, h, useSlots, defineComponent, nextTick, Teleport, type Ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { cn } from "@/utils/shadcn-vue"
 import { formatTgl } from "@/utils/global"
@@ -49,6 +49,7 @@ const local = reactive({
     fetchData: [] as any,
     past_events: null as any,
     reviews: null as any,
+    isLoading: false,
 })
 const filterRules = {
     pay: ["pay", "free", "all"] as const,
@@ -245,6 +246,7 @@ const formSearchFilter = async() => {
     abortFormController = new AbortController()
     let retryCount = 0
     const searchFilterAPI = async(signal: AbortSignal) => {
+        local.isLoading = true
         try{
             router.push({
                 query: queryParamHandler(currentInput)
@@ -255,13 +257,16 @@ const formSearchFilter = async() => {
                 cipher: encr.data,
                 mac: encr.mac,
             }, { params: { ...route.query, _: Date.now() }, signal, headers: { 'X-Merseal': sessionStorage.merseal }})).data
-            const decRes = decryptRes(res.data, encr.iv)
-            console.log('desccc ress', decRes)
-            local.fetchData = decRes
-            keyword.value = currentInput.search
-            oldInput.search = currentInput.search
-            oldInput.category = [ ...currentInput.category ]
-            oldInput.pay = currentInput.pay
+            if(!signal.aborted){
+                const decRes = decryptRes(res.data, encr.iv)
+                console.log('desccc ress', decRes)
+                local.fetchData = decRes
+                keyword.value = currentInput.search
+                oldInput.search = currentInput.search
+                oldInput.category = [ ...currentInput.category ]
+                oldInput.pay = currentInput.pay
+                await nextTick()
+            }
         }catch(err: any){
             if(err.name === "CanceledError"){
                 console.log("Request dibatalkan")
@@ -295,6 +300,8 @@ const formSearchFilter = async() => {
             console.log('errror', err)
             // return toast
             return { status:'error', message: err }
+        }finally{
+            local.isLoading = false
         }
     }
     searchFilterAPI(abortFormController.signal)
