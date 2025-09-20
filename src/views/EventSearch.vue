@@ -82,6 +82,7 @@ const currentInput = reactive<InputForm>({
     category: [],
     pay: '' as 'pay' | 'free' | 'all',
 })
+let abortFormController: AbortController | null = null
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 const triggerForm = () => {
     if(debounceTimer) clearTimeout(debounceTimer)
@@ -225,6 +226,7 @@ watch(secondMonthPlaceholder, (_secondMonthPlaceholder) => {
     if (isEqualMonth(_secondMonthPlaceholder, RTPlaceholder.value)) RTPlaceholder.value = RTPlaceholder.value.subtract({ months: 1 })
 })
 const formSearchFilter = async() => {
+    if(abortFormController) abortFormController.abort()
     let isUpdated = false
     const isEqual = (a: unknown, b: unknown): boolean => {
         if(Array.isArray(a) && Array.isArray(b)){
@@ -240,8 +242,9 @@ const formSearchFilter = async() => {
         }
     }
     if(!isUpdated) return
+    abortFormController = new AbortController()
     let retryCount = 0
-    const searchFilterAPI = async() => {
+    const searchFilterAPI = async(signal: AbortSignal) => {
         try{
             router.push({
                 query: queryParamHandler(currentInput)
@@ -251,7 +254,7 @@ const formSearchFilter = async() => {
                 uniqueid: encr.iv,
                 cipher: encr.data,
                 mac: encr.mac,
-            }, { params: { ...route.query, _: Date.now() }, headers: { 'X-Merseal': sessionStorage.merseal }})).data
+            }, { params: { ...route.query, _: Date.now() }, signal, headers: { 'X-Merseal': sessionStorage.merseal }})).data
             const decRes = decryptRes(res.data, encr.iv)
             console.log('desccc ress', decRes)
             local.fetchData = decRes
@@ -260,7 +263,10 @@ const formSearchFilter = async() => {
             oldInput.category = [ ...currentInput.category ]
             oldInput.pay = currentInput.pay
         }catch(err: any){
-            if (err.response){
+            if(err.name === "CanceledError"){
+                console.log("Request dibatalkan")
+                return
+            }else if(err.response){
                 let cusRedirect: string | null = null
                 if(err.response.status === 404){
                     return { status:'error', message: 'not found', code: 404 }
@@ -269,7 +275,7 @@ const formSearchFilter = async() => {
                     if(retryCount <= 3){
                         retryCount++
                         await fetchCsrfToken()
-                        return searchFilterAPI()
+                        return searchFilterAPI(signal)
                     }else{
                         retryCount = 0
                         console.log('Request failed')
@@ -291,7 +297,7 @@ const formSearchFilter = async() => {
             return { status:'error', message: err }
         }
     }
-    searchFilterAPI()
+    searchFilterAPI(abortFormController.signal)
 }
 const metaDataSearch = {
     wrapper: (inpData: any) => defineComponent({
