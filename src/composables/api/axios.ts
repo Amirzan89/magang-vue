@@ -1,5 +1,4 @@
 import axios from 'axios'
-import qs from 'qs'
 import Cookies from 'js-cookie'
 import { useConfig } from '@/composables/useConfig'
 import RSAComposables from '@/composables/RSA'
@@ -7,9 +6,6 @@ const publicConfig = useConfig()
 const api = axios.create({
     baseURL: publicConfig.baseURL || 'http://localhost:8000',
     withCredentials: true,
-    paramsSerializer: params => {
-        return qs.stringify(params, { arrayFormat: "repeat" }) 
-    }
 })
 const fetchCsrfToken = async () => {
     return await axios.get(`${publicConfig.baseURL}/sanctum/csrf-cookie`, { withCredentials: true })
