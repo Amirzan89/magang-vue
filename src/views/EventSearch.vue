@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onBeforeMount, h, useSlots, defineComponent, Fragment, inject, Teleport, type Ref, type VNodeRef, type ComputedRef } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
-import { RangeCalendarRoot, useDateFormatter, Viewport, VisuallyHidden, type DateRange } from "reka-ui"
+import { CheckboxGroupRoot, CheckboxIndicator, CheckboxRoot, RangeCalendarRoot, useDateFormatter, Viewport, VisuallyHidden, type DateRange } from "reka-ui"
+import { Icon } from '@iconify/vue'
 import { Calendar, ChevronLeft, ChevronRight} from "lucide-vue-next"
 import { createMonth, toDate, type Grid } from "reka-ui/date"
 import { CalendarDate, getLocalTimeZone, isEqualMonth, today, type DateValue } from "@internationalized/date"
+import { ref, reactive, computed, watch, onBeforeMount, h, useSlots, defineComponent, Fragment, inject, Teleport, type Ref, type VNodeRef, type ComputedRef } from 'vue'
+import { RouterLink, useRoute } from 'vue-router'
 import { cn } from "@/utils/shadcn-vue"
 import { formatTgl } from "@/utils/global"
-import { useConfig } from '@/composables/useConfig'
 import useAxios from '@/composables/api/axios'
 import useEncryption from '@/composables/encryption'
 import { isMobile, isDesktop } from '@/composables/useScreenSize'
@@ -23,8 +23,7 @@ import DialogHeader from '@/components/ui/dialog/DialogHeader.vue'
 import DialogTitle from '@/components/ui/dialog/DialogTitle.vue'
 import DialogDescription from '@/components/ui/dialog/DialogDescription.vue'
 import Label from "@/components/ui/label/Label.vue"
-import { Select, SelectTrigger, SelectContent, SelectGroup, SelectLabel, SelectItem, SelectValue } from '@/components/ui/select'
-import Checkbox from '@/components/ui/checkbox/Checkbox.vue'
+import { Select, SelectTrigger, SelectContent, SelectGroup, SelectItem, SelectValue } from '@/components/ui/select'
 import Popover from '@/components/ui/popover/Popover.vue'
 import PopoverTrigger from '@/components/ui/popover/PopoverTrigger.vue'
 import PopoverContent from '@/components/ui/popover/PopoverContent.vue'
@@ -62,6 +61,13 @@ type FilterValues = {
 type InputForm = FilterValues & {
     search: string
 }
+const itemsCategoryFilter = [
+    { label: 'Tech', value: 'tech' },
+    { label: 'Design', value: 'design' },
+    { label: 'Games', value: 'games' },
+    { label: 'Olahraga', value: 'olahraga' },
+    { label: 'Seni', value: 'seni' },
+]
 const oldInput = reactive<InputForm>({
     search: '',
     // popular: '' as any,
@@ -83,14 +89,7 @@ const triggerForm = () => {
         await formSearchFilter()
     }, 500)
 }
-const toggleCategory = (opt: (typeof currentInput.category)[number], checked: boolean) => {
-    if(checked && !currentInput.category.includes(opt)){
-        currentInput.category.push(opt)
-    }else{
-        currentInput.category = currentInput.category.filter(c => c !== opt)
-    }
-    triggerForm()
-}
+watch(() => currentInput.category, () => triggerForm(), { deep: true })
 const keyword = ref('')
 const isDialogOpen = ref(false)
 const inpTanggal = ref({
@@ -229,7 +228,7 @@ const formSearchFilter = async() => {
     let isUpdated = false
     const isEqual = (a: unknown, b: unknown): boolean => {
         if(Array.isArray(a) && Array.isArray(b)){
-            if (a.length !== b.length) return false
+            if(a.length !== b.length) return false
             return a.every((val, idx) => val === b[idx])
         }
         return a === b
@@ -258,7 +257,7 @@ const formSearchFilter = async() => {
             local.fetchData = decRes
             keyword.value = currentInput.search
             oldInput.search = currentInput.search
-            oldInput.category = { ...currentInput.category }
+            oldInput.category = [ ...currentInput.category ]
             oldInput.pay = currentInput.pay
         }catch(err: any){
             if (err.response){
@@ -348,15 +347,18 @@ const metaDataSearch = {
             </div> -->
             <div>
                 <Label>Pilih Kategori</Label>
-                <div class="flex flex-col gap-2">
-                    <div v-for="opt in filterRules.category" :key="opt" class="flex items-center space-x-2">
-                        <!-- <Checkbox :id="`cat-${opt}`" :model-value="currentInput.category.includes(opt)" @click="toggleCategory(opt)"/> -->
-                        <Checkbox :id="`cat-${opt}`" :model-value="currentInput.category.includes(opt)" @update:model-value="(val) => toggleCategory(opt, val as boolean)"/>
-                        <!-- <Checkbox :id="`cat-${opt}`" v-model:checked="categoryModel(opt).value"/> -->
-                        <!-- <Checkbox :id="`cat-${opt}`" v-model="currentInput.category" @update:checked="(val: any) => toggleCategory(opt, val)"/> -->
-                        <Label :for="`cat-${opt}`" class="capitalize"> {{ opt }}</Label>
+                <CheckboxGroupRoot v-model="currentInput.category" class="flex flex-col gap-2.5">
+                    <div v-for="(item, index) in itemsCategoryFilter" :key="item.value" class="flex items-center gap-3">
+                        <CheckboxRoot :id="`cat-${index}`" :value="item.value" class="shadow-blackA7 hover:bg-green3 flex h-[25px] w-[25px] appearance-none items-center justify-center rounded-md bg-white shadow-[0_2px_10px] outline-none focus-within:shadow-[0_0_0_2px_black]">
+                            <CheckboxIndicator class="bg-white h-full w-full rounded flex items-center justify-center">
+                            <Icon icon="radix-icons:check" class="h-5 w-5 text-grass11"/>
+                            </CheckboxIndicator>
+                        </CheckboxRoot>
+                        <label :for="`cat-${index}`" class="flex flex-row gap-4 items-center">
+                            <span class="select-none dark:text-white">{{ item.label }}</span>
+                        </label>
                     </div>
-                </div>
+                </CheckboxGroupRoot>
             </div>
             <div>
                 <Label>Pilih Rentang Tanggal</Label>

@@ -9,6 +9,11 @@
     },
   ],
   "compilerOptions": {
+    "moduleResolution": "bundler",
+    "module": "ESNext",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "types": [],
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
