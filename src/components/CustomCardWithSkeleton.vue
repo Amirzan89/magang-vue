@@ -9,6 +9,7 @@ const props = defineProps<{
         customCSSTransition?: string,
     }
     inpData?: Record<string, any>[]
+    paralelRender: number
 }>()
 const slotSkeleton = (indexPar: number) => {
     if(indexPar <= props.inpData!.length){
@@ -26,18 +27,29 @@ const slotCard = (indexPar: number) => {
     }
     return undefined
 }
-const toggleSkeleton: any = ref([])
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+const skeletonRefs: any = ref([])
+const cardRefs: any = ref([])
 const queue: number[] = []
-let processing = false
+const active = new Set<number>()
+const parallelLimit = ref(props.paralelRender ?? 1)
+const runAnimation = async (index: number) => {
+    active.add(index)
+    await delay(10)
+    skeletonRefs.value[index]!.style.opacity = "0"
+    await delay(100)
+    skeletonRefs.value[index]?.remove()
+    cardRefs.value[index]!.style.opacity = "1"
+    await delay(100)
+    active.delete(index)
+    processQueue()
+}
 const processQueue = () => {
-    if(processing || queue.length === 0) return
-    processing = true
-    const index = queue.shift()!
-    setTimeout(() => {
-        toggleSkeleton.value[index]?.remove()
-        processing = false
-        processQueue()
-    }, 50)
+    if (queue.length === 0) return
+    while (active.size < parallelLimit.value && queue.length > 0) {
+        const index = queue.shift()!
+        runAnimation(index)
+    }
 }
 const handleToggleSkeleton = (index: number) => {
     queue.push(index)
@@ -48,8 +60,8 @@ const handleToggleSkeleton = (index: number) => {
     <TransitionGroup v-if="props.inpData && props.inpData.length > 0" tag="div" name="fade" mode="out-in" key="annn" :class="metaData.customTWTransition" :style="metaData.customCSSTransition">
         <template v-for="indexPar in props.inpData.length + (slots['placeholder-card'] ? 1 : 0)" :key="indexPar">
             <component :is="metaData.wrapper(props.inpData[indexPar - 1])">
-                <slot :name="slotSkeleton(indexPar)" :index="indexPar" :skeletonRefs="toggleSkeleton"/>
-                <slot :name="slotCard(indexPar)" :index="indexPar" :inpData="props.inpData[indexPar - 1]" :toggleSkeleton="handleToggleSkeleton"/>
+                <slot :name="slotSkeleton(indexPar)" :index="indexPar" :skeletonRefs="skeletonRefs"/>
+                <slot :name="slotCard(indexPar)" :index="indexPar" :inpData="props.inpData[indexPar - 1]" :toggleSkeleton="handleToggleSkeleton" :cardRefs="cardRefs"/>
             </component>
         </template>
     </TransitionGroup>

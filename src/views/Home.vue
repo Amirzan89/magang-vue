@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onBeforeMount, markRaw, h, useSlots, defineComponent, Fragment, type VNodeRef } from 'vue'
+import { ref, reactive, onBeforeMount, markRaw, h, useSlots, defineComponent, type ComponentPublicInstance } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import Autoplay from "embla-carousel-autoplay"
 import { useConfig } from '@/composables/useConfig'
@@ -206,19 +206,19 @@ const metaDataReviews = {
     <section class="relative flex flex-col">
         <div class="w-[90%] mx-auto h-fit">
             <h2 class="w-fit mt-5 mx-auto lg:mx-0 text-xl xl:text-3xl font-bold">Upcoming Events</h2>
-            <CustomCardWithSkeletonComponent :metaData="metaDataUpcoming" :inpData="local.upcoming_events">
+            <CustomCardWithSkeletonComponent :metaData="metaDataUpcoming" :inpData="local.upcoming_events" :paralelRender="2">
                 <template #skeleton="{ index, skeletonRefs }">
-                    <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute top-0 left-0 flex flex-col w-full h-full bg-red-500">
-                        <Skeleton class="h-12 w-12 rounded-full"/>
-                        <div class="space-y-2">
-                            <Skeleton class="w-[250px] h-4"/>
-                            <Skeleton class="w-[250px] h-4"/>
-                            <Skeleton class="w-[250px] h-4"/>
+                    <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 top-0 left-0 flex flex-col w-full h-full transition-opacity duration-100">
+                        <Skeleton class="w-full h-[65%] rounded-lg"/>
+                        <div class="w-[97%] mt-1.5 mx-auto">
+                            <Skeleton class="w-full h-6 rounded-sm"/>
+                            <Skeleton class="w-full h-6 mt-1.5 rounded-md"/>
+                            <Skeleton class="w-full h-11 mt-2 rounded-lg"/>
                         </div>
                     </div>
                 </template>
-                <template #card="{ index, inpData, toggleSkeleton }">
-                    <Card class="h-fit pt-0 pb-4 rounded-md lg:rounded-[20px] overflow-hidden" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
+                <template #card="{ index, inpData, toggleSkeleton, cardRefs }">
+                    <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" class="h-full pt-0 pb-0 rounded-md lg:rounded-[20px] overflow-hidden opacity-0 transition-opacity duration-100" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
                         <CardContent class="relative pl-0 pr-0">
                             <!-- <img :src="getImgURL(inpData.img)" alt="" class="w-full aspect-video object-cover" :ref="((el: any) => { -->
                             <img :src="getImgURL(inpData.img)" alt="" class="w-full h-[140px] lg:h-[197px] lg:object-cover" :ref="((el: any) => {
@@ -274,19 +274,19 @@ const metaDataReviews = {
     <section class="relative mt-10">
         <div class="w-[95%] mx-auto">
             <h2 class="w-fit mt-5 mx-auto lg:mx-0 text-xl xl:text-3xl font-bold">Past Events</h2>
-            <CustomCardWithSkeletonComponent :metaData="metaDataPast" :inpData="local.past_events">4
+            <CustomCardWithSkeletonComponent :metaData="metaDataPast" :inpData="local.past_events" :paralelRender="4">4
                 <template #skeleton="{ index, skeletonRefs }">
-                    <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute top-0 left-0 flex flex-col w-full h-full bg-red-500">
-                        <Skeleton class="h-12 w-12 rounded-full"/>
-                        <div class="space-y-2">
-                            <Skeleton class="w-[250px] h-4"/>
-                            <Skeleton class="w-[250px] h-4"/>
-                            <Skeleton class="w-[250px] h-4"/>
+                    <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 top-0 left-0 flex flex-col w-full h-full transition-opacity duration-100">
+                        <Skeleton class="w-full h-[65%] rounded-lg"/>
+                        <div class="w-[97%] mt-1.5 mx-auto">
+                            <Skeleton class="w-full h-6 rounded-sm"/>
+                            <Skeleton class="w-full h-6 mt-1.5 rounded-md"/>
+                            <Skeleton class="w-full h-11 mt-2 rounded-lg"/>
                         </div>
                     </div>
                 </template>
-                <template #card="{ index, inpData, toggleSkeleton }">
-                    <Card class="h-fit pt-0 pb-4 rounded-[20px] overflow-hidden" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
+                <template #card="{ index, inpData, toggleSkeleton, cardRefs }">
+                    <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" class="h-full pt-0 pb-0 rounded-md lg:rounded-[20px] overflow-hidden opacity-0 transition-opacity duration-100" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
                         <CardContent class="relative pl-0 pr-0">
                             <img :src="getImgURL(inpData.img)" alt="" class="w-full h-[170px] lg:h-[197px] object-cover" :ref="((el: any) => {
                                     if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
@@ -332,19 +332,19 @@ const metaDataReviews = {
         <div class="w-[90%] lg:w-[95%] xl:w-[97%] mx-auto">
             <h2 class="w-fit mx-auto text-lg lg:text-3xl font-semibold text-[#242565]">Reviews About Us</h2>
             <p class="w-fit mx-auto text-sm lg:text-xl text-center text-[#242565]">See what our amazing customers have to say about us!</p>
-            <CustomCardWithSkeletonComponent :metaData="metaDataReviews" :inpData="local.reviews">
+            <CustomCardWithSkeletonComponent :metaData="metaDataReviews" :inpData="local.reviews" :paralelRender="1">
                 <template #skeleton="{ index, skeletonRefs }">
-                    <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute top-0 left-0 flex flex-col w-full h-full bg-red-500">
-                        <Skeleton class="h-12 w-12 rounded-full"/>
-                        <div class="space-y-2">
-                            <Skeleton class="w-[250px] h-4"/>
-                            <Skeleton class="w-[250px] h-4"/>
-                            <Skeleton class="w-[250px] h-4"/>
+                    <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 top-0 left-0 flex flex-col w-full h-full transition-opacity duration-100">
+                        <Skeleton class="w-full h-[65%] rounded-lg"/>
+                        <div class="w-[97%] mt-1.5 mx-auto">
+                            <Skeleton class="w-full h-6 rounded-sm"/>
+                            <Skeleton class="w-full h-6 mt-1.5 rounded-md"/>
+                            <Skeleton class="w-full h-11 mt-2 rounded-lg"/>
                         </div>
                     </div>
                 </template>
-                <template #card="{ index, inpData, toggleSkeleton }">
-                    <Card class="lg:h-50" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
+                <template #card="{ index, inpData, toggleSkeleton, cardRefs }">
+                    <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" class="lg:h-50 opacity-0 transition-opacity duration-100" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
                         <CardContent class="relative rounded-xl flex flex-col gap-2">
                             <div class="flex gap-2 xl:gap-3">
                                 <div class="relative right-0 size-15 xl:size-15 wrounded-full pointer-events-none">

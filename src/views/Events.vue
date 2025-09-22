@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, onBeforeMount, defineComponent, useSlots, h } from 'vue'
+import { reactive, onBeforeMount, defineComponent, useSlots, h, type ComponentPublicInstance } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useFetchDataStore } from '@/stores/FetchData'
 import { getImgURL } from '@/utils/global'
@@ -61,9 +61,9 @@ const metaDataAll = {
                     <Button @click="redirectToSearchPage()">Search</Button>
                 </div>
             </div>
-            <CustomCardWithSkeletonComponent :metaData="metaDataAll" :inpData="local.fetchData">
+            <CustomCardWithSkeletonComponent :metaData="metaDataAll" :inpData="local.fetchData" :paralelRender="2">
                 <template #skeleton="{ index, skeletonRefs }">
-                    <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 top-0 left-0 flex flex-col w-full h-full">
+                    <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 top-0 left-0 flex flex-col w-full h-full transition-opacity duration-100">
                         <Skeleton class="w-full h-[65%] rounded-lg"/>
                         <div class="w-[97%] mt-1.5 mx-auto">
                             <Skeleton class="w-full h-6 rounded-sm"/>
@@ -72,8 +72,8 @@ const metaDataAll = {
                         </div>
                     </div>
                 </template>
-                <template #card="{ index, inpData, toggleSkeleton }">
-                    <Card class="h-full pt-0 pb-0 rounded-md lg:rounded-[20px] overflow-hidden" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
+                <template #card="{ index, inpData, toggleSkeleton, cardRefs }">
+                    <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" class="h-full pt-0 pb-0 rounded-md lg:rounded-[20px] overflow-hidden opacity-0 transition-opacity duration-100" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
                         <CardContent class="relative pl-0 pr-0 h-full">
                             <img :src="getImgURL(inpData.img)" alt="" class="w-full h-[64%] lg:object-cover" :ref="((el: any) => {
                                     if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)

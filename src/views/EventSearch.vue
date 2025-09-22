@@ -4,7 +4,7 @@ import { Icon } from '@iconify/vue'
 import { Calendar, ChevronLeft, ChevronRight} from "lucide-vue-next"
 import { createMonth, toDate, type Grid } from "reka-ui/date"
 import { CalendarDate, getLocalTimeZone, isEqualMonth, today, type DateValue } from "@internationalized/date"
-import { ref, reactive, computed, watch, onBeforeMount, h, useSlots, defineComponent, nextTick, Teleport, type Ref } from 'vue'
+import { ref, reactive, computed, watch, onBeforeMount, h, useSlots, defineComponent, nextTick, Teleport, type Ref, type ComponentPublicInstance } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { cn } from "@/utils/shadcn-vue"
 import { formatTgl } from "@/utils/global"
@@ -477,19 +477,19 @@ const metaDataSearch = {
                     <p v-if="local.fetchData.length > 0">Menampilkan Event "{{ keyword }}" menemukan {{ local.fetchData.length }}</p>
                     <div class="flex gap-5">
                         <div id="filterSide"/>
-                        <CustomCardWithSkeletonComponent :metaData="metaDataSearch" :inpData="local.fetchData">
+                        <CustomCardWithSkeletonComponent :metaData="metaDataSearch" :inpData="local.fetchData" :paralelRender="Infinity">
                             <template #skeleton="{ index, skeletonRefs }">
-                                <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute top-0 left-0 flex flex-col w-full h-full bg-red-500">
-                                    <Skeleton class="h-12 w-12 rounded-full"/>
-                                    <div class="space-y-2">
-                                        <Skeleton class="w-[250px] h-4"/>
-                                        <Skeleton class="w-[250px] h-4"/>
-                                        <Skeleton class="w-[250px] h-4"/>
+                                <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 top-0 left-0 flex flex-col w-full h-full transition-opacity duration-100">
+                                    <Skeleton class="w-full h-[65%] rounded-lg"/>
+                                    <div class="w-[97%] mt-1.5 mx-auto">
+                                        <Skeleton class="w-full h-6 rounded-sm"/>
+                                        <Skeleton class="w-full h-6 mt-1.5 rounded-md"/>
+                                        <Skeleton class="w-full h-11 mt-2 rounded-lg"/>
                                     </div>
                                 </div>
                             </template>
-                            <template #card="{ index, inpData, toggleSkeleton }">
-                                <Card class="h-fit" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
+                            <template #card="{ index, inpData, toggleSkeleton, cardRefs }">
+                                <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" class="h-full pt-0 pb-0 rounded-md lg:rounded-[20px] overflow-hidden opacity-0 transition-opacity duration-100" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
                                     <CardContent class="relative rounded-xl">
                                         <div class="relative">
                                             <img :src="getImgURL(inpData.img)" alt="" class="object-contain" style="height: 197px" :ref="((el: any) => {
