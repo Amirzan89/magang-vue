@@ -22,7 +22,7 @@ const routeItems = reactive([
 </script>
 <template>
     <!-- header -->
-    <header class="fixed w-full z-20 top-0 start-0">
+    <header class="sticky w-full z-20 top-0 start-0">
         <div class="w-[95%] h-full flex flex-wrap items-center justify-between mx-auto">
             <RouterLink to="/" class="">
                 <img src="@/assets/icons/logowhite.png" alt="Uni Events Logo" class="w-auto" />

@@ -8,7 +8,7 @@
             <div class="inset-0"></div> -->
         </div>
         <div class="flex gap-5">
-            <img src="@/assets/images/notfound.png" alt="">
+            <!-- <img src="@/assets/images/notfound.png" alt=""> -->
             <div>
                 <span class="bg-red-500 text-xl"></span>
                 <RouterLink to="/" class="text-[#2B0DB1]">Back To Home</RouterLink>
