@@ -17,4 +17,10 @@ export default [
         component: () => import('@/views/EventSearch.vue'),
         meta: { layout: 'default' },
     },
+    {
+        path: '/events/:id',
+        name: 'EventDetailPage',
+        component: () => import('@/views/EventDetail.vue'),
+        meta: { layout: 'default' },
+    },
 ]
