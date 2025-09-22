@@ -42,7 +42,7 @@ const metaDataAll = {
         setup(){
             const slots = useSlots()
             return () => {
-                return h('div', { class: 'relative' }, {
+                return h('div', { class: 'relative h-100' }, {
                     default: () => slots.default ? slots.default() : null
                 });
             }
@@ -63,26 +63,25 @@ const metaDataAll = {
             </div>
             <CustomCardWithSkeletonComponent :metaData="metaDataAll" :inpData="local.fetchData">
                 <template #skeleton="{ index, skeletonRefs }">
-                    <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute top-0 left-0 flex flex-col w-full h-full bg-red-500">
-                        <Skeleton class="h-12 w-12 rounded-full"/>
-                        <div class="space-y-2">
-                            <Skeleton class="w-[250px] h-4"/>
-                            <Skeleton class="w-[250px] h-4"/>
-                            <Skeleton class="w-[250px] h-4"/>
+                    <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 top-0 left-0 flex flex-col w-full h-full">
+                        <Skeleton class="w-full h-[65%] rounded-lg"/>
+                        <div class="w-[97%] mt-1.5 mx-auto">
+                            <Skeleton class="w-full h-6 rounded-sm"/>
+                            <Skeleton class="w-full h-6 mt-1.5 rounded-md"/>
+                            <Skeleton class="w-full h-11 mt-2 rounded-lg"/>
                         </div>
                     </div>
                 </template>
                 <template #card="{ index, inpData, toggleSkeleton }">
-                    <Card class="h-fit pt-0 pb-4 rounded-md lg:rounded-[20px] overflow-hidden" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
-                        <CardContent class="relative pl-0 pr-0">
-                            <!-- <img :src="getImgURL(inpData.img)" alt="" class="w-full aspect-video object-cover" :ref="((el: any) => { -->
-                            <img :src="getImgURL(inpData.img)" alt="" class="w-full h-[140px] lg:h-[197px] lg:object-cover" :ref="((el: any) => {
+                    <Card class="h-full pt-0 pb-0 rounded-md lg:rounded-[20px] overflow-hidden" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
+                        <CardContent class="relative pl-0 pr-0 h-full">
+                            <img :src="getImgURL(inpData.img)" alt="" class="w-full h-[64%] lg:object-cover" :ref="((el: any) => {
                                     if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
                                 })"
                                 @load="() => {
                                     inpData.imgLoad = true
                                     toggleSkeleton(index)
-                                }" @error="() => toggleSkeleton(index)"/>
+                            }" @error="() => toggleSkeleton(index)"/>
                             <img :src="freeTag" alt="" class="absolute top-0 right-0 z-9 h-[20%]">
                             <div class="w-[87%] mx-auto flex flex-col mt-2">
                                 <div class="flex flex-col text-black">
