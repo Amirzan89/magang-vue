@@ -15,13 +15,14 @@ import I_music from '@/assets/icons/hero_home/music_note.svg?component'
 import I_conferences from '@/assets/icons/hero_home/conferences.svg?component'
 import I_celebration from '@/assets/icons/hero_home/celebration.svg?component'
 import I_games from '@/assets/icons/hero_home/games.svg?component'
-import I_free from '@/assets/icons/card_events/free-tag.svg?component'
 import I_DRight from '@/assets/icons/card_events/double-right.svg?component'
 import I_Location from '@/assets/icons/card_events/location.svg?component'
 import I_Bookmark from '@/assets/icons/card_events/bookmark.svg?component'
 import I_FullStar from '@/assets/icons/reviews/full-star.svg?component'
 import I_HalfStar from '@/assets/icons/reviews/half-star.svg?component'
 import I_EmptyStar from '@/assets/icons/reviews/empty-star.svg?component'
+import I_Plus from '@/assets/icons/reviews/plus.svg?component'
+import freeTag from '@/assets/images/free-tag.png';
 import defaultBoy from '@/assets/images/default_boy.jpg'
 import defaultGirl from '@/assets/images/default_girl.png'
 const publicConfig = useConfig()
@@ -35,6 +36,19 @@ const local = reactive({
     past_events: null as any,
     reviews: null as any,
 })
+const sliceDate = (inp = [], key: string) => {
+    return inp.map((item: any) => {
+        if(item[key]){
+            const match = item[key].match(/^(\d{1,2})\s+([A-Za-zÀ-ž]+)\s+(\d{4})$/)
+            if(match){
+                item.tanggal = match[1]
+                item.bulan   = match[2]
+                item.tahun   = match[3]
+            }
+        }
+        return item
+    });
+};
 onBeforeMount(async() =>{
     const res = await fetchDataS.fetchPage(useRoute().path, {})
     if(res ==  undefined || res.status == 'error'){
@@ -66,11 +80,13 @@ const autoplayPlugin = Autoplay({
     stopOnInteraction: false,
 })
 const restartAutoplay = () => {
-    if(autoplayTimer) clearTimeout(autoplayTimer)
-    autoplayTimer = setTimeout(() => {
-        autoplayPlugin.reset()
-        autoplayPlugin.play()
-    }, 150)
+    if(local.upcoming_events?.length > 0){
+        if(autoplayTimer) clearTimeout(autoplayTimer)
+        autoplayTimer = setTimeout(() => {
+            autoplayPlugin.reset()
+            autoplayPlugin.play()
+        }, 150)
+    }
 }
 
 const catHero = reactive([
@@ -92,30 +108,30 @@ const catHero = reactive([
     },
 ])
 const metaDataUpcoming = {
-    wrapper: (inpData: any) => defineComponent({
+    wrapper: () => defineComponent({
         setup(){
             const slots = useSlots()
             return () => {
-                return h(RouterLink, { to: inpData.event_id, class: 'relative' }, {
+                return h('div', { class: 'relative' }, {
                     default: () => slots.default ? slots.default() : null
                 });
             }
         }
     }),
-    customTWTransition: 'h-full mt-5 grid grid-cols-1 phone:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4',
+    customTWTransition: 'h-full mt-1.5 lg:mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-2 lg:gap-4',
 }
 const metaDataPast = {
-    wrapper: (inpData: any) => defineComponent({
+    wrapper: () => defineComponent({
         setup(){
             const slots = useSlots()
             return () => {
-                return h(RouterLink, { to: inpData.event_id, class: 'relative' }, {
+                return h('div', { class: 'relative' }, {
                     default: () => slots.default ? slots.default() : null
                 });
             }
         }
     }),
-    customTWTransition: 'h-full mt-5 grid grid-cols-1 phone:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4',
+    customTWTransition: 'h-full mt-1.5 lg:mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-2 lg:gap-4',
 }
 const metaDataReviews = {
     wrapper: () => defineComponent({
@@ -132,13 +148,13 @@ const metaDataReviews = {
 }
 </script>
 <template>
-    <section class="relative h-screen pt-16">
+    <section class="relative lg:h-screen pt-16">
         <div class="absolute top-0 left-0 w-full h-full -z-1">
             <img src="@/assets/images/party-1.png" alt="" class="w-full object-cover" />
             <div class="absolute top-0 left-0 w-full h-full opacity-90" style="background-image:linear-gradient(156deg, #ed4690 0%, #5522cc 111.39%)"></div>
         </div>
         <div class="relative z-10 flex flex-col justify-center gap-24 items-center h-full text-white">
-            <div class="w-[92%] h-1/2">
+            <div class="w-[90%] lg:w-[92%] aspect-video lg:aspect-auto h-1/2">
                 <div class="relative left-1/2 -translate-x-1/2 rounded-xl h-full">
                     <Carousel class="relative z-0 inset-0 rounded-xl overflow- w-full h-full border-black border-width-1" @init-api="onInitApiCar" :plugins="[autoplayPlugin]" @mouseenter="autoplayPlugin.stop" @mouseleave="restartAutoplay">
                         <CarouselContent :customTW="'h-full'">
@@ -156,40 +172,40 @@ const metaDataReviews = {
                             <div class="self-center w-[47%] h-1/2 relative group">
                                 <CarouselPrevious :class="'left-0 bg-transparent border-transparent text-white/0 hover:bg-transparent hover:text-red-500 group-hover:text-red-500 group-hover:disabled:text-red-500/0 w-fit h-fit'" :cus-icon="I_VLeft" :cusIconClass="'!w-7 !h-7'"/>
                                 <div class="w-[87%] h-full relative left-1/2 -translate-x-1/2 px-4">
-                                    <h3 class="text-3xl">Mavisuru Ragasoba</h3>
-                                    <span>University morawa</span>
+                                    <h3 class="text-base lg:text-3xl">Mavisuru Ragasoba</h3>
+                                    <span class="text-xs">University morawa</span>
                                     <p class="mt-2">Lorem ipsum dolor sit amet consectetur adipisicing elit...</p>
-                                    <RouterLink to="/" class="w-35 h-10 rounded-lg absolute bottom-[10%] inline-flex justify-center items-center font-bold mt-5 text-lg text-white border-2 border-white">Learn More</RouterLink>
+                                    <RouterLink to="/" class="w-20 lg:w-35 h-6 lg:h-10 lg:rounded-lg absolute bottom-[10%] inline-flex justify-center items-center font-medium lg:font-bold mt-5 text-xs lg:text-lg text-white border-2 border-white">Learn More</RouterLink>
                                 </div>
                                 <CarouselNext :class="'right-0 bg-transparent border-transparent text-white/0 hover:bg-transparent hover:text-red-500 group-hover:text-red-500 group-hover:disabled:text-red-500/0 w-fit h-fit'" :cusIcon="I_VRight" :cusIconClass="'!w-7 !h-7'"/>
                             </div>
                             <div class="self-center w-[35%] h-1/2 relative">
-                                <h3 class="text-3xl">UNI EVENTS</h3>
-                                <p class="mt-2">Lorem ipsum dolor sit amet consectetur adipisicing elit...</p>
-                                <RouterLink to="/about" class="w-35 h-10 rounded-lg absolute bottom-[10%] inline-flex justify-center items-center font-bold mt-5 bg-red-500 text-lg text-white">About US</RouterLink>
+                                <h3 class="text-lg lg:text-3xl">UNI EVENTS</h3>
+                                <p class="text-base mt-2">Lorem ipsum dolor sit amet consectetur adipisicing elit...</p>
+                                <RouterLink to="/about" class="w-20 lg:w-35 h-6 lg:h-10 lg:rounded-lg absolute bottom-[10%] inline-flex justify-center items-center font-medium lg:font-bold mt-5 bg-red-500 text-xs  lg:text-lg text-white">About US</RouterLink>
                             </div>
                             <CarouselDots v-model:currentIndex="selectedIndex" :totalItems="totalItemsCar" @goToSlide="goToSlide"/>
                         </div>
                     </Carousel>
                 </div>
             </div>
-            <ul class="w-3/4 xl:w-[87%] flex justify-around text-white">
+            <ul class="phone:w-[75%] lg:w-fit mb-5 grid grid-cols-2 gap-4 phone:flex phone:justify-around phone:gap-0 xl:gap-25 text-white">
+            <!-- <ul class="w-[87%] flex justify-around text-white bg-red-500"> -->
                 <template v-for="(item, index) in catHero" :key="index">
-                    <li class="flex flex-col items-center gap-1">
+                    <li class="flex flex-col items-center gap-1 xl:gap-3">
                         <div class="bg-white inline-flex justify-center items-center rounded-full w-fit">
-                            <component :is="item.icon" class="size-10 m-5"></component>
+                            <component :is="item.icon" class="size-7 phone:size-8 xl:size-10 m-2.75 phone:m-2.5 xl:m-5"></component>
                         </div>
-                        <span class="block text-center">{{ item.name }}</span>
+                        <span class="block text-center text-base xl:text-xl font-medium">{{ item.name }}</span>
                     </li>
                 </template>
             </ul>
         </div>
     </section>
     <!-- CARDS / UPCOMING -->
-    <section class="relative min-h-screen flex flex-col">
-        <div class="w-[95%] mx-auto h-fit">
-            <h2 class="w-fit mx-auto text-4xl mt-5">Upcoming Events</h2>
-            <p class="w-fit mx-auto text-xl text-[#242565] mb-15">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+    <section class="relative flex flex-col">
+        <div class="w-[90%] mx-auto h-fit">
+            <h2 class="w-fit mt-5 mx-auto lg:mx-0 text-xl xl:text-3xl font-bold">Upcoming Events</h2>
             <CustomCardWithSkeletonComponent :metaData="metaDataUpcoming" :inpData="local.upcoming_events">
                 <template #skeleton="{ index, skeletonRefs }">
                     <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute top-0 left-0 flex flex-col w-full h-full bg-red-500">
@@ -202,30 +218,27 @@ const metaDataReviews = {
                     </div>
                 </template>
                 <template #card="{ index, inpData, toggleSkeleton }">
-                    <Card class="h-fit" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
-                        <CardContent class="relative rounded-xl">
-                            <div class="relative">
-                                <img :src="getImgURL(inpData.img)" alt="" class="object-contain" style="height: 197px" :ref="((el: any) => {
-                                        if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
-                                    })"
-                                    @load="() => {
-                                        inpData.imgLoad = true
-                                        toggleSkeleton(index)
-                                    }" @error="() => toggleSkeleton(index)"/>
-                                <I_free v-if="inpData.isFree" class="absolute top-0 right-0" />
-                            </div>
-                            <div class="w-[90%] mx-auto flex flex-col">
-                                <div class="flex gap-5">
-                                    <div class="flex flex-col">
-                                        <span class="text-[#3D37F1] font-bold">May</span>
-                                        <span class="text-black">11</span>
-                                    </div>
-                                    <div class="flex flex-col text-xl text-black">
-                                    <span>Civil Padura</span>
-                                    <span>By Civil Engineering Department</span>
-                                    </div>
+                    <Card class="h-fit pt-0 pb-4 rounded-md lg:rounded-[20px] overflow-hidden" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
+                        <CardContent class="relative pl-0 pr-0">
+                            <!-- <img :src="getImgURL(inpData.img)" alt="" class="w-full aspect-video object-cover" :ref="((el: any) => { -->
+                            <img :src="getImgURL(inpData.img)" alt="" class="w-full h-[140px] lg:h-[197px] lg:object-cover" :ref="((el: any) => {
+                                    if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
+                                })"
+                                @load="() => {
+                                    inpData.imgLoad = true
+                                    toggleSkeleton(index)
+                                }" @error="() => toggleSkeleton(index)"/>
+                            <img :src="freeTag" alt="" class="absolute top-0 right-0 z-9 h-[20%]">
+                            <div class="w-[87%] mx-auto flex flex-col mt-2">
+                                <div class="flex flex-col text-black">
+                                    <!-- <div class="flex flex-col">
+                                        <span class="text-[#3D37F1] font-bold text-base">May</span>
+                                        <span class="text-black text-xl">11</span>
+                                    </div> -->
+                                    <RouterLink :to="inpData.event_id" class="text-base sm:text-lg font-medium">{{ inpData.event_name }}</RouterLink>
+                                    <span class="text-sm sm:text-lg">{{ inpData.start_date }}</span>
                                 </div>
-                                <div class="flex flex-col text-xl">
+                                <!-- <div class="flex flex-col text-xl">
                                     <div class="flex gap-2 items-center">
                                     <I_DRight class="w-5 h-5 text-red-500" />
                                     <span>Musical Event</span>
@@ -234,35 +247,34 @@ const metaDataReviews = {
                                     <I_DRight class="w-5 h-5 text-red-500" />
                                     <span>All Universities students can join</span>
                                     </div>
-                                </div>
+                                </div> -->
                                 <div class="flex justify-between items-center mt-3">
-                                    <I_Location class="w-8 h-8 text-red-500" />
-                                    <span class="text-xl font-medium">University of Morotuwa</span>
-                                    <I_Bookmark class="w-8 h-8 text-blue-500" />
+                                    <a :href="inpData.link_lokasi" target="_blank" rel="noopener noreferrer"><I_Location class="w-5 h-5 sm:w-8 sm:h-8 text-black"/></a>
+                                    <span class="text-base">{{ inpData.nama_lokasi }}</span>
+                                    <I_Bookmark class="w-5 h-5 sm:w-8 sm:h-8 text-black" />
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
                 </template>
             </CustomCardWithSkeletonComponent>
-            <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 mt-10 inline-block text-[#3D37F1] border border-[#3D37F1] px-4 py-2 rounded-2xl hover:bg-[#3D37F1] hover:text-white">See All Events</RouterLink>
+            <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 w-[30%] xs:w-[32%] xl:w-[11%] 2xl:w-[10%] h-7 xs:h-11 xl:h-12 mt-5 lg:mt-10 text-[#3D37F1] border xl:border-2 border-[#3D37F1] lg:px-0 lg:py-2 rounded-lg lg:rounded-2xl xl:rounded-xl flex justify-center items-center hover:bg-[#3D37F1] text-xs lg:text-xl hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">See All Events</RouterLink>
         </div>
-        <div class="sm:h-55 xl:h-65 mt-50 bg-purple-500">
-            <div class="w-[90%] h-full relative left-1/2 -translate-x-1/2 flex justify-between items-end overflow-y-visible">
-                <img src="@/assets/images/image-3.png" alt="" class="h-100 self-end">
-                <div class="w-fit h-[92%] flex flex-col items-center text-white">
-                    <h2 class="text-2xl">Add Your Loving Event</h2>
-                    <p>Lorem, ipsum dolor sit amet consectetur adipisicing elit.</p>
-                    <RouterLink to="/" class="relative bottom-[20%] mt-auto px-4 py-2 rounded-md" style="background-color:#F5167E">View all events</RouterLink>
+        <div class="h-17 sm:h-55 xl:h-60 mt-17 lg:mt-50 bg-purple-500">
+            <div class="w-[95%] lg:w-[90%] xl:w-[75%] h-full relative left-1/2 -translate-x-1/2 flex justify-between items-end overflow-y-visible">
+                <img src="@/assets/images/image-3.png" alt="" class="h-30 lg:h-100 self-end">
+                <div class="w-[40%] lg:w-fit h-fit self-center flex flex-col items-center text-white text-center lg:text-start">
+                    <h2 class="text-sm lg:text-2xl xl:text-2xl">Add Your Loving Event</h2>
+                    <!-- <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p> -->
+                    <RouterLink to="/" class="mt-3 px-2 lg:px-4 py-1 lg:py-2 rounded-sm lg:rounded-md text-xs xl:text-lg 2xl:text-xl" style="background-color:#F5167E">View all events</RouterLink>
                 </div>
             </div>
         </div>
     </section>
-    <section class="relative min-h-screen mt-10">
-        <div class="w-[95%] mx-auto h-fit">
-            <h2 class="w-fit mx-auto text-4xl mt-5">Past Events</h2>
-            <p class="w-fit mx-auto text-xl text-[#242565] mb-15">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
-            <CustomCardWithSkeletonComponent :metaData="metaDataPast" :inpData="local.past_events">
+    <section class="relative mt-10">
+        <div class="w-[95%] mx-auto">
+            <h2 class="w-fit mt-5 mx-auto lg:mx-0 text-xl xl:text-3xl font-bold">Past Events</h2>
+            <CustomCardWithSkeletonComponent :metaData="metaDataPast" :inpData="local.past_events">4
                 <template #skeleton="{ index, skeletonRefs }">
                     <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute top-0 left-0 flex flex-col w-full h-full bg-red-500">
                         <Skeleton class="h-12 w-12 rounded-full"/>
@@ -274,30 +286,26 @@ const metaDataReviews = {
                     </div>
                 </template>
                 <template #card="{ index, inpData, toggleSkeleton }">
-                    <Card class="h-fit" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
-                        <CardContent class="relative rounded-xl">
-                            <div class="relative">
-                                <img :src="getImgURL(inpData.img)" alt="" class="object-contain" style="height: 197px" :ref="((el: any) => {
-                                        if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
-                                    })"
-                                    @load="() => {
-                                        inpData.imgLoad = true
-                                        toggleSkeleton(index)
-                                    }" @error="() => toggleSkeleton(index)"/>
-                                <I_free v-if="inpData.isFree" class="absolute top-0 right-0" />
-                            </div>
-                            <div class="w-[90%] mx-auto flex flex-col">
-                                <div class="flex gap-5">
-                                    <div class="flex flex-col">
-                                        <span class="text-[#3D37F1] font-bold">May</span>
-                                        <span class="text-black">11</span>
-                                    </div>
-                                    <div class="flex flex-col text-xl text-black">
-                                    <span>Civil Padura</span>
-                                    <span>By Civil Engineering Department</span>
-                                    </div>
+                    <Card class="h-fit pt-0 pb-4 rounded-[20px] overflow-hidden" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
+                        <CardContent class="relative pl-0 pr-0">
+                            <img :src="getImgURL(inpData.img)" alt="" class="w-full h-[170px] lg:h-[197px] object-cover" :ref="((el: any) => {
+                                    if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
+                                })"
+                                @load="() => {
+                                    inpData.imgLoad = true
+                                    toggleSkeleton(index)
+                                }" @error="() => toggleSkeleton(index)"/>
+                            <img :src="freeTag" alt="" class="absolute top-0 right-0 z-9 h-[20%]">
+                            <div class="w-[87%] mx-auto flex flex-col mt-2">
+                                <div class="flex flex-col text-black">
+                                    <!-- <div class="flex flex-col">
+                                        <span class="text-[#3D37F1] font-bold text-base">May</span>
+                                        <span class="text-black text-xl">11</span>
+                                    </div> -->
+                                    <RouterLink :to="inpData.event_id" class="text-base sm:text-lg font-medium">{{ inpData.event_name }}</RouterLink>
+                                    <span class="text-sm sm:text-lg">{{ inpData.start_date }}</span>
                                 </div>
-                                <div class="flex flex-col text-xl">
+                                <!-- <div class="flex flex-col text-xl">
                                     <div class="flex gap-2 items-center">
                                     <I_DRight class="w-5 h-5 text-red-500" />
                                     <span>Musical Event</span>
@@ -306,24 +314,24 @@ const metaDataReviews = {
                                     <I_DRight class="w-5 h-5 text-red-500" />
                                     <span>All Universities students can join</span>
                                     </div>
-                                </div>
+                                </div> -->
                                 <div class="flex justify-between items-center mt-3">
-                                    <I_Location class="w-8 h-8 text-red-500" />
-                                    <span class="text-xl font-medium">University of Morotuwa</span>
-                                    <I_Bookmark class="w-8 h-8 text-blue-500" />
+                                    <a :href="inpData.link_lokasi" target="_blank" rel="noopener noreferrer"><I_Location class="w-5 h-5 sm:w-8 sm:h-8 text-black"/></a>
+                                    <span class="text-base">{{ inpData.nama_lokasi }}</span>
+                                    <I_Bookmark class="w-5 h-5 sm:w-8 sm:h-8 text-black" />
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
                 </template>
             </CustomCardWithSkeletonComponent>
-            <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 mt-10 inline-block text-[#3D37F1] border border-[#3D37F1] px-4 py-2 rounded-2xl hover:bg-[#3D37F1] hover:text-white">Load More</RouterLink>
+            <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 w-[30%] xs:w-[32%] xl:w-[11%] 2xl:w-[8%] h-7 xs:h-11 xl:h-12 mt-5 lg:mt-10 text-[#3D37F1] border xl:border-2 border-[#3D37F1] lg:px-0 lg:py-2 rounded-lg lg:rounded-2xl xl:rounded-xl flex justify-center items-center hover:bg-[#3D37F1] text-xs lg:text-xl hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">Load More</RouterLink>
         </div>
     </section>
-    <section class="relative h-fit mb-20">
-        <div class="w-[95%] mx-auto h-fit">
-            <h2 class="w-fit mx-auto text-4xl text-[#242565]">Reviews About Us</h2>
-            <p class="w-fit mx-auto text-xl text-[#242565] mb-15">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+    <section class="relative mt-20 lg:mt-50 mb-15 lg:mb-20">
+        <div class="w-[90%] lg:w-[95%] xl:w-[97%] mx-auto">
+            <h2 class="w-fit mx-auto text-lg lg:text-3xl font-semibold text-[#242565]">Reviews About Us</h2>
+            <p class="w-fit mx-auto text-sm lg:text-xl text-center text-[#242565]">See what our amazing customers have to say about us!</p>
             <CustomCardWithSkeletonComponent :metaData="metaDataReviews" :inpData="local.reviews">
                 <template #skeleton="{ index, skeletonRefs }">
                     <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute top-0 left-0 flex flex-col w-full h-full bg-red-500">
@@ -336,10 +344,10 @@ const metaDataReviews = {
                     </div>
                 </template>
                 <template #card="{ index, inpData, toggleSkeleton }">
-                    <Card class="h-fit" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
+                    <Card class="lg:h-50" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
                         <CardContent class="relative rounded-xl flex flex-col gap-2">
-                            <div class="flex gap-2">
-                                <div class="relative right-0 w-15 h-15 rounded-full pointer-events-none">
+                            <div class="flex gap-2 xl:gap-3">
+                                <div class="relative right-0 size-15 xl:size-15 wrounded-full pointer-events-none">
                                     <img :src="inpData.photo ? publicConfig.baseURL + inpData.photo : [defaultBoy, defaultGirl][Math.floor(Math.random() * 2)]" alt="" class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-full h-full object-cover" style="clip-path: circle();" :ref="((el: any) => {
                                         if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
                                     })"
@@ -351,33 +359,32 @@ const metaDataReviews = {
                                         imgEl.src = [defaultBoy, defaultGirl][Math.floor(Math.random() * 2)]
                                         toggleSkeleton(index)
                                     }">
-                                    <img src="" alt="" class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-full h-full object-cover" style="clip-path: circle();">
                                 </div>
                                 <div>
                                     <div class="flex">
                                         <template v-for="i in 5" :key="i">
-                                            <I_FullStar v-if="i <= Math.floor(inpData.rating)" class="w-5 h-5 text-yellow-500"/>
-                                            <I_HalfStar v-else-if="i === Math.ceil(inpData.rating) && inpData.rating % 1 >= 0.5" class="w-6 h-6 text-yellow-500"/>
-                                            <I_EmptyStar v-else class="w-5 h-5 text-yellow-500"/>
+                                            <I_FullStar v-if="i <= Math.floor(inpData.rating)" class="size-4 sm:size-5 xl:size-6 text-yellow-500"/>
+                                            <I_HalfStar v-else-if="i === Math.ceil(inpData.rating) && inpData.rating % 1 >= 0.5" class="size-3.5 sm:size-6 xl:size-6 text-yellow-500"/>
+                                            <I_EmptyStar v-else class="size-4 sm:size-5 xl:size-6 text-yellow-500"/>
                                         </template>
                                     </div>
-                                    <h5 class="">{{ 'Tayloard switch' }}</h5>
-                                    <span class="">{{ 'spannn' }}</span>
+                                    <h5 class="text-base xl:text-xl font-semibold">{{ inpData.name }}</h5>
+                                    <span class="text-xs xl:text-base lg:text-lg">{{ inpData.date_review }}</span>
                                 </div>
                             </div>
-                            <p>{{ 'Sekarang, kamu bisa produksi tiket fisik untuk eventmu bersama Bostiketbos. Hanya perlu mengikuti beberapa langkah mudah' }}</p>
+                            <p class="text-base lg:text-lg">{{ inpData.comment }}</p>
                         </CardContent>
                     </Card>
                 </template>
                 <template #placeholder-card>
-                    <Card class="h-full" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
-                        <CardContent class="relative rounded-xl flex flex-col gap-2">
-                            <p>iki placeholder</p>
+                    <Card class="lg:h-50" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
+                        <CardContent class="relative lg:h-full rounded-xl aspect-video lg:aspect-auto flex flex-col justify-center items-center gap-2">
+                            <I_Plus class="size-9 sm:size-10"/>
+                            <p class="text-base xl:text-lg font-medium">Add Yours</p>
                         </CardContent>
                     </Card>
                 </template>
             </CustomCardWithSkeletonComponent>
-            <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 mt-10 inline-block text-[#3D37F1] border border-[#3D37F1] px-4 py-2 rounded-2xl hover:bg-[#3D37F1] hover:text-white">Load More</RouterLink>
         </div>
     </section>
 </template>

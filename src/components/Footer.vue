@@ -138,10 +138,10 @@ const loginForm = async() => {
 <template>
     <footer class="bg-[#0A075F]">
         <div class="mx-auto w-full lg:max-w-[97%] p-4 lg:py-6">
-            <div class="lg:flex justify-between">
-                <div class="lg:w-[28%] xl:w-[30%] flex flex-col items-start mb-6 lg:mb-0">
-                    <img src="@/assets/images/logowhite.png" class="sm:h-[30%] md:h-[40%]" alt="UniEvents Logo" />
-                    <span class="text-white xl:text-lg">Eventick is a global self-service ticketing platform for live experiences that allows anyone to create, share, find and attend events that fuel their passions and enrich their lives.</span>
+            <div class="lg:flex lg:flex-row lg:justify-between">
+                <div class="lg:w-[28%] xl:w-[30%] flex flex-col items-start mb-1 lg:mb-0">
+                    <img src="@/assets/images/logowhite.png" class="h-10 sm:h-[30%] md:h-[40%]" alt="UniEvents Logo" />
+                    <span class="text-white text-sm xl:text-lg">Eventick is a global self-service ticketing platform for live experiences that allows anyone to create, share, find and attend events that fuel their passions and enrich their lives.</span>
                     <div class="flex mt-2 lg:mt-5 justify-center gap-2">
                         <template v-for="(item, index) in routeItems" :key="index">
                             <RouterLink :to="item.link" class="rounded-full flex justify-center items-center">
@@ -150,18 +150,18 @@ const loginForm = async() => {
                         </template>
                     </div>
                 </div>
-                <div class="w-full lg:w-[28%] xl:w-[25%] mb-6 lg:mb-0 flex justify-between gap-10">
+                <div class="w-full lg:w-[28%] xl:w-[25%] mb-3 lg:mb-0 flex justify-between gap-10">
                     <div class="flex-1">
-                        <h2 class="lg:mb-6 text-base lg:text-lg font-semibold text-white uppercase">Plan Events</h2>
-                        <div class="flex flex-col gap-1 text-white font-medium">
+                        <h2 class="lg:2 text-sm lg:text-lg font-medium lg:font-semibold text-white uppercase">Plan Events</h2>
+                        <div class="mt-1 flex flex-col gap-1 text-xs lg:font-medium text-white">
                             <template v-for="(item, index) in planItems" :key="index">
                                 <RouterLink :to="item.link" class="">{{ item.label }}</RouterLink>
                             </template>
                         </div>
                     </div>
                     <div class="flex-1">
-                        <h2 class="lg:mb-6 text-base lg:text-lg font-semibold text-white uppercase">Eventick</h2>
-                        <div class="flex flex-col gap-1 text-white font-medium">
+                        <h2 class="lg:mb-3 text-sm lg:text-lg font-medium lg:font-semibold text-white uppercase">Eventick</h2>
+                        <div class="mt-1 flex flex-col gap-1 text-xs lg:font-medium text-white">
                             <template v-for="(item, index) in EventickItems" :key="index">
                                 <RouterLink :to="item.link" class="">{{ item.label }}</RouterLink>
                             </template>
@@ -169,17 +169,17 @@ const loginForm = async() => {
                     </div>
                 </div>
                 <div class="lg:w-[42%] xl:w-[40%] lg:mb-0 text-white">
-                    <h2 class="lg:mb-6 text-base lg:text-lg font-semibold  uppercase">Stay In The Loop</h2>
-                    <p class="mb-4">Join our mailing list to stay in the loop with our newest for Event and concert</p>
-                    <form class="relative w-[50%] lg:h-fit">
+                    <h2 class="lg:mb-3 text-sm lg:text-lg font-semibold uppercase">Stay In The Loop</h2>
+                    <p class="mb-4 text-sm">Join our mailing list to stay in the loop with our newest for Event and concert</p>
+                    <form class="relative w-[80%] lg:w-[50%] lg:h-fit">
                         <input type="email" id="first_name" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 " placeholder="Enter your email address" required>
-                        <button class="absolute top-1/2 -translate-y-1/2 right-[2%] bg-red-500 md:px-1 lg:px-2 py-1 flex justify-center items-center md:rounded-md xl:rounded-lg cursor-pointer" @click="send">Subscribe</button>
+                        <button class="absolute top-1/2 -translate-y-1/2 right-[2%] bg-red-500 px-1.75 py-1.25 flex justify-center items-center rounded-sm md:rounded-md xl:rounded-lg cursor-pointer text-xs" @click="send">Subscribe</button>
                     </form>
                 </div>
             </div>
-            <hr class="my-3 border-gray-200 sm:mx-auto dark:border-gray-700 lg:my-5" />
+            <hr class="mt-5 mb-2 lg:my-5 border-gray-200 sm:mx-auto dark:border-gray-700" />
             <div class="sm:w-4/5 lg:w-full flex justify-center items-center">
-                <span class="text-sm sm:text-center text-white">© Copyright {{ publicConfig.appName }} All Rights Reserved.</span>
+                <span class="text-xs sm:text-center text-white">© Copyright {{ publicConfig.appName }} All Rights Reserved.</span>
             </div>
         </div>
     </footer>

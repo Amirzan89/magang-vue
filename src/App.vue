@@ -17,8 +17,8 @@ const layouts: Record<string, any> = {
 const layoutName = computed(() => route.matched[route.matched.length - 1]?.meta?.layout || 'default')
 const Layout = computed(() => layouts[layoutName.value] ?? layouts.empty)
 const dynamicPad: Record<string, string> = {
-    '3xs':'30px','2xs':'30px','xs':'30px','sm':'40px',
-    'md':'50px','lg':'60px','xl':'70px','2xl':'120px',
+    '3xs':'55px','2xs':'55px','xs':'60px', 'phone': '70px', 'sm':'70px',
+    'md':'70px','lg':'70px','xl':'70px','2xl':'75px',
     }
     const screenCon = Object.values(theme.screens).map(s => parseInt(s.replace('px','')))
     const updatePadding = () => {
