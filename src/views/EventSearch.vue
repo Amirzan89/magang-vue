@@ -4,7 +4,7 @@ import { Icon } from '@iconify/vue'
 import { Calendar, ChevronLeft, ChevronRight} from "lucide-vue-next"
 import { createMonth, toDate, type Grid } from "reka-ui/date"
 import { CalendarDate, getLocalTimeZone, isEqualMonth, today, type DateValue } from "@internationalized/date"
-import { ref, reactive, computed, watch, onBeforeMount, h, useSlots, defineComponent, nextTick, Teleport, type Ref, type ComponentPublicInstance } from 'vue'
+import { ref, reactive, computed, watch, onBeforeMount, onMounted, h, useSlots, defineComponent, nextTick, Teleport, type Ref, type ComponentPublicInstance } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { cn } from "@/utils/shadcn-vue"
 import { formatTgl } from "@/utils/global"
@@ -45,6 +45,8 @@ const route = useRoute()
 const { axiosJson, fetchCsrfToken } = useAxios()
 const { encryptReq, decryptRes } = useEncryption()
 const fetchDataS = useFetchDataStore()
+const SideFilterRef = ref(null)
+const DialogContentRef = ref(null)
 const local = reactive({
     fetchData: [] as any,
     past_events: null as any,
@@ -83,17 +85,27 @@ const currentInput = reactive<InputForm>({
     category: [],
     pay: '' as 'pay' | 'free' | 'all',
 })
+const isDialogOpen = ref(false)
+const teleportTarget = ref(null)
+watch([isDialogOpen, isDesktop], async () => {
+    await nextTick()
+    if(isDesktop.value){
+        teleportTarget.value = SideFilterRef.value
+    }else if(isMobile.value && isDialogOpen.value){
+        teleportTarget.value = DialogContentRef.value
+    }else{
+        teleportTarget.value = null
+    }
+}, { immediate: true })
 let abortFormController: AbortController | null = null
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
-const triggerForm = () => {
+watch(() => currentInput.category, () => {
     if(debounceTimer) clearTimeout(debounceTimer)
     debounceTimer = setTimeout(async () => {
         await formSearchFilter()
     }, 500)
-}
-watch(() => currentInput.category, () => triggerForm(), { deep: true })
+}, { deep: true })
 const keyword = ref('')
-const isDialogOpen = ref(false)
 const inpTanggal = ref({
     start: undefined,
     end: undefined,
@@ -142,7 +154,7 @@ const queryParamHandler = (inp: Record<string, any>) => {
 }
 onBeforeMount(async() => {
     if(!route.query || Object.keys(route.query).length === 0){
-        console.log('Tidak ada query parameter. Hentikan eksekusi.eee')
+        console.log('Tidak ada query parameter. Hentikan eksekusi.')
         return
     }
     const sanitized = sanitizeAllQuery(route.query)
@@ -167,14 +179,6 @@ onBeforeMount(async() => {
         return
     }
     local.fetchData = res.data
-})
-const posFilter = computed(() => {
-    if(isDesktop.value && local.fetchData.length > 0){
-        return '#filterSide'
-    }else if(isMobile.value && isDialogOpen.value){
-        return '#reka-dialog-content-v-0'
-    }
-    return null
 })
 const locale = ref("en-US")
 const formatter = useDateFormatter(locale.value)
@@ -293,7 +297,7 @@ const formSearchFilter = async() => {
                     // return toast
                     return { status: 'error', message: err.response.data.message }
                 }
-                console.log('anotherr', err.response.data.message)
+                console.log('err response', err.response.data.message)
                 // return toast
                 return { status:'error', message: err.response.data.message, code: err.response.status, data: { redirect: cusRedirect }}
             }
@@ -321,146 +325,144 @@ const metaDataSearch = {
 }
 </script>
 <template>
-    <Teleport v-if="posFilter" :to="posFilter" defer>
-        <form class="w-150 h-full rounded-xl pt-3 pb-5 pl-5 pr-5" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
-            <!-- <div>
-                <Label>Pilih Populer</Label>
-                <Select v-model="currentInput.popular" @update:model-value="formSearchFilter()">
-                    <SelectTrigger class="w-[180px]">
-                        <SelectValue RTPlaceholder="Select a Popularity" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectGroup>
-                            <SelectItem value="/">None</SelectItem>
-                            <SelectItem value="banana">Populer</SelectItem>
-                            <SelectItem value="blueberry">Blueberry</SelectItem>
-                            <SelectItem value="grapes">Grapes</SelectItem>
-                            <SelectItem value="pineapple">Pineapple</SelectItem>
-                        </SelectGroup>
-                    </SelectContent>
-                </Select>
-            </div> -->
-            <!-- <div>
-                <Label>Pilih Kategori</Label>
-                <Select v-model="currentInput.category" @update:model-value="formSearchFilter()">
-                    <SelectTrigger class="w-[180px]">
-                        <SelectValue RTPlaceholder="Select a fruit" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectGroup>
-                            <SelectLabel>None</SelectLabel>
-                            <SelectItem value="apple">Seni</SelectItem>
-                            <SelectItem value="banana">Budaya</SelectItem>
-                            <SelectItem value="blueberry">Agama</SelectItem>
-                            <SelectItem value="grapes">Olahraga</SelectItem>
-                            <SelectItem value="pineapple">Games</SelectItem>
-                        </SelectGroup>
-                    </SelectContent>
-                </Select>
-            </div> -->
-            <div>
-                <Label>Pilih Kategori</Label>
-                <CheckboxGroupRoot v-model="currentInput.category" class="flex flex-col gap-2.5">
-                    <div v-for="(item, index) in itemsCategoryFilter" :key="item.value" class="flex items-center gap-3">
-                        <CheckboxRoot :id="`cat-${index}`" :value="item.value" class="shadow-blackA7 hover:bg-green3 flex h-[25px] w-[25px] appearance-none items-center justify-center rounded-md bg-white shadow-[0_2px_10px] outline-none focus-within:shadow-[0_0_0_2px_black]">
-                            <CheckboxIndicator class="bg-white h-full w-full rounded flex items-center justify-center">
-                            <Icon icon="radix-icons:check" class="h-5 w-5 text-grass11"/>
-                            </CheckboxIndicator>
-                        </CheckboxRoot>
-                        <label :for="`cat-${index}`" class="flex flex-row gap-4 items-center">
-                            <span class="select-none dark:text-white">{{ item.label }}</span>
-                        </label>
-                    </div>
-                </CheckboxGroupRoot>
-            </div>
-            <div>
-                <Label>Pilih Rentang Tanggal</Label>
-                <Popover>
-                    <PopoverTrigger class="cursor-pointer" as-child>
-                        <Button variant="outline" :class="cn('w-fit pl-2 pr-2 justify-start text-left font-normal', !inpTanggal && 'text-muted-foreground')">
-                            <Calendar class="mr-2 h-4 w-4" />
-                            <template v-if="inpTanggal.start">
-                                <template v-if="inpTanggal.end">{{ formatTgl(toDate(inpTanggal.start)) }} - {{ formatTgl(toDate(inpTanggal.end)) }}</template>
-                                <template v-else>{{ formatTgl(toDate(inpTanggal.start)) }}</template>
-                            </template>
-                            <template v-else>Pick a date</template>
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent class="w-auto p-0">
-                        <RangeCalendarRoot v-slot="{ weekDays }" v-model="inpTanggal" v-model:RTPlaceholder="RTPlaceholder" @update:modelValue="formSearchFilter()" class="p-3">
-                            <div class="flex flex-col gap-y-4 mt-4 sm:flex-row sm:gap-x-4 sm:gap-y-0">
-                                <div class="flex flex-col gap-4">
-                                    <div class="flex items-center justify-between">
-                                    <button :class="cn(buttonVariants({ variant: 'outline' }), 'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100',)" @click="updateMonth('first', -1)">
+    <Teleport v-if="teleportTarget" :to="teleportTarget" defer>
+        <!-- <div>
+            <Label>Pilih Populer</Label>
+            <Select v-model="currentInput.popular" @update:model-value="formSearchFilter()">
+                <SelectTrigger class="w-[180px]">
+                    <SelectValue RTPlaceholder="Select a Popularity" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectGroup>
+                        <SelectItem value="/">None</SelectItem>
+                        <SelectItem value="banana">Populer</SelectItem>
+                        <SelectItem value="blueberry">Blueberry</SelectItem>
+                        <SelectItem value="grapes">Grapes</SelectItem>
+                        <SelectItem value="pineapple">Pineapple</SelectItem>
+                    </SelectGroup>
+                </SelectContent>
+            </Select>
+        </div> -->
+        <!-- <div>
+            <Label>Pilih Kategori</Label>
+            <Select v-model="currentInput.category" @update:model-value="formSearchFilter()">
+                <SelectTrigger class="w-[180px]">
+                    <SelectValue RTPlaceholder="Select a fruit" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectGroup>
+                        <SelectLabel>None</SelectLabel>
+                        <SelectItem value="apple">Seni</SelectItem>
+                        <SelectItem value="banana">Budaya</SelectItem>
+                        <SelectItem value="blueberry">Agama</SelectItem>
+                        <SelectItem value="grapes">Olahraga</SelectItem>
+                        <SelectItem value="pineapple">Games</SelectItem>
+                    </SelectGroup>
+                </SelectContent>
+            </Select>
+        </div> -->
+        <div>
+            <Label>Pilih Kategori</Label>
+            <CheckboxGroupRoot v-model="currentInput.category" class="flex flex-col gap-2.5">
+                <div v-for="(item, index) in itemsCategoryFilter" :key="item.value" class="flex items-center gap-3">
+                    <CheckboxRoot :id="`cat-${index}`" :value="item.value" class="shadow-blackA7 hover:bg-green3 flex h-[25px] w-[25px] appearance-none items-center justify-center rounded-md bg-white shadow-[0_2px_10px] outline-none focus-within:shadow-[0_0_0_2px_black]">
+                        <CheckboxIndicator class="bg-white h-full w-full rounded flex items-center justify-center">
+                        <Icon icon="radix-icons:check" class="h-5 w-5 text-grass11"/>
+                        </CheckboxIndicator>
+                    </CheckboxRoot>
+                    <label :for="`cat-${index}`" class="flex flex-row gap-4 items-center">
+                        <span class="select-none dark:text-white">{{ item.label }}</span>
+                    </label>
+                </div>
+            </CheckboxGroupRoot>
+        </div>
+        <div>
+            <Label>Pilih Rentang Tanggal</Label>
+            <Popover>
+                <PopoverTrigger class="cursor-pointer" as-child>
+                    <Button variant="outline" :class="cn('w-fit pl-2 pr-2 justify-start text-left font-normal', !inpTanggal && 'text-muted-foreground')">
+                        <Calendar class="mr-2 h-4 w-4" />
+                        <template v-if="inpTanggal.start">
+                            <template v-if="inpTanggal.end">{{ formatTgl(toDate(inpTanggal.start)) }} - {{ formatTgl(toDate(inpTanggal.end)) }}</template>
+                            <template v-else>{{ formatTgl(toDate(inpTanggal.start)) }}</template>
+                        </template>
+                        <template v-else>Pick a date</template>
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent class="w-auto p-0">
+                    <RangeCalendarRoot v-slot="{ weekDays }" v-model="inpTanggal" v-model:RTPlaceholder="RTPlaceholder" @update:modelValue="formSearchFilter()" class="p-3">
+                        <div class="flex flex-col gap-y-4 mt-4 sm:flex-row sm:gap-x-4 sm:gap-y-0">
+                            <div class="flex flex-col gap-4">
+                                <div class="flex items-center justify-between">
+                                <button :class="cn(buttonVariants({ variant: 'outline' }), 'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100',)" @click="updateMonth('first', -1)">
+                                    <ChevronLeft class="h-4 w-4" />
+                                </button>
+                                <div :class="cn('text-sm font-medium')"> {{ formatter.fullMonthAndYear(toDate(firstMonth.value))}}</div>
+                                <button :class="cn(buttonVariants({ variant: 'outline' }),'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100',)" @click="updateMonth('first', 1)">
+                                    <ChevronRight class="h-4 w-4" />
+                                </button>
+                                </div>
+                                <RangeCalendarGrid>
+                                    <RangeCalendarGridHead>
+                                        <RangeCalendarGridRow>
+                                            <RangeCalendarHeadCell v-for="day in weekDays" :key="day" class="w-full">{{ day }}</RangeCalendarHeadCell>
+                                        </RangeCalendarGridRow>
+                                    </RangeCalendarGridHead>
+                                    <RangeCalendarGridBody>
+                                        <RangeCalendarGridRow v-for="(weekDates, index) in firstMonth.rows" :key="`weekDate-${index}`" class="mt-2 w-full">
+                                            <RangeCalendarCell v-for="weekDate in weekDates" :key="weekDate.toString()" :date="weekDate">
+                                                <RangeCalendarCellTrigger :day="weekDate" :month="firstMonth.value"/>
+                                            </RangeCalendarCell>
+                                        </RangeCalendarGridRow>
+                                    </RangeCalendarGridBody>
+                                </RangeCalendarGrid>
+                            </div>
+                            <div class="flex flex-col gap-4">
+                                <div class="flex items-center justify-between">
+                                    <button :class="cn(buttonVariants({ variant: 'outline' }), 'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100',)" @click="updateMonth('second', -1)">
                                         <ChevronLeft class="h-4 w-4" />
                                     </button>
-                                    <div :class="cn('text-sm font-medium')"> {{ formatter.fullMonthAndYear(toDate(firstMonth.value))}}</div>
-                                    <button :class="cn(buttonVariants({ variant: 'outline' }),'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100',)" @click="updateMonth('first', 1)">
+                                    <div :class="cn('text-sm font-medium')">{{ formatter.fullMonthAndYear(toDate(secondMonth.value)) }}</div>
+                                    <button :class="cn(buttonVariants({ variant: 'outline' }),'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100',)" @click="updateMonth('second', 1)">
                                         <ChevronRight class="h-4 w-4" />
                                     </button>
-                                    </div>
-                                    <RangeCalendarGrid>
-                                        <RangeCalendarGridHead>
-                                            <RangeCalendarGridRow>
-                                                <RangeCalendarHeadCell v-for="day in weekDays" :key="day" class="w-full">{{ day }}</RangeCalendarHeadCell>
-                                            </RangeCalendarGridRow>
-                                        </RangeCalendarGridHead>
-                                        <RangeCalendarGridBody>
-                                            <RangeCalendarGridRow v-for="(weekDates, index) in firstMonth.rows" :key="`weekDate-${index}`" class="mt-2 w-full">
-                                                <RangeCalendarCell v-for="weekDate in weekDates" :key="weekDate.toString()" :date="weekDate">
-                                                    <RangeCalendarCellTrigger :day="weekDate" :month="firstMonth.value"/>
-                                                </RangeCalendarCell>
-                                            </RangeCalendarGridRow>
-                                        </RangeCalendarGridBody>
-                                    </RangeCalendarGrid>
                                 </div>
-                                <div class="flex flex-col gap-4">
-                                    <div class="flex items-center justify-between">
-                                        <button :class="cn(buttonVariants({ variant: 'outline' }), 'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100',)" @click="updateMonth('second', -1)">
-                                            <ChevronLeft class="h-4 w-4" />
-                                        </button>
-                                        <div :class="cn('text-sm font-medium')">{{ formatter.fullMonthAndYear(toDate(secondMonth.value)) }}</div>
-                                        <button :class="cn(buttonVariants({ variant: 'outline' }),'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100',)" @click="updateMonth('second', 1)">
-                                            <ChevronRight class="h-4 w-4" />
-                                        </button>
-                                    </div>
-                                    <RangeCalendarGrid>
-                                        <RangeCalendarGridHead>
-                                            <RangeCalendarGridRow>
-                                                <RangeCalendarHeadCell v-for="day in weekDays" :key="day" class="w-full">{{ day }}</RangeCalendarHeadCell>
-                                            </RangeCalendarGridRow>
-                                        </RangeCalendarGridHead>
-                                        <RangeCalendarGridBody>
-                                            <RangeCalendarGridRow v-for="(weekDates, index) in secondMonth.rows" :key="`weekDate-${index}`" class="mt-2 w-full">
-                                                <RangeCalendarCell v-for="weekDate in weekDates" :key="weekDate.toString()" :date="weekDate">
-                                                    <RangeCalendarCellTrigger :day="weekDate" :month="secondMonth.value"/>
-                                                </RangeCalendarCell>
-                                            </RangeCalendarGridRow>
-                                        </RangeCalendarGridBody>
-                                    </RangeCalendarGrid>
-                                </div>
+                                <RangeCalendarGrid>
+                                    <RangeCalendarGridHead>
+                                        <RangeCalendarGridRow>
+                                            <RangeCalendarHeadCell v-for="day in weekDays" :key="day" class="w-full">{{ day }}</RangeCalendarHeadCell>
+                                        </RangeCalendarGridRow>
+                                    </RangeCalendarGridHead>
+                                    <RangeCalendarGridBody>
+                                        <RangeCalendarGridRow v-for="(weekDates, index) in secondMonth.rows" :key="`weekDate-${index}`" class="mt-2 w-full">
+                                            <RangeCalendarCell v-for="weekDate in weekDates" :key="weekDate.toString()" :date="weekDate">
+                                                <RangeCalendarCellTrigger :day="weekDate" :month="secondMonth.value"/>
+                                            </RangeCalendarCell>
+                                        </RangeCalendarGridRow>
+                                    </RangeCalendarGridBody>
+                                </RangeCalendarGrid>
                             </div>
-                        </RangeCalendarRoot>
-                    </PopoverContent>
-                </Popover>
-            </div>
-            <div>
-                <Label>free ?</Label>
-                <Select v-model="currentInput.pay" @update:model-value="formSearchFilter()">
-                    <SelectTrigger class="w-[180px]">
-                        <SelectValue RTPlaceholder="Select a Popularity" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectGroup>
-                            <SelectItem value="/">None</SelectItem>
-                            <SelectItem value="free">free</SelectItem>
-                            <SelectItem value="all">all</SelectItem>
-                            <SelectItem value="pay">bayar</SelectItem>
-                        </SelectGroup>
-                    </SelectContent>
-                </Select>
-            </div>
-        </form>
+                        </div>
+                    </RangeCalendarRoot>
+                </PopoverContent>
+            </Popover>
+        </div>
+        <div>
+            <Label>free ?</Label>
+            <Select v-model="currentInput.pay" @update:model-value="formSearchFilter()">
+                <SelectTrigger class="w-[180px]">
+                    <SelectValue RTPlaceholder="Select a Popularity" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectGroup>
+                        <SelectItem value="/">None</SelectItem>
+                        <SelectItem value="free">free</SelectItem>
+                        <SelectItem value="all">all</SelectItem>
+                        <SelectItem value="pay">bayar</SelectItem>
+                    </SelectGroup>
+                </SelectContent>
+            </Select>
+        </div>
     </Teleport>
     <section class="relative h-screen flex flex-col">
         <Dialog  v-model:open="isDialogOpen">
@@ -476,7 +478,7 @@ const metaDataSearch = {
                 <div class="relative h-full">
                     <p v-if="local.fetchData.length > 0">Menampilkan Event "{{ keyword }}" menemukan {{ local.fetchData.length }}</p>
                     <div class="flex gap-5">
-                        <div id="filterSide"/>
+                        <form v-if="isDesktop" ref="SideFilterRef" class="w-150 h-full rounded-xl pt-3 pb-5 pl-5 pr-5" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);"/>
                         <CustomCardWithSkeletonComponent :metaData="metaDataSearch" :inpData="local.fetchData" :paralelRender="Infinity">
                             <template #skeleton="{ index, skeletonRefs }">
                                 <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 top-0 left-0 flex flex-col w-full h-full transition-opacity duration-100">
@@ -536,13 +538,12 @@ const metaDataSearch = {
                 </div>
             </div>
             <DialogContent>
+                <form ref="DialogContentRef"/>
                 <VisuallyHidden>
                     <DialogHeader>
-                        <DialogTitle>Edit profile</DialogTitle>
+                        <DialogTitle>Edit Filters</DialogTitle>
                     </DialogHeader>
-                    <DialogDescription>
-                        Make changes to your profile here. Click save when you're done.
-                    </DialogDescription>
+                    <DialogDescription>Make changes to your filters here. Click save when you're done.</DialogDescription>
                 </VisuallyHidden>
             </DialogContent>
         </Dialog>
