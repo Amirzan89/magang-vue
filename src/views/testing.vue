@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { useToastStore } from '@/stores/Toast'
-import { Card, CardContent } from '@/components/ui/card'
-import { Skeleton } from "@/components/ui/skeleton"
 const toast = useToastStore()
 const redToast = () => {
     toast.error({ id: Date.now().toString(), title: 'testing abang', message: 'akuuuuu abang' })

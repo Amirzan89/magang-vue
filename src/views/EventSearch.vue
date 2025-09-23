@@ -1,40 +1,15 @@
 <script setup lang="ts">
-import { CheckboxGroupRoot, CheckboxIndicator, CheckboxRoot, RangeCalendarRoot, useDateFormatter, Viewport, VisuallyHidden, type DateRange } from "reka-ui"
 import { Icon } from '@iconify/vue'
 import { Calendar, ChevronLeft, ChevronRight} from "lucide-vue-next"
-import { createMonth, toDate, type Grid } from "reka-ui/date"
 import { CalendarDate, getLocalTimeZone, isEqualMonth, today, type DateValue } from "@internationalized/date"
 import { ref, reactive, computed, watch, onBeforeMount, onMounted, h, useSlots, defineComponent, nextTick, Teleport, type Ref, type ComponentPublicInstance } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
-import { cn } from "@/utils/shadcn-vue"
 import { formatTgl } from "@/utils/global"
 import useAxios from '@/composables/api/axios'
 import useEncryption from '@/composables/encryption'
 import { width, isMobile, isDesktop } from '@/composables/useScreenSize'
 import { useFetchDataStore } from '@/stores/FetchData'
 import { getImgURL } from '@/utils/global'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button, buttonVariants } from '@/components/ui/button'
-import Input from '@/components/ui/input/Input.vue'
-import Dialog from '@/components/ui/dialog/Dialog.vue'
-import DialogTrigger from '@/components/ui/dialog/DialogTrigger.vue'
-import DialogContent from '@/components/ui/dialog/DialogContent.vue'
-import DialogHeader from '@/components/ui/dialog/DialogHeader.vue'
-import DialogTitle from '@/components/ui/dialog/DialogTitle.vue'
-import DialogDescription from '@/components/ui/dialog/DialogDescription.vue'
-import Label from "@/components/ui/label/Label.vue"
-import { Select, SelectTrigger, SelectContent, SelectGroup, SelectItem, SelectValue } from '@/components/ui/select'
-import Popover from '@/components/ui/popover/Popover.vue'
-import PopoverTrigger from '@/components/ui/popover/PopoverTrigger.vue'
-import PopoverContent from '@/components/ui/popover/PopoverContent.vue'
-import RangeCalendarCell from '@/components/ui/range-calendar/RangeCalendarCell.vue'
-import RangeCalendarCellTrigger from '@/components/ui/range-calendar/RangeCalendarCellTrigger.vue'
-import RangeCalendarGrid from '@/components/ui/range-calendar/RangeCalendarGrid.vue'
-import RangeCalendarGridBody from '@/components/ui/range-calendar/RangeCalendarGridBody.vue'
-import RangeCalendarGridHead from '@/components/ui/range-calendar/RangeCalendarGridHead.vue'
-import RangeCalendarGridRow from '@/components/ui/range-calendar/RangeCalendarGridRow.vue'
-import RangeCalendarHeadCell from '@/components/ui/range-calendar/RangeCalendarHeadCell.vue'
-import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
 import CustomCardWithSkeletonComponent from '@/components/CustomCardWithSkeleton.vue'
 import I_DRight from '@/assets/icons/card_events/double-right.svg?component'
 import I_Location from '@/assets/icons/card_events/location.svg?component'
@@ -399,13 +374,13 @@ watch(width, () => {
                         <div class="flex flex-col gap-y-4 mt-4 sm:flex-row sm:gap-x-4 sm:gap-y-0">
                             <div class="flex flex-col gap-4">
                                 <div class="flex items-center justify-between">
-                                <button :class="cn(buttonVariants({ variant: 'outline' }), 'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100',)" @click="updateMonth('first', -1)">
+                                <!-- <button :class="cn(buttonVariants({ variant: 'outline' }), 'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100',)" @click="updateMonth('first', -1)">
                                     <ChevronLeft class="h-4 w-4" />
                                 </button>
                                 <div :class="cn('text-sm font-medium')"> {{ formatter.fullMonthAndYear(toDate(firstMonth.value))}}</div>
                                 <button :class="cn(buttonVariants({ variant: 'outline' }),'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100',)" @click="updateMonth('first', 1)">
                                     <ChevronRight class="h-4 w-4" />
-                                </button>
+                                </button> -->
                                 </div>
                                 <RangeCalendarGrid>
                                     <RangeCalendarGridHead>

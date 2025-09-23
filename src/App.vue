@@ -7,7 +7,6 @@ import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import EmptyLayout from '@/layouts/EmptyLayout.vue'
 import LoadingComponent from './components/Loading.vue'
-import ToastComponent from './components/CustomToast/ToastContainer.vue'
 const route = useRoute()
 const layouts: Record<string, any> = {
     default: DefaultLayout,
@@ -34,7 +33,6 @@ watch(width, updatePadding)
         <component :is="Layout" :key="layoutName" />
     <!-- </transition> -->
     <LoadingComponent/>
-    <ToastComponent/>
 </template>
 <style>
 .fade-enter-active,.fade-leave-active { transition: opacity .15s }
