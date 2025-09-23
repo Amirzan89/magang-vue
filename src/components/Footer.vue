@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import * as z from 'zod'
 import { reactive, markRaw } from 'vue'
 import { useRouter,RouterLink } from 'vue-router'
-import { useForm } from 'vee-validate'
-import { toTypedSchema } from '@vee-validate/zod'
 import { Login } from '@/composables/api/auth'
 import { useConfig } from '@/composables/useConfig'
 import { useLoadingStore } from '@/stores/Loading'
@@ -87,53 +84,6 @@ const EventickItems = reactive([
         'link': '/terms',
     },
 ])
-const formSchema = toTypedSchema(z.object({
-    email: z.string().min(1, 'Email Harus diisi !').email('Masukkan email dengan benar !'),
-    password: z.string().min(1, 'Password Harus diisi !')
-}))
-const { values, setFieldError, handleSubmit, validate } = useForm({
-    validationSchema: formSchema,
-})
-const inpFields = Object.keys(values);
-const inpChange = async() => {
-    await validate();
-}
-const loginForm = async() => {
-    if(local.isRequestInProgress) return;
-    handleSubmit(async(values) => {
-        local.isRequestInProgress = true;
-        loading.showLoading();
-        const res = await Login({email: values.email, password: values.password, recaptcha: ''});
-        if(res.status === 'success'){
-            local.isRequestInProgress = false;
-            fetchDataS.isFirstTime = false;
-            loading.closeLoading();
-            console.log('toastt berhasil')
-            // toast.success({ title: 'Berhasil Login', message: res.message, duration: 3000 });
-            setTimeout(function(){
-                route.push('/dashboard');
-            }, 1500);
-        }else if(res.status === 'error'){
-            local.isRequestInProgress = false;
-            loading.closeLoading();
-            console.log('toastt gagal', res.message);
-            toast.error({ title: 'Gagal Login', message: res.message, duration: 3000 });
-            if(res.fields){
-                if(typeof res.fields === 'string'){
-                    setFieldError(res.fields, res.message);
-                }else{
-                    res.fields.forEach((field: any) => {
-                        if(inpFields.includes(field)){
-                            setFieldError(field, res.message);
-                        }
-                    });
-                }
-            }
-        }
-    }, (err: any) => {
-        console.error('errrrorrr ', err)
-    })();
-}
 </script>
 <template>
     <footer class="bg-[#0A075F]">
@@ -173,7 +123,7 @@ const loginForm = async() => {
                     <p class="mb-4 text-sm">Join our mailing list to stay in the loop with our newest for Event and concert</p>
                     <form class="relative w-[80%] lg:w-[50%] lg:h-fit">
                         <input type="email" id="first_name" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 " placeholder="Enter your email address" required>
-                        <button class="absolute top-1/2 -translate-y-1/2 right-[2%] bg-red-500 px-1.75 py-1.25 flex justify-center items-center rounded-sm md:rounded-md xl:rounded-lg cursor-pointer text-xs" @click="send">Subscribe</button>
+                        <!-- <button class="absolute top-1/2 -translate-y-1/2 right-[2%] bg-red-500 px-1.75 py-1.25 flex justify-center items-center rounded-sm md:rounded-md xl:rounded-lg cursor-pointer text-xs" @click="send">Subscribe</button> -->
                     </form>
                 </div>
             </div>

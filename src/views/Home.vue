@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onBeforeMount, markRaw, h, useSlots, defineComponent, type ComponentPublicInstance } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
-import Autoplay from "embla-carousel-autoplay"
 import { useConfig } from '@/composables/useConfig'
 import { useFetchDataStore } from '@/stores/FetchData'
 import { getImgURL } from '@/utils/global'
@@ -24,7 +23,6 @@ import defaultBoy from '@/assets/images/default_boy.jpg'
 import defaultGirl from '@/assets/images/default_girl.png'
 const publicConfig = useConfig()
 const fetchDataS = useFetchDataStore()
-const emblaMainApi = ref<CarouselApi>()
 const totalItemsCar = ref(0)
 const selectedIndex = ref(0)
 let autoplayTimer: ReturnType<typeof setTimeout> | null = null
@@ -33,19 +31,19 @@ const local = reactive({
     past_events: null as any,
     reviews: null as any,
 })
-const sliceDate = (inp = [], key: string) => {
-    return inp.map((item: any) => {
-        if(item[key]){
-            const match = item[key].match(/^(\d{1,2})\s+([A-Za-zÀ-ž]+)\s+(\d{4})$/)
-            if(match){
-                item.tanggal = match[1]
-                item.bulan   = match[2]
-                item.tahun   = match[3]
-            }
-        }
-        return item
-    });
-};
+// const sliceDate = (inp = [], key: string) => {
+//     return inp.map((item: any) => {
+//         if(item[key]){
+//             const match = item[key].match(/^(\d{1,2})\s+([A-Za-zÀ-ž]+)\s+(\d{4})$/)
+//             if(match){
+//                 item.tanggal = match[1]
+//                 item.bulan   = match[2]
+//                 item.tahun   = match[3]
+//             }
+//         }
+//         return item
+//     });
+// };
 onBeforeMount(async() =>{
     const res = await fetchDataS.fetchPage(useRoute().path, {})
     if(res ==  undefined || res.status == 'error'){
@@ -56,36 +54,6 @@ onBeforeMount(async() =>{
     local.past_events = res.data.past_events
     local.reviews = res.data.reviews
 })
-const onInitApiCar = (api?: CarouselApi) => {
-    if(!api) return
-    emblaMainApi.value = api
-    totalItemsCar.value = api.slideNodes().length
-    selectedIndex.value = api.selectedScrollSnap()
-    api.on('select', () => {
-        selectedIndex.value = api.selectedScrollSnap()
-    })
-}
-const goToSlide = (index: number) => {
-    if(emblaMainApi.value){
-        selectedIndex.value = index
-        emblaMainApi.value.scrollTo(index)
-    }
-}
-const autoplayPlugin = Autoplay({
-    delay: 2500,
-    stopOnMouseEnter: true,
-    stopOnInteraction: false,
-})
-const restartAutoplay = () => {
-    if(local.upcoming_events?.length > 0){
-        if(autoplayTimer) clearTimeout(autoplayTimer)
-        autoplayTimer = setTimeout(() => {
-            autoplayPlugin.reset()
-            autoplayPlugin.play()
-        }, 150)
-    }
-}
-
 const catHero = reactive([
     {
         'name': 'Music Events',
@@ -153,37 +121,6 @@ const metaDataReviews = {
         <div class="relative z-10 flex flex-col justify-center gap-24 items-center h-full text-white">
             <div class="w-[90%] lg:w-[92%] aspect-video lg:aspect-auto h-1/2">
                 <div class="relative left-1/2 -translate-x-1/2 rounded-xl h-full">
-                    <Carousel class="relative z-0 inset-0 rounded-xl overflow- w-full h-full border-black border-width-1" @init-api="onInitApiCar" :plugins="[autoplayPlugin]" @mouseenter="autoplayPlugin.stop" @mouseleave="restartAutoplay">
-                        <CarouselContent :customTW="'h-full'">
-                            <CarouselItem v-for="(item, index) in local.upcoming_events" :key="index">
-                                <div class="relative h-full" :style="{
-                                    backgroundImage: `url(${getImgURL(item.img)})`,
-                                    backgroundSize: 'cover',
-                                    backgroundPosition: 'center'
-                                }">
-                                </div>
-                            </CarouselItem>
-                        </CarouselContent>
-                        <div class="absolute w-full h-full top-0 left-0 flex justify-around">
-                            <div class="bg absolute w-full h-full" style="background: linear-gradient(47deg, rgba(0, 0, 0, 0.8) 18.46%, rgba(84, 32, 180, 0) 137.6%);"></div>
-                            <div class="self-center w-[47%] h-1/2 relative group">
-                                <CarouselPrevious :class="'left-0 bg-transparent border-transparent text-white/0 hover:bg-transparent hover:text-red-500 group-hover:text-red-500 group-hover:disabled:text-red-500/0 w-fit h-fit'" :cus-icon="I_VLeft" :cusIconClass="'!w-7 !h-7'"/>
-                                <div class="w-[87%] h-full relative left-1/2 -translate-x-1/2 px-4">
-                                    <h3 class="text-base lg:text-3xl">Mavisuru Ragasoba</h3>
-                                    <span class="text-xs">University morawa</span>
-                                    <p class="mt-2">Lorem ipsum dolor sit amet consectetur adipisicing elit...</p>
-                                    <RouterLink to="/" class="w-20 lg:w-35 h-6 lg:h-10 lg:rounded-lg absolute bottom-[10%] inline-flex justify-center items-center font-medium lg:font-bold mt-5 text-xs lg:text-lg text-white border-2 border-white">Learn More</RouterLink>
-                                </div>
-                                <CarouselNext :class="'right-0 bg-transparent border-transparent text-white/0 hover:bg-transparent hover:text-red-500 group-hover:text-red-500 group-hover:disabled:text-red-500/0 w-fit h-fit'" :cusIcon="I_VRight" :cusIconClass="'!w-7 !h-7'"/>
-                            </div>
-                            <div class="self-center w-[35%] h-1/2 relative">
-                                <h3 class="text-lg lg:text-3xl">UNI EVENTS</h3>
-                                <p class="text-base mt-2">Lorem ipsum dolor sit amet consectetur adipisicing elit...</p>
-                                <RouterLink to="/about" class="w-20 lg:w-35 h-6 lg:h-10 lg:rounded-lg absolute bottom-[10%] inline-flex justify-center items-center font-medium lg:font-bold mt-5 bg-red-500 text-xs  lg:text-lg text-white">About US</RouterLink>
-                            </div>
-                            <CarouselDots v-model:currentIndex="selectedIndex" :totalItems="totalItemsCar" @goToSlide="goToSlide"/>
-                        </div>
-                    </Carousel>
                 </div>
             </div>
             <ul class="phone:w-[75%] lg:w-fit mb-5 grid grid-cols-2 gap-4 phone:flex phone:justify-around phone:gap-0 xl:gap-25 text-white">
@@ -271,7 +208,7 @@ const metaDataReviews = {
     <section class="relative mt-10">
         <div class="w-[95%] mx-auto">
             <h2 class="w-fit mt-5 mx-auto lg:mx-0 text-xl xl:text-3xl font-bold">Past Events</h2>
-            <CustomCardWithSkeletonComponent :metaData="metaDataPast" :inpData="local.past_events" :paralelRender="4">4
+            <CustomCardWithSkeletonComponent :metaData="metaDataPast" :inpData="local.past_events" :paralelRender="4">
                 <template #skeleton="{ index, skeletonRefs }">
                     <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 top-0 left-0 flex flex-col w-full h-full transition-opacity duration-100">
                         <Skeleton class="w-full h-[65%] rounded-lg"/>

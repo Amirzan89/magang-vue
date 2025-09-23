@@ -12,6 +12,7 @@
         "js-cookie": "^3.0.5",
         "pinia": "^3.0.3",
         "primevue": "^4.3.9",
+        "swiper": "^12.0.2",
         "tailwindcss": "^4.1.12",
         "tw-animate-css": "^1.3.8",
         "vue": "^3.5.18",
@@ -969,6 +970,8 @@
     "svg-baker": ["svg-baker@1.7.0", "", { "dependencies": { "bluebird": "^3.5.0", "clone": "^2.1.1", "he": "^1.1.1", "image-size": "^0.5.1", "loader-utils": "^1.1.0", "merge-options": "1.0.1", "micromatch": "3.1.0", "postcss": "^5.2.17", "postcss-prefix-selector": "^1.6.0", "posthtml-rename-id": "^1.0", "posthtml-svg-mode": "^1.0.3", "query-string": "^4.3.2", "traverse": "^0.6.6" } }, "sha512-nibslMbkXOIkqKVrfcncwha45f97fGuAOn1G99YwnwTj8kF9YiM6XexPcUso97NxOm6GsP0SIvYVIosBis1xLg=="],
 
     "svgo": ["svgo@2.8.0", "", { "dependencies": { "@trysound/sax": "0.2.0", "commander": "^7.2.0", "css-select": "^4.1.3", "css-tree": "^1.1.3", "csso": "^4.2.0", "picocolors": "^1.0.0", "stable": "^0.1.8" }, "bin": { "svgo": "bin/svgo" } }, "sha512-+N/Q9kV1+F+UeWYoSiULYo4xYSDQlTgb+ayMobAXPwMnLvop7oxKMo9OzIrX5x3eS4L4f2UHhc9axXwY8DpChg=="],
+
+    "swiper": ["swiper@12.0.2", "", {}, "sha512-y8F6fDGXmTVVgwqJj6I00l4FdGuhpFJn0U/9Ucn1MwWOw3NdLV8aH88pZOjyhBgU/6PyBlUx+JuAQ5KMWz906Q=="],
 
     "tailwindcss": ["tailwindcss@4.1.12", "", {}, "sha512-DzFtxOi+7NsFf7DBtI3BJsynR+0Yp6etH+nRPTbpWnS2pZBaSksv/JGctNwSWzbFjp0vxSqknaUylseZqMDGrA=="],
 
