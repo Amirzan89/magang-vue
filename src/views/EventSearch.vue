@@ -10,7 +10,7 @@ import { cn } from "@/utils/shadcn-vue"
 import { formatTgl } from "@/utils/global"
 import useAxios from '@/composables/api/axios'
 import useEncryption from '@/composables/encryption'
-import { isMobile, isDesktop } from '@/composables/useScreenSize'
+import { width, isMobile, isDesktop } from '@/composables/useScreenSize'
 import { useFetchDataStore } from '@/stores/FetchData'
 import { getImgURL } from '@/utils/global'
 import { Card, CardContent } from '@/components/ui/card'
@@ -36,10 +36,10 @@ import RangeCalendarGridRow from '@/components/ui/range-calendar/RangeCalendarGr
 import RangeCalendarHeadCell from '@/components/ui/range-calendar/RangeCalendarHeadCell.vue'
 import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
 import CustomCardWithSkeletonComponent from '@/components/CustomCardWithSkeleton.vue'
-import I_free from '@/assets/icons/card_events/free-tag.svg?component'
 import I_DRight from '@/assets/icons/card_events/double-right.svg?component'
 import I_Location from '@/assets/icons/card_events/location.svg?component'
 import I_Bookmark from '@/assets/icons/card_events/bookmark.svg?component'
+import freeTag from '@/assets/images/free-tag.png';
 import router from '@/router'
 const route = useRoute()
 const { axiosJson, fetchCsrfToken } = useAxios()
@@ -321,8 +321,13 @@ const metaDataSearch = {
             }
         }
     }),
-    customTWTransition: 'h-full mt-5 grid grid-cols-1 phone:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4',
+    customTWTransition: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-2 lg:gap-4',
 }
+watch(width, () => {
+    if(!isMobile.value && isDialogOpen.value){
+        isDialogOpen.value = false
+    }
+})
 </script>
 <template>
     <Teleport v-if="teleportTarget" :to="teleportTarget" defer>
@@ -464,10 +469,10 @@ const metaDataSearch = {
             </Select>
         </div>
     </Teleport>
-    <section class="relative h-screen flex flex-col">
+    <section class="relative flex flex-col">
         <Dialog  v-model:open="isDialogOpen">
             <DialogTrigger v-if="isMobile && local.fetchData.length > 0">Filters</DialogTrigger>
-            <div class="w-[95%] mx-auto mt-7">
+            <div class="w-[97%] mx-auto mt-7">
                 <div class="relative flex items-center justify-between">
                     <h2 class="w-fit text-4xl">Search Events</h2>
                     <div class="flex gap-5">
@@ -475,10 +480,12 @@ const metaDataSearch = {
                         <Button @click="formSearchFilter()">Search</Button>
                     </div>
                 </div>
-                <div class="relative h-full">
+                <div class="relative">
                     <p v-if="local.fetchData.length > 0">Menampilkan Event "{{ keyword }}" menemukan {{ local.fetchData.length }}</p>
-                    <div class="flex gap-5">
-                        <form v-if="isDesktop" ref="SideFilterRef" class="w-150 h-full rounded-xl pt-3 pb-5 pl-5 pr-5" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);"/>
+                    <div class="relative flex gap-3">
+                        <Transition name="sidefilter" appear>
+                            <form v-if="isDesktop" ref="SideFilterRef" class="sticky w-110 h-full rounded-xl pt-3 pb-5 pl-5 pr-5" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1); top: calc(var(--paddTop) + 10px);"/>
+                        </Transition>
                         <CustomCardWithSkeletonComponent :metaData="metaDataSearch" :inpData="local.fetchData" :paralelRender="Infinity">
                             <template #skeleton="{ index, skeletonRefs }">
                                 <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 top-0 left-0 flex flex-col w-full h-full transition-opacity duration-100">
@@ -492,42 +499,28 @@ const metaDataSearch = {
                             </template>
                             <template #card="{ index, inpData, toggleSkeleton, cardRefs }">
                                 <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" class="h-full pt-0 pb-0 rounded-md lg:rounded-[20px] overflow-hidden opacity-0 transition-opacity duration-100" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
-                                    <CardContent class="relative rounded-xl">
-                                        <div class="relative">
-                                            <img :src="getImgURL(inpData.img)" alt="" class="object-contain" style="height: 197px" :ref="((el: any) => {
-                                                    if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
-                                                })"
-                                                @load="() => {
-                                                    inpData.imgLoad = true
-                                                    toggleSkeleton(index)
-                                                }" @error="() => toggleSkeleton(index)"/>
-                                            <I_free v-if="inpData.isFree" class="absolute top-0 right-0" />
-                                        </div>
-                                        <div class="w-[90%] mx-auto flex flex-col">
-                                            <div class="flex gap-5">
-                                                <div class="flex flex-col">
-                                                    <span class="text-[#3D37F1] font-bold">May</span>
-                                                    <span class="text-black">11</span>
-                                                </div>
-                                                <div class="flex flex-col text-xl text-black">
-                                                <span>Civil Padura</span>
-                                                <span>By Civil Engineering Department</span>
-                                                </div>
-                                            </div>
-                                            <div class="flex flex-col text-xl">
-                                                <div class="flex gap-2 items-center">
-                                                <I_DRight class="w-5 h-5 text-red-500" />
-                                                <span>Musical Event</span>
-                                                </div>
-                                                <div class="flex gap-2 items-center">
-                                                <I_DRight class="w-5 h-5 text-red-500" />
-                                                <span>All Universities students can join</span>
-                                                </div>
+                                    <CardContent class="relative pl-0 pr-0 h-full">
+                                        <img :src="getImgURL(inpData.img)" alt="" class="w-full h-[64%] lg:object-cover" :ref="((el: any) => {
+                                                if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
+                                            })"
+                                            @load="() => {
+                                                inpData.imgLoad = true
+                                                toggleSkeleton(index)
+                                        }" @error="() => toggleSkeleton(index)"/>
+                                        <img :src="freeTag" alt="" class="absolute -top-[2%] -right-[2%] z-9 h-[20%] 2xl:h-[15%]">
+                                        <div class="w-[87%] mx-auto flex flex-col mt-2">
+                                            <div class="flex flex-col text-black">
+                                                <!-- <div class="flex flex-col">
+                                                    <span class="text-[#3D37F1] font-bold text-base">May</span>
+                                                    <span class="text-black text-xl">11</span>
+                                                </div> -->
+                                                <RouterLink :to="'/events/' + inpData.event_id" class="text-base sm:text-lg font-medium">{{ inpData.event_name }}</RouterLink>
+                                                <span class="text-sm sm:text-lg">{{ inpData.start_date }}</span>
                                             </div>
                                             <div class="flex justify-between items-center mt-3">
-                                                <I_Location class="w-8 h-8 text-red-500" />
-                                                <span class="text-xl font-medium">University of Morotuwa</span>
-                                                <I_Bookmark class="w-8 h-8 text-blue-500" />
+                                                <a :href="inpData.link_lokasi" target="_blank" rel="noopener noreferrer"><I_Location class="w-5 h-5 sm:w-8 sm:h-8 text-black"/></a>
+                                                <span class="text-base">{{ inpData.nama_lokasi }}</span>
+                                                <I_Bookmark class="w-5 h-5 sm:w-8 sm:h-8 text-black" />
                                             </div>
                                         </div>
                                     </CardContent>
@@ -537,7 +530,7 @@ const metaDataSearch = {
                     </div>
                 </div>
             </div>
-            <DialogContent>
+            <DialogContent class="duration-200">
                 <form ref="DialogContentRef"/>
                 <VisuallyHidden>
                     <DialogHeader>
@@ -550,4 +543,16 @@ const metaDataSearch = {
     </section>
 </template>
 <style scoped>
+.sidefilter-enter-active,
+.sidefilter-leave-active{
+    transition: transform 0.3s ease;
+}
+.sidefilter-enter-from,
+.sidefilter-leave-to{
+    transform: translateX(-100%);
+}
+.sidefilter-enter-to,
+.sidefilter-leave-from{
+    transform: translateX(0);
+}
 </style>
