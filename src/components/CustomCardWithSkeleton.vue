@@ -36,10 +36,10 @@ const parallelLimit = ref(props.paralelRender ?? 1)
 const runAnimation = async (index: number) => {
     active.add(index)
     await delay(10)
-    skeletonRefs.value[index]!.style.opacity = "0"
+    skeletonRefs.value[index]!.classList.add("opacity-0")
     await delay(100)
     skeletonRefs.value[index]?.remove()
-    cardRefs.value[index]!.style.opacity = "1"
+    cardRefs.value[index]!.classList.remove("opacity-0")
     await delay(100)
     active.delete(index)
     processQueue()

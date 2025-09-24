@@ -13,7 +13,10 @@ export default function setupPrimeVue(app: any){
     app.use(PrimeVue, {
         ripple: true,
         theme: {
-            preset: Aura
+            preset: Aura,
+            options: {
+                darkModeSelector: '',
+            }
         }
     })
     app.use(ToastService)
