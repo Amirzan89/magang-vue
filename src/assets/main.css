@@ -54,6 +54,7 @@ html{
   scroll-padding:10rem;
 }
 body{
+  background: white;
   font-family:'Poppins',sans-serif;
   user-select:none;
 }

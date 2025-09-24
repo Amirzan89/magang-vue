@@ -124,8 +124,9 @@ const metaDataReviews = {
 <template>
     <section class="relative lg:h-screen pt-16">
         <div class="absolute top-0 left-0 w-full h-full -z-1">
-            <img src="@/assets/images/party-1.png" alt="" class="w-full object-cover" />
-            <div class="absolute top-0 left-0 w-full h-full opacity-90" style="background-image:linear-gradient(156deg, #ed4690 0%, #5522cc 111.39%)"></div>
+            <img src="@/assets/images/party-1.png" alt="" class="w-full h-full object-cover" />
+            <div class="absolute top-0 left-0 w-full h-full opacity-90 bg-red-500" style="background: #ED4690; background: linear-gradient(145deg,rgba(237, 70, 144, 1) 0%, rgba(85, 34, 204, 1) 100%)">
+            </div>
         </div>
         <div class="relative z-10 flex flex-col justify-center gap-24 items-center h-full text-white">
             <div class="w-[90%] lg:w-[92%] aspect-video lg:aspect-auto h-3/4">
@@ -167,7 +168,8 @@ const metaDataReviews = {
         </div>
     </section>
     <!-- CARDS / UPCOMING -->
-    <section class="relative flex flex-col">
+    <section class="relative flex flex-col overflow-x-clip">
+        <img src="@/assets/images/cele-3.png" alt="" class="absolute bottom-0 -right-[32%] w-[75%] h-[75%] -z-1 object-cover opacity-30" />
         <div class="w-[90%] mx-auto h-fit">
             <h2 class="w-fit mt-5 mx-auto lg:mx-0 text-xl xl:text-3xl font-bold">Upcoming Events</h2>
             <CustomCardWithSkeletonComponent :metaData="metaDataUpcoming" :inpData="local.upcoming_events" :paralelRender="2">
@@ -210,13 +212,13 @@ const metaDataReviews = {
                 <img src="@/assets/images/image-3.png" alt="" class="h-30 lg:h-100 self-end">
                 <div class="w-[40%] lg:w-fit h-fit self-center flex flex-col items-center text-white text-center lg:text-start">
                     <h2 class="text-sm lg:text-2xl xl:text-2xl">Add Your Loving Event</h2>
-                    <!-- <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p> -->
                     <RouterLink to="/" class="mt-3 px-2 lg:px-4 py-1 lg:py-2 rounded-sm lg:rounded-md text-xs xl:text-lg 2xl:text-xl" style="background-color:#F5167E">View all events</RouterLink>
                 </div>
             </div>
         </div>
     </section>
-    <section class="relative mt-10">
+    <section class="relative mt-10 mb-15 lg:mb-20">
+        <img src="@/assets/images/cele-2.png" alt="" class="absolute top-1/2 -translate-y-1/2 -left-[29.5%] w-[75%] h-[75%] -z-1 object-cover opacity-30" />
         <div class="w-[95%] mx-auto">
             <h2 class="w-fit mt-5 mx-auto lg:mx-0 text-xl xl:text-3xl font-bold">Past Events</h2>
             <CustomCardWithSkeletonComponent :metaData="metaDataPast" :inpData="local.past_events" :paralelRender="4">
@@ -254,9 +256,7 @@ const metaDataReviews = {
             </CustomCardWithSkeletonComponent>
             <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 w-[30%] xs:w-[32%] xl:w-[11%] 2xl:w-[8%] h-7 xs:h-11 xl:h-12 mt-5 lg:mt-10 text-[#3D37F1] border xl:border-2 border-[#3D37F1] lg:px-0 lg:py-2 rounded-lg lg:rounded-2xl xl:rounded-xl flex justify-center items-center hover:bg-[#3D37F1] text-xs lg:text-xl hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">Load More</RouterLink>
         </div>
-    </section>
-    <section class="relative mt-20 lg:mt-50 mb-15 lg:mb-20">
-        <div class="w-[90%] lg:w-[95%] xl:w-[97%] mx-auto">
+        <div class="w-[90%] lg:w-[95%] xl:w-[97%] mx-auto mt-20 lg:mt-50">
             <h2 class="w-fit mx-auto text-lg lg:text-3xl font-semibold text-[#242565]">Reviews About Us</h2>
             <p class="w-fit mx-auto text-sm lg:text-xl text-center text-[#242565]">See what our amazing customers have to say about us!</p>
             <CustomCardWithSkeletonComponent :metaData="metaDataReviews" :inpData="local.reviews" :paralelRender="1">
