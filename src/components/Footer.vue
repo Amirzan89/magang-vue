@@ -5,7 +5,6 @@ import { Login } from '@/composables/api/auth'
 import { useConfig } from '@/composables/useConfig'
 import { useLoadingStore } from '@/stores/Loading'
 import { useFetchDataStore } from '@/stores/FetchData'
-import { useToastStore } from '@/stores/Toast'
 import I_facebook from '@/assets/icons/footer_home/facebook.svg?component'
 import I_twitter from '@/assets/icons/footer_home/twitter.svg?component'
 import I_linkedln from '@/assets/icons/footer_home/linkedln.svg?component'
@@ -13,7 +12,6 @@ const publicConfig = useConfig()
 const route = useRouter()
 const fetchDataS = useFetchDataStore()
 const loading = useLoadingStore()
-const toast = useToastStore()
 const local = reactive({
     isRequestInProgress: false,
     isUpdated: false,

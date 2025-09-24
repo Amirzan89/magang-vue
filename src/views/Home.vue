@@ -122,48 +122,42 @@ const metaDataReviews = {
 }
 </script>
 <template>
-    <section class="relative lg:h-screen pt-16">
+    <section class="relative lg:h-screen pt-10 pb-30">
         <div class="absolute top-0 left-0 w-full h-full -z-1">
             <img src="@/assets/images/party-1.png" alt="" class="w-full h-full object-cover" />
-            <div class="absolute top-0 left-0 w-full h-full opacity-90 bg-red-500" style="background: #ED4690; background: linear-gradient(145deg,rgba(237, 70, 144, 1) 0%, rgba(85, 34, 204, 1) 100%)">
-            </div>
+            <div class="absolute top-0 left-0 w-full h-full opacity-90" style="background: #ED4690; background: linear-gradient(145deg,rgba(237, 70, 144, 1) 0%, rgba(85, 34, 204, 1) 100%)"/>
         </div>
-        <div class="relative z-10 flex flex-col justify-center gap-24 items-center h-full text-white">
-            <div class="w-[90%] lg:w-[92%] aspect-video lg:aspect-auto h-3/4">
-                <Swiper v-if="local.upcoming_events && local.upcoming_events.length > 0" :modules="[Navigation, Pagination, Autoplay]" :slides-per-view="1" :space-between="20" :loop="true" :autoplay="{ delay: 3000 }" :pagination="{ clickable: true }" :allow-touch-move="false" :simulate-touch="false" :keyboard="{ enabled: false }" :mousewheel="{ enabled: false }" :navigation="{ nextEl: '.btn-next', prevEl: '.btn-prev' }" class="relative left-1/2 -translate-x-1/2 rounded-xl h-full bg-green-500"  @slideChange="onSlideChange">
-                    <template v-for="(item, index) in local.upcoming_events" :key="index">
-                        <SwiperSlide><img :src="item.img" alt="" class="w-full object-contain"></SwiperSlide>
-                    </template>
-                    <div class="absolute z-2 w-full h-full top-0 left-0 backdrop-blur-[1px]">
-                        <div class="absolute z-3 w-full h-full top-0 left-0 opacity-70" style="background: #5420B4; background: linear-gradient(45deg,rgba(84, 32, 180, 1) 100%, rgba(0, 0, 0, 1) 13%);"></div>
-                        <div class="relative z-4 w-[75%] h-full mx-auto flex justify-between items-center">
-                            <div class="lg:w-[40%] 2xl:w-[30%] h-fit flex justify-around items-center ">
-                                <I_VLeft class="btn-prev size-8"/>
-                                <div class="w-[90%] h- ">
-                                    <h4 class="text-4xl">{{ local.upcoming_events[activeIndex].event_name }}</h4>
-                                    <Button :as="RouterLink" :to="'/events/' + local.upcoming_events[activeIndex]!.link_event" severity="secondary" class="w-fit h-fit">Learn More</Button>
-                                </div>
-                                <I_VRight class="btn-next size-8"/>
+        <div class="relative flex flex-col justify-between items-center h-full text-white">
+            <Swiper v-if="local.upcoming_events && local.upcoming_events.length > 0" :modules="[Navigation, Pagination, Autoplay]" :slides-per-view="1" :space-between="20" :loop="true" :autoplay="{ delay: 3000 }" :pagination="{ clickable: true }" :allow-touch-move="false" :simulate-touch="false" :keyboard="{ enabled: false }" :mousewheel="{ enabled: false }" :navigation="{ nextEl: '.btn-next', prevEl: '.btn-prev' }" class="w-[85%] lg:w-[92%] aspect-video lg:aspect-auto h-3/4 rounded-xl"  @slideChange="onSlideChange">
+                <template v-for="(item, index) in local.upcoming_events" :key="index">
+                    <SwiperSlide><img :src="item.img" alt="" class="w-full object-contain"></SwiperSlide>
+                </template>
+                <div class="absolute z-2 w-full h-full top-0 left-0 backdrop-blur-[1px]">
+                    <div class="absolute z-3 w-full h-full top-0 left-0 opacity-70" style="background: #5420B4; background: linear-gradient(45deg,rgba(84, 32, 180, 1) 100%, rgba(0, 0, 0, 1) 13%);"></div>
+                    <div class="relative z-4 w-[75%] h-full mx-auto flex justify-between items-center">
+                        <div class="lg:w-[40%] 2xl:w-[30%] h-fit flex justify-around items-center">
+                            <I_VLeft class="btn-prev size-8"/>
+                            <div class="w-[90%] h- ">
+                                <h4 class="text-4xl">{{ local.upcoming_events[activeIndex].event_name }}</h4>
+                                <Button :as="RouterLink" :to="'/events/' + local.upcoming_events[activeIndex]!.link_event" severity="secondary" class="w-fit h-fit">Learn More</Button>
                             </div>
-                            <div class="lg:w-[30%] 2xl:w-[30%] h-[40%]">
-                                <h4 class="text-4xl">Uni Events</h4>
-                                <p class="">Stay updated with the latest academic talks, workshops, and social gatherings across Sri Lankan universities. Whether you're here to network, learn, or have fun, there’s something for everyone!</p>
-                                <Button :as="RouterLink" to="/about" severity="danger">About US</Button>
-                            </div>
+                            <I_VRight class="btn-next size-8"/>
+                        </div>
+                        <div class="lg:w-[30%] 2xl:w-[30%] h-[40%]">
+                            <h4 class="text-4xl">Uni Events</h4>
+                            <p class="">Stay updated with the latest academic talks, workshops, and social gatherings across Sri Lankan universities. Whether you're here to network, learn, or have fun, there’s something for everyone!</p>
+                            <Button :as="RouterLink" to="/about" severity="danger">About US</Button>
                         </div>
                     </div>
-                </Swiper>
-            </div>
-            <ul class="phone:w-[75%] lg:w-fit mb-5 grid grid-cols-2 gap-4 phone:flex phone:justify-around phone:gap-0 xl:gap-25 text-white">
-            <!-- <ul class="w-[87%] flex justify-around text-white bg-red-500"> -->
-                <template v-for="(item, index) in catHero" :key="index">
-                    <li class="flex flex-col items-center gap-1 xl:gap-3">
-                        <div class="bg-white inline-flex justify-center items-center rounded-full w-fit">
-                            <component :is="item.icon" class="size-7 phone:size-8 xl:size-10 m-2.75 phone:m-2.5 xl:m-5"></component>
-                        </div>
-                        <span class="block text-center text-base xl:text-xl font-medium">{{ item.name }}</span>
-                    </li>
-                </template>
+                </div>
+            </Swiper>
+            <ul class="phone:w-[75%] lg:w-fit grid grid-cols-2 gap-4 phone:flex phone:justify-around phone:gap-0 xl:gap-20 text-white">
+                <li v-for="(item, index) in catHero" :key="index" class="flex flex-col items-center gap-1 xl:gap-2">
+                    <div class="bg-white inline-flex justify-center items-center rounded-full w-fit">
+                        <component :is="item.icon" class="size-7 phone:size-8 xl:size-10 2xl:size-12 m-2.75 phone:m-2.5 xl:m-5"></component>
+                    </div>
+                    <span class="block text-center text-base xl:text-xl font-medium">{{ item.name }}</span>
+                </li>
             </ul>
         </div>
     </section>
