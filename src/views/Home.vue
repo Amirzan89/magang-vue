@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { ref, reactive, onBeforeMount, markRaw, h, useSlots, defineComponent, type ComponentPublicInstance } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import { Swiper, SwiperSlide } from 'swiper/vue';
+import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import 'swiper/css/autoplay';
 import { useConfig } from '@/composables/useConfig'
 import { useFetchDataStore } from '@/stores/FetchData'
 import { getImgURL } from '@/utils/global'
@@ -25,7 +31,6 @@ const publicConfig = useConfig()
 const fetchDataS = useFetchDataStore()
 const totalItemsCar = ref(0)
 const selectedIndex = ref(0)
-let autoplayTimer: ReturnType<typeof setTimeout> | null = null
 const local = reactive({
     upcoming_events: null as any,
     past_events: null as any,
@@ -54,6 +59,10 @@ onBeforeMount(async() =>{
     local.past_events = res.data.past_events
     local.reviews = res.data.reviews
 })
+const activeIndex = ref(0)
+const onSlideChange = (swiper: any) => {
+    activeIndex.value = swiper.realIndex
+}
 const catHero = reactive([
     {
         'name': 'Music Events',
@@ -119,9 +128,30 @@ const metaDataReviews = {
             <div class="absolute top-0 left-0 w-full h-full opacity-90" style="background-image:linear-gradient(156deg, #ed4690 0%, #5522cc 111.39%)"></div>
         </div>
         <div class="relative z-10 flex flex-col justify-center gap-24 items-center h-full text-white">
-            <div class="w-[90%] lg:w-[92%] aspect-video lg:aspect-auto h-1/2">
-                <div class="relative left-1/2 -translate-x-1/2 rounded-xl h-full">
-                </div>
+            <div class="w-[90%] lg:w-[92%] aspect-video lg:aspect-auto h-3/4">
+                <Swiper v-if="local.upcoming_events && local.upcoming_events.length > 0" :modules="[Navigation, Pagination, Autoplay]" :slides-per-view="1" :space-between="20" :loop="true" :autoplay="{ delay: 3000 }" :pagination="{ clickable: true }" :allow-touch-move="false" :simulate-touch="false" :keyboard="{ enabled: false }" :mousewheel="{ enabled: false }" :navigation="{ nextEl: '.btn-next', prevEl: '.btn-prev' }" class="relative left-1/2 -translate-x-1/2 rounded-xl h-full bg-green-500"  @slideChange="onSlideChange">
+                    <template v-for="(item, index) in local.upcoming_events" :key="index">
+                        <SwiperSlide><img :src="item.img" alt="" class="w-full object-contain"></SwiperSlide>
+                    </template>
+                    <div class="absolute z-2 w-full h-full top-0 left-0 backdrop-blur-[1px]">
+                        <div class="absolute z-3 w-full h-full top-0 left-0 opacity-70" style="background: #5420B4; background: linear-gradient(45deg,rgba(84, 32, 180, 1) 100%, rgba(0, 0, 0, 1) 13%);"></div>
+                        <div class="relative z-4 w-[75%] h-full mx-auto flex justify-between items-center">
+                            <div class="lg:w-[40%] 2xl:w-[30%] h-fit flex justify-around items-center ">
+                                <I_VLeft class="btn-prev size-8"/>
+                                <div class="w-[90%] h- ">
+                                    <h4 class="text-4xl">{{ local.upcoming_events[activeIndex].event_name }}</h4>
+                                    <Button :as="RouterLink" :to="'/events/' + local.upcoming_events[activeIndex]!.link_event" severity="secondary" class="w-fit h-fit">Learn More</Button>
+                                </div>
+                                <I_VRight class="btn-next size-8"/>
+                            </div>
+                            <div class="lg:w-[30%] 2xl:w-[30%] h-[40%]">
+                                <h4 class="text-4xl">Uni Events</h4>
+                                <p class="">Stay updated with the latest academic talks, workshops, and social gatherings across Sri Lankan universities. Whether you're here to network, learn, or have fun, there’s something for everyone!</p>
+                                <Button :as="RouterLink" to="/about" severity="danger">About US</Button>
+                            </div>
+                        </div>
+                    </div>
+                </Swiper>
             </div>
             <ul class="phone:w-[75%] lg:w-fit mb-5 grid grid-cols-2 gap-4 phone:flex phone:justify-around phone:gap-0 xl:gap-25 text-white">
             <!-- <ul class="w-[87%] flex justify-around text-white bg-red-500"> -->
