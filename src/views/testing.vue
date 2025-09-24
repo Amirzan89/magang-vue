@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { useToastStore } from '@/stores/Toast'
-const toast = useToastStore()
-const redToast = () => {
-    toast.error({ id: Date.now().toString(), title: 'testing abang', message: 'akuuuuu abang' })
-}
-const ijoToast = () => {
-    toast.success({ id: Date.now().toString(), title: 'testing ijo', message: 'akuuuuu ijoo' })
+import { useToast } from 'primevue/usetoast'
+const toast = useToast()
+function showSuccess() {
+    toast.add({
+        severity: 'success',
+        summary: 'Sukses',
+        detail: 'Operasi berhasil dilakukan',
+        life: 3000
+    })
 }
 </script>
 <template>
-    <button class="bg-red-500" @click="redToast">piteken</button>
-    <button class="bg-green-500" @click="ijoToast">piteken</button>
+    <button class="bg-red-500" @click="showSuccess">piteken</button>
 </template>

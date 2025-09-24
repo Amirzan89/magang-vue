@@ -8,7 +8,6 @@ import Card from 'primevue/card'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import ToastService from 'primevue/toastservice'
-import Toast from 'primevue/toast'
 export default function setupPrimeVue(app: any){
     app.use(PrimeVue, {
         ripple: true,
@@ -27,5 +26,4 @@ export default function setupPrimeVue(app: any){
     app.component('Card', Card)
     app.component('IconField', IconField)
     app.component('InputIcon', InputIcon)
-    app.component('Toast', Toast)
 }

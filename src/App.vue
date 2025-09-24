@@ -2,6 +2,7 @@
 import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import theme from '@/theme'
+import Toast from 'primevue/toast'
 import { width } from '@/composables/useScreenSize'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import AuthLayout from '@/layouts/AuthLayout.vue'
@@ -33,6 +34,7 @@ watch(width, updatePadding)
         <component :is="Layout" :key="layoutName" />
     <!-- </transition> -->
     <LoadingComponent/>
+    <Toast position="bottom-right" />
 </template>
 <style>
 .fade-enter-active,.fade-leave-active { transition: opacity .15s }
