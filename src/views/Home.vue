@@ -92,7 +92,7 @@ const metaDataUpcoming = {
             }
         }
     }),
-    customTWTransition: 'h-full mt-1.5 lg:mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-2 lg:gap-4',
+    customTWTransition: 'h-full mt-1.5 lg:mt-5 grid grid-cols-1 phone:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3.5 lg:gap-4',
 }
 const metaDataPast = {
     wrapper: () => defineComponent({
@@ -105,7 +105,7 @@ const metaDataPast = {
             }
         }
     }),
-    customTWTransition: 'h-full mt-1.5 lg:mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-2 lg:gap-4',
+    customTWTransition: 'h-full mt-1.5 lg:mt-5 grid grid-cols-1 phone:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-2 lg:gap-4',
 }
 const metaDataReviews = {
     wrapper: () => defineComponent({
@@ -165,35 +165,35 @@ const metaDataReviews = {
     <section class="relative flex flex-col overflow-x-clip">
         <img src="@/assets/images/cele-3.png" alt="" class="absolute bottom-0 -right-[32%] w-[75%] h-[75%] -z-1 object-cover opacity-30" />
         <div class="w-[90%] mx-auto h-fit">
-            <h2 class="w-fit mt-5 mx-auto lg:mx-0 text-xl xl:text-3xl font-bold">Upcoming Events</h2>
+            <h2 class="w-fit mt-5 mx-auto lg:mx-0 text-base xl:text-3xl font-medium phone:font-semibold lg:font-bold text-[#242565]">Upcoming Events</h2>
             <CustomCardWithSkeletonComponent :metaData="metaDataUpcoming" :inpData="local.upcoming_events" :paralelRender="2">
                 <template #skeleton="{ index, skeletonRefs }">
-                    <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 top-0 left-0 flex flex-col w-full h-full transition-opacity duration-100">
-                        <Skeleton :pt="{ root: { class: ['!h-[65%] !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                        <div class="w-[97%] mt-1.5 mx-auto">
-                            <Skeleton :pt="{ root: { class: ['!h-6 !rounded-sm ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                            <Skeleton :pt="{ root: { class: ['!h-6 mt-1.5 !rounded-md ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                            <Skeleton :pt="{ root: { class: ['!h-11 mt-2 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                    <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 -top-[2%] left-0 w-full h-[102%] flex flex-col items-center transition-opacity duration-100">
+                        <Skeleton :pt="{ root: { class: ['!w-[104%] !h-[57%] lg:h-[65%] !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                        <div class="w-[97%] mt-3.5 lg:mt-1.5 mx-auto">
+                            <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 !rounded-sm ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                            <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 mt-1 lg:mt-1.5 !rounded-md ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                            <Skeleton :pt="{ root: { class: ['!h-6.5 lg:h-11 mt-1.5 lg:mt-2 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                         </div>
                     </div>
                 </template>
                 <template #card="{ index, inpData, toggleSkeleton, cardRefs }">
-                    <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" class="h-full pt-0 pb-0 rounded-md lg:rounded-[20px] overflow-hidden opacity-0 transition-opacity duration-100" :pt="{ root: { style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, footer: { class: 'flex justify-between items-center mt-3' }}">
+                    <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" :pt="{ root: { class: ['h-full pt-0 pb-0 rounded-md lg:rounded-[20px] overflow-hidden opacity-0 transition-opacity duration-100'], style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, body: { class: ['!gap-1'] }, caption: { class: ['!gap-0'] }, title: { class: ['!text-sm phone:text-base'] }, subtitle: { class: ['!text-xs'] }, footer: { class: 'flex justify-between items-center' }}">
                         <template #header>
-                            <img :src="getImgURL(inpData.img)" alt="" class="w-full h-[170px] lg:h-[197px] object-cover" :ref="((el: any) => {
+                            <img :src="getImgURL(inpData.img)" alt="" class="w-full h-[120px] phone:h-[170px] lg:h-[197px] object-cover" :ref="((el: any) => {
                                     if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
                                 })"
                                 @load="() => {
                                     inpData.imgLoad = true
                                     toggleSkeleton(index)
                                 }" @error="() => toggleSkeleton(index)"/>
-                            <img :src="freeTag" alt="" class="absolute top-0 right-0 z-9 h-[20%]">
+                            <img :src="freeTag" alt="" class="absolute -top-1 -right-1 z-9 h-[17%] lg:h-[20%]">
                         </template>
                         <template #title>{{ inpData.event_name }}</template>
                         <template #subtitle>{{ inpData.start_date }}</template>
                         <template #footer>
                             <a :href="inpData.link_lokasi" target="_blank" rel="noopener noreferrer"><I_Location class="w-5 h-5 sm:w-8 sm:h-8 text-green-500"/></a>
-                            <span class="text-base">{{ inpData.nama_lokasi }}</span>
+                            <span class="text-sm">{{ inpData.nama_lokasi }}</span>
                             <I_Bookmark class="w-5 h-5 sm:w-8 sm:h-8 text-green-500"/>
                         </template>
                     </Card>
@@ -214,36 +214,36 @@ const metaDataReviews = {
     <section class="relative mt-10 mb-15 lg:mb-20">
         <img src="@/assets/images/cele-2.png" alt="" class="absolute top-1/2 -translate-y-1/2 -left-[29.5%] w-[75%] h-[75%] -z-1 object-cover opacity-30" />
         <div class="w-[95%] mx-auto">
-            <h2 class="w-fit mt-5 mx-auto lg:mx-0 text-xl xl:text-3xl font-bold">Past Events</h2>
+            <h2 class="w-fit mt-5 mx-auto lg:mx-0 text-lg phone:text-xl xl:text-3xl font-medium phone:font-semibold lg:font-bold text-[#242565]">Past Events</h2>
             <CustomCardWithSkeletonComponent :metaData="metaDataPast" :inpData="local.past_events" :paralelRender="4">
                 <template #skeleton="{ index, skeletonRefs }">
                     <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 top-0 left-0 flex flex-col w-full h-full transition-opacity duration-100">
-                        <Skeleton :pt="{ root: { class: ['!h-[65%] !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                        <div class="w-[97%] mt-1.5 mx-auto">
-                            <Skeleton :pt="{ root: { class: ['!h-6 !rounded-sm ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                            <Skeleton :pt="{ root: { class: ['!h-6 mt-1.5 !rounded-md ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                            <Skeleton :pt="{ root: { class: ['!h-11 mt-2 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                        <Skeleton :pt="{ root: { class: ['!h-[55%] lg:h-[65%] !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                        <div class="w-[97%] mt-4.25 lg:mt-1.5 mx-auto">
+                            <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 !rounded-sm ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                            <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 mt-1 lg:mt-1.5 !rounded-md ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                            <Skeleton :pt="{ root: { class: ['!h-6.5 lg:h-11 mt-1.5 lg:mt-2 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                         </div>
                     </div>
                 </template>
                 <template #card="{ index, inpData, toggleSkeleton, cardRefs }">
-                    <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" class="h-full pt-0 pb-0 rounded-md lg:rounded-[20px] overflow-hidden opacity-0 transition-opacity duration-100" :pt="{ root: { style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, footer: { class: 'flex justify-between items-center mt-3' }}">
+                    <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" :pt="{ root: { class: ['h-full pt-0 pb-0 rounded-md lg:rounded-[20px] overflow-hidden opacity-0 transition-opacity duration-100'], style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, body: { class: ['!gap-1'] }, caption: { class: ['!gap-0'] }, title: { class: ['!text-sm phone:text-base'] }, subtitle: { class: ['!text-xs'] }, footer: { class: 'flex justify-between items-center' }}">
                         <template #header>
-                            <img :src="getImgURL(inpData.img)" alt="" class="w-full h-[170px] lg:h-[197px] object-cover" :ref="((el: any) => {
+                            <img :src="getImgURL(inpData.img)" alt="" class="w-full h-[120px] phone:h-[170px] lg:h-[197px] object-cover" :ref="((el: any) => {
                                     if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
                                 })"
                                 @load="() => {
                                     inpData.imgLoad = true
                                     toggleSkeleton(index)
                                 }" @error="() => toggleSkeleton(index)"/>
-                            <img :src="freeTag" alt="" class="absolute top-0 right-0 z-9 h-[20%]">
+                            <img :src="freeTag" alt="" class="absolute -top-1 -right-1 z-9 h-[17%] lg:h-[20%]">
                         </template>
                         <template #title>{{ inpData.event_name }}</template>
                         <template #subtitle>{{ inpData.start_date }}</template>
                         <template #footer>
                             <a :href="inpData.link_lokasi" target="_blank" rel="noopener noreferrer"><I_Location class="w-5 h-5 sm:w-8 sm:h-8 text-green-500"/></a>
-                            <span class="text-base">{{ inpData.nama_lokasi }}</span>
-                            <I_Bookmark class="w-5 h-5 sm:w-8 sm:h-8 text-green-500" />
+                            <span class="text-sm">{{ inpData.nama_lokasi }}</span>
+                            <I_Bookmark class="w-5 h-5 sm:w-8 sm:h-8 text-green-500"/>
                         </template>
                     </Card>
                 </template>
@@ -251,55 +251,53 @@ const metaDataReviews = {
             <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 w-[30%] xs:w-[32%] xl:w-[11%] 2xl:w-[8%] h-7 xs:h-11 xl:h-12 mt-5 lg:mt-10 text-[#3D37F1] border xl:border-2 border-[#3D37F1] lg:px-0 lg:py-2 rounded-lg lg:rounded-2xl xl:rounded-xl flex justify-center items-center hover:bg-[#3D37F1] text-xs lg:text-xl hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">Load More</RouterLink>
         </div>
         <div class="w-[90%] lg:w-[95%] xl:w-[97%] mx-auto mt-20 lg:mt-50">
-            <h2 class="w-fit mx-auto text-lg lg:text-3xl font-semibold text-[#242565]">Reviews About Us</h2>
-            <p class="w-fit mx-auto text-sm lg:text-xl text-center text-[#242565]">See what our amazing customers have to say about us!</p>
+            <h2 class="w-fit mx-auto text-lg sm:text-text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold text-[#242565]">Reviews About Us</h2>
+            <p class="w-fit mx-auto text-sm sm:text-text-base md:text-lg lg:text-xl xl:text-2xl text-center text-[#242565]">See what our amazing customers have to say about us!</p>
             <CustomCardWithSkeletonComponent :metaData="metaDataReviews" :inpData="local.reviews" :paralelRender="1">
                 <template #skeleton="{ index, skeletonRefs }">
                     <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 top-0 left-0 flex flex-col w-full h-full transition-opacity duration-100">
-                        <Skeleton :pt="{ root: { class: ['!h-[65%] !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                        <div class="w-[97%] mt-1.5 mx-auto">
-                            <Skeleton :pt="{ root: { class: ['!h-6 !rounded-sm ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                            <Skeleton :pt="{ root: { class: ['!h-6 mt-1.5 !rounded-md ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                            <Skeleton :pt="{ root: { class: ['!h-11 mt-2 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                        </div>
+                        <Skeleton :pt="{ root: { class: ['!h-16 sm:!h-19 lg:!h-22 xl:!h-25.5 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                        <Skeleton :pt="{ root: { class: ['!flex-1 !rounded-sm mt-1.25 sm:mt-2.25 lg:!mt-3.5'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                     </div>
                 </template>
                 <template #card="{ index, inpData, toggleSkeleton, cardRefs }">
-                    <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" class="lg:h-50 opacity-0 transition-opacity duration-100" :pt="{ root: { style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }}">
-                        <template #header>
-                            <div class="relative right-0 size-15 xl:size-15 wrounded-full pointer-events-none">
-                                <img :src="inpData.photo ? publicConfig.baseURL + inpData.photo : [defaultBoy, defaultGirl][Math.floor(Math.random() * 2)]" alt="" class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-full h-full object-cover" style="clip-path: circle();" :ref="((el: any) => {
-                                    if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
-                                })"
-                                @load="() => {
-                                    inpData.imgLoad = true
-                                    toggleSkeleton(index)
-                                }" @error="(e: Event) => {
-                                    const imgEl = e.target as HTMLImageElement
-                                    imgEl.src = [defaultBoy, defaultGirl][Math.floor(Math.random() * 2)]
-                                    toggleSkeleton(index)
-                                }">
-                            </div>
-                            <div>
-                                <div class="flex">
-                                    <template v-for="i in 5" :key="i">
-                                        <I_FullStar v-if="i <= Math.floor(inpData.rating)" class="size-4 sm:size-5 xl:size-6 text-yellow-500"/>
-                                        <I_HalfStar v-else-if="i === Math.ceil(inpData.rating) && inpData.rating % 1 >= 0.5" class="size-3.5 sm:size-6 xl:size-6 text-yellow-500"/>
-                                        <I_EmptyStar v-else class="size-4 sm:size-5 xl:size-6 text-yellow-500"/>
-                                    </template>
+                    <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" :pt="{ root: { class: ['relative opacity-0 transition-opacity duration-100 rounded-xl flex flex-col gap-2'], style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, body: { class: ['!p-3 lg:!p-4 xl:!p-5']}}">
+                        <template #content>
+                            <div class="flex items-center gap-2 xl:gap-3">
+                                <div class="relative right-0 size-10 xl:size-15 wrounded-full pointer-events-none">
+                                    <img :src="inpData.photo ? publicConfig.baseURL + inpData.photo : [defaultBoy, defaultGirl][Math.floor(Math.random() * 2)]" alt="" class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-full h-full object-cover" style="clip-path: circle();" :ref="((el: any) => {
+                                        if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
+                                    })"
+                                    @load="() => {
+                                        inpData.imgLoad = true
+                                        toggleSkeleton(index)
+                                    }" @error="(e: Event) => {
+                                        const imgEl = e.target as HTMLImageElement
+                                        imgEl.src = [defaultBoy, defaultGirl][Math.floor(Math.random() * 2)]
+                                        toggleSkeleton(index)
+                                    }">
                                 </div>
-                                <h5 class="text-base xl:text-xl font-semibold">{{ inpData.name }}</h5>
-                                <span class="text-xs xl:text-base lg:text-lg">{{ inpData.date_review }}</span>
+                                <div class="flex flex-col gap-0">
+                                    <div class="flex">
+                                        <template v-for="i in 5" :key="i">
+                                            <I_FullStar v-if="i <= Math.floor(inpData.rating)" class="size-4 sm:size-5 lg:size-6 xl:size-7 text-yellow-500"/>
+                                            <I_HalfStar v-else-if="i === Math.ceil(inpData.rating) && inpData.rating % 1 >= 0.5" class="size-[15.5px] sm:size-[19px] lg:size-[23px] xl:size-[27px] text-yellow-500"/>
+                                            <I_EmptyStar v-else class="size-4 sm:size-5 lg:size-6 xl:size-7 text-yellow-500"/>
+                                        </template>
+                                    </div>
+                                    <h5 class="text-sm sm:text-base lg:text-lg xl:text-xl font-semibold">{{ inpData.name }}</h5>
+                                    <span class="text-xs sm:text-sm lg:text-base xl:text-lg">{{ inpData.date_review }}</span>
+                                </div>
                             </div>
+                            <p class="mt-1 sm:mt-2 lg:mt-3 text-xs sm:text-sm lg:text-base xl:text-lg">{{ inpData.comment }} Lorem ipsum dolor sit, amet consectetur adipisicing elit. Ea autem reiciendis maiores eligendi culpa, maxime qui non perferendis, cupiditate fuga nemo, quis ut alias omnis fugiat dolorem modi perspiciatis quos!</p>
                         </template>
-                        <template #content>{{ inpData.comment }}</template>
                     </Card>
                 </template>
                 <template #placeholder-card>
-                    <Card class="lg:h-50" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
+                    <Card style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);" :pt="{ root: { class: ['!h-full']}, body: { class:['!h-full'] }, content: { class: ['relative !h-full rounded-xl aspect-video lg:aspect-auto flex flex-col justify-center items-center gap-1 lg:gap-2']}}">
                         <template #content>
-                            <I_Plus class="size-9 sm:size-10"/>
-                            <p class="text-base xl:text-lg font-medium">Add Yours</p>
+                            <I_Plus class="size-7 phone:size-6 sm:size-9 lg:size-11 xl:size-13"/>
+                            <p class="text-base sm:text-lg lg:text-xl xl:text-2xl font-medium">Add Yours</p>
                         </template>
                     </Card>
                 </template>
