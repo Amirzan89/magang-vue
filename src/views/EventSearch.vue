@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form } from '@primevue/forms'
+import { Form, FormField } from '@primevue/forms'
 import { ref, reactive, computed, watch, onBeforeMount, onMounted, h, useSlots, defineComponent, nextTick, Teleport, type Ref, type ComponentPublicInstance } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { formatTgl } from "@/utils/global"
@@ -102,19 +102,17 @@ watch(() => currentInput.category, () => {
     }, 500)
 }, { deep: true })
 watch(() => currentInput.dates, () => {
-    console.log('isiiuu ', currentInput.dates)
     if(debounceTimer) clearTimeout(debounceTimer)
         debounceTimer = setTimeout(async () => {
         await formSearchFilter()
     }, 500)
 }, { deep: true })
 watch(() => currentInput.pay, async() => {
-    console.log('updateee', currentInput.pay)
     if(currentInput.pay != oldInput.pay){
-        if(debounceTimer) clearTimeout(debounceTimer)
-            debounceTimer = setTimeout(async () => {
-            await formSearchFilter()
-        }, 500)
+        await formSearchFilter()
+        // if(debounceTimer) clearTimeout(debounceTimer)
+        //     debounceTimer = setTimeout(async () => {
+        // }, 500)
     }
 })
 const keyword = ref('')
@@ -130,7 +128,6 @@ const sanitizeQuery = <T extends FilterKey>(key: T, value: unknown): InputForm[T
     return null
 }
 const sanitizeAllQuery = (rawQuery: Record<string, unknown>): InputForm => {
-    console.log('isi ', rawQuery)
     const query = {
         search: rawQuery.find,
         category: rawQuery.f_category,
@@ -152,20 +149,27 @@ const sanitizeAllQuery = (rawQuery: Record<string, unknown>): InputForm => {
     }
     return clean as InputForm
 }
-const normalizeDates = (dates: Date[] | null) => {
-    if (!dates || dates.length < 2) return dates
-    const [d1, d2] = dates
-    return d1 <= d2 ? [d1, d2] : [d2, d1]
-}
+watch(() => currentInput.dates, (val) => {
+    if(val && val.length === 2){
+        const [d1, d2] = val
+        if(d1 && d2 && d1 > d2){
+            currentInput.dates = [d2, d1]
+        }
+    }
+}, { deep: true })
 const queryParamHandler = (inp: InputForm) => {
-    const dates = normalizeDates(inp.dates)
-    inp.dates = dates
+    const formatDate = (d: Date) => {
+        const y = d.getFullYear()
+        const m = String(d.getMonth() + 1).padStart(2, "0")
+        const day = String(d.getDate()).padStart(2, "0")
+        return `${y}-${m}-${day}`
+    }
     const queryParams: Record<string, any> = {
         find: inp.search || null,
         f_category: Array.isArray(inp.category) && inp.category.length > 0 ? inp.category : null,
         f_pay: inp.pay || null,
-        f_sr_date: dates?.[0] ? dates[0].toISOString().split("T")[0] : null,
-        f_er_date: dates?.[1] ? dates[1].toISOString().split("T")[0] : null,
+        f_sr_date: inp.dates?.[0] ? formatDate(inp.dates[0]) : null,
+        f_er_date: inp.dates?.[1] ? formatDate(inp.dates[1]) : null,
     }
     const filteredParams: Record<string, any> = {}
     for(const key in queryParams){
@@ -201,6 +205,8 @@ onBeforeMount(async() => {
         return
     }
     local.fetchData = res.data
+    // await nextTick()
+    // keyword.value = currentInput.search
 })
 const formSearchFilter = async() => {
     if(abortFormController) abortFormController.abort()
@@ -293,35 +299,35 @@ const metaDataSearch = {
             }
         }
     }),
-    customTWTransition: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-2 lg:gap-4',
+    customTWTransition: 'flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-2 lg:gap-4',
 }
 </script>
 <template>
     <Teleport v-if="teleportTarget" :to="teleportTarget" defer>
         <!-- <div>
             <label>Pilih Populer</label>
-            <Select v-model="currentInput.pay" :options="itemsPopularFilter" optionLabel="name" placeholder="Select event fee" class="w-full md:w-56"/>
+            <Select v-model:model-value="currentInput.popular" :options="itemsPopularFilter" optionLabel="name" placeholder="Select event popular" class="w-full md:w-56"/>
             itemsPopularFilter
         </div> -->
-        <div>
+        <FormField class="flex flex-col">
             <label>Pilih Kategori</label>
-            <CheckboxGroup name="ingredient" class="flex flex-wrap gap-4" v-model:model-value="currentInput.category">
+            <CheckboxGroup name="ingredient" class="flex flex-col gap-4" v-model:model-value="currentInput.category">
                 <div v-for="(item, index) in itemsCategoryFilter" :key="item.value" class="flex items-center gap-2">
                     <Checkbox :inputId="'cat' + index" :value="item.value" />
                     <label :for="'cat' + index">{{ item.label }}</label>
                 </div>
             </CheckboxGroup>
-        </div>
-        <div>
+        </FormField>
+        <FormField class="flex flex-col">
             <label>Pilih Rentang Tanggal</label>
             <DatePicker v-model="currentInput.dates" selectionMode="range" dateFormat="dd/mm/yy"/>
-        </div>
-        <div>
+        </FormField>
+        <FormField class="flex flex-col">
             <label>free ?</label>
             <Select v-model:model-value="currentInput.pay" :options="itemsPaysFilter" optionLabel="name" optionValue="value" placeholder="Select event fee" class="w-full md:w-56"/>
-        </div>
+        </FormField>
     </Teleport>
-    <section class="relative flex flex-col">
+    <section class="relative min-h-screen flex flex-col">
         <div class="w-[97%] mx-auto mt-7">
             <div class="relative flex items-center justify-between">
                 <h2 class="w-fit text-4xl">Search Events</h2>
@@ -335,7 +341,7 @@ const metaDataSearch = {
                 <p v-if="local.fetchData.length > 0">Menampilkan Event "{{ keyword }}" menemukan {{ local.fetchData.length }}</p>
                 <div class="relative flex gap-3">
                     <Transition name="sidefilter" appear>
-                        <Form v-if="isDesktop" :ref="el => SideFilterRef =  (el as ComponentPublicInstance)?.$el" class="sticky w-110 h-full rounded-xl pt-3 pb-5 pl-5 pr-5" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1); top: calc(var(--paddTop) + 10px);"/>
+                        <Form v-if="isDesktop" :ref="el => SideFilterRef =  (el as ComponentPublicInstance)?.$el" class="sticky w-75 h-full rounded-xl flex flex-col gap-2 pt-3 pb-5 pl-5 pr-5" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1); top: calc(var(--paddTop) + 10px);"/>
                     </Transition>
                     <CustomCardWithSkeletonComponent :metaData="metaDataSearch" :inpData="local.fetchData" :paralelRender="2">
                         <template #skeleton="{ index, skeletonRefs }">
