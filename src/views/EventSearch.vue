@@ -340,7 +340,7 @@ const metaDataLoading = {
             <Select v-model:model-value="currentInput.pay" :options="itemsPaysFilter" optionLabel="name" optionValue="value" placeholder="Select event fee" class="w-full md:w-56"/>
         </FormField>
     </Teleport>
-    <section class="relative h-screen flex flex-col overflow-x-hidden">
+    <section class="relative min-h-screen flex flex-col overflow-x-hidden">
         <img src="@/assets/images/cele-3.png" alt="" class="absolute bottom-0 -right-[30%] w-[75%] h-[75%] -z-1 object-cover opacity-30" />
         <div class="w-[97%] mx-auto mt-7 flex flex-col">
             <div class="relative flex items-center justify-between">
