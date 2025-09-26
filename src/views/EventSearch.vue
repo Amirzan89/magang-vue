@@ -22,7 +22,7 @@ const local = reactive({
     fetchData: [] as any,
     past_events: null as any,
     reviews: null as any,
-    isLoading: true,
+    isLoading: false,
     isFirstLoad: true,
 })
 // const itemsPopularFilter = ref([
@@ -85,7 +85,6 @@ watch(width, () => {
     }
 })
 const teleportTargetFn = async() => {
-    if(local.fetchData == 0 || local.isFirstLoad) return
     await nextTick()
     if(isDesktop.value){
         teleportTarget.value = SideFilterRef.value
@@ -232,7 +231,6 @@ const formSearchFilter = async() => {
                 break
             }
         }
-        console.log('akuuuu', local.isFirstLoad)
         if(!isUpdated) return
     }
     console.log('laporaannn23232')
@@ -344,22 +342,22 @@ const metaDataLoading = {
     </Teleport>
     <section class="relative h-screen flex flex-col overflow-x-hidden">
         <img src="@/assets/images/cele-3.png" alt="" class="absolute bottom-0 -right-[30%] w-[75%] h-[75%] -z-1 object-cover opacity-30" />
-        <div class="w-[97%] mx-auto mt-7 flex-1 flex flex-col">
+        <div class="w-[97%] mx-auto mt-7 flex flex-col">
             <div class="relative flex items-center justify-between">
                 <h2 class="w-fit text-4xl">Search Events</h2>
-                <div class="flex gap-5">
+                <div class="flex gap-2 lg:gap-3">
                     <InputText id="email" type="email" class="w-50" placeholder="Cari Event" v-model="currentInput.search" @keyup.enter="formSearchFilter()"/>
                     <Button @click="formSearchFilter()">Search</Button>
+                    <Button v-if="isMobile" @click="isDialogOpen = true">Filters</Button>
                 </div>
-                <Button v-if="isMobile && local.fetchData.length > 0" @click="isDialogOpen = true">Filters</Button>
             </div>
-            <div v-if="local.fetchData.length > 0" class="relative flex-1">
+            <div class="">
                 <p>Menampilkan Event "{{ keyword }}" menemukan {{ local.fetchData.length }}</p>
                 <div class="relative flex gap-3">
                     <Transition name="sidefilter" appear>
                         <Form v-if="isDesktop" :ref="el => SideFilterRef =  (el as ComponentPublicInstance)?.$el" class="sticky w-75 h-full rounded-xl flex flex-col gap-2 pt-3 pb-5 pl-5 pr-5" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1); top: calc(var(--paddTop) + 10px);"/>
                     </Transition>
-                    <CustomCardWithSkeletonComponent :metaData="metaDataSearch" :inpData="local.fetchData" :paralelRender="2">
+                    <CustomCardWithSkeletonComponent v-if="local.fetchData.length > 0 && !local.isLoading" :metaData="metaDataSearch" :inpData="local.fetchData" :paralelRender="2">
                         <template #skeleton="{ index, skeletonRefs }">
                             <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 -top-[2%] left-0 w-full h-[102%] flex flex-col items-center transition-opacity duration-100">
                                 <Skeleton :pt="{ root: { class: ['!w-[104%] !h-[57%] lg:h-[65%] !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
@@ -392,23 +390,23 @@ const metaDataLoading = {
                             </Card>
                         </template>
                     </CustomCardWithSkeletonComponent>
-                </div>
-            </div>
-            <div v-else-if="local.isLoading" class="flex-1 mt-5 flex">
-                <CustomCardWithSkeletonComponent :metaData="metaDataLoading" :paralelRender="Infinity" :isLoading="true">
-                    <div class="skeleton-wrapper flex-1 flex flex-col items-center">
-                        <Skeleton :pt="{ root: { class: ['flex-1 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                        <div class="w-[97%] mt-3.5 lg:mt-1.5 mx-auto">
-                            <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 !rounded-sm ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                            <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 mt-1 lg:mt-1.5 !rounded-md ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                            <Skeleton :pt="{ root: { class: ['!h-6.5 lg:h-11 mt-1.5 lg:mt-2 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                    <div v-if="local.fetchData.length == 0 && !local.isLoading" class="flex-1">
+                        <div class="w-[60%] flex justify-between items-center mx-auto">
+                            <img src="@/assets/images/notfound.png" alt="" class="w-[40%] object-cover" />
+                            <h3 class="text-5xl text-red-500">Event Tidak Ditemukan</h3>
                         </div>
                     </div>
-                </CustomCardWithSkeletonComponent>
-            </div>
-            <div v-else class="w-[75%] mx-auto flex-1 flex justify-between items-center">
-                <img src="@/assets/images/notfound.png" alt="" class="bottom-0 -right-[30%] w-[40%] -z-1 object-cover" />
-                <h3 class="text-5xl text-red-500">Event Tidak Ditemukan</h3>
+                    <CustomCardWithSkeletonComponent v-show="local.isLoading" :metaData="metaDataLoading" :paralelRender="Infinity" :isLoading="true">
+                        <div class="skeleton-wrapper flex-1 flex flex-col items-center">
+                            <Skeleton :pt="{ root: { class: ['flex-1 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                            <div class="w-[97%] mt-3.5 lg:mt-1.5 mx-auto">
+                                <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 !rounded-sm ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                                <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 mt-1 lg:mt-1.5 !rounded-md ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                                <Skeleton :pt="{ root: { class: ['!h-6.5 lg:h-11 mt-1.5 lg:mt-2 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                            </div>
+                        </div>
+                    </CustomCardWithSkeletonComponent>
+                </div>
             </div>
         </div>
     </section>
