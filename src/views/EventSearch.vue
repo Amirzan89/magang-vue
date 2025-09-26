@@ -77,13 +77,6 @@ const currentInput = reactive<InputForm>({
 })
 const isDialogOpen = ref(false)
 const teleportTarget = ref(null)
-let abortFormController: AbortController | null = null
-let debounceTimer: ReturnType<typeof setTimeout> | null = null
-watch(width, () => {
-    if(!isMobile.value && isDialogOpen.value){
-        isDialogOpen.value = false
-    }
-})
 const teleportTargetFn = async() => {
     await nextTick()
     if(isDesktop.value){
@@ -95,6 +88,13 @@ const teleportTargetFn = async() => {
     }
     console.log('targett ', teleportTarget.value)
 }
+let abortFormController: AbortController | null = null
+let debounceTimer: ReturnType<typeof setTimeout> | null = null
+watch(width, () => {
+    if(!isMobile.value && isDialogOpen.value){
+        isDialogOpen.value = false
+    }
+})
 watch([isDialogOpen, isDesktop], teleportTargetFn, { immediate: true })
 watch(() => currentInput, async (newVal, oldVal) => {
     if(local.isFirstLoad){

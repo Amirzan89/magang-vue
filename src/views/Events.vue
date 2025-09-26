@@ -86,9 +86,9 @@ const metaDataAll = {
                                 <span class="text-xs sm:text-sm lg:text-base xl:text-lg">{{ inpData.start_date }}</span>
                             </div>
                             <div class="mt-4 sm:mt-3 lg:mt-5 xl:mt-7 flex justify-between">
-                                <a :href="inpData.link_lokasi" target="_blank" rel="noopener noreferrer"><I_Location class="size-5.5 phone:size-5 sm:size-5.5 lg:size-8 text-green-500"/></a>
+                                <a :href="inpData.link_lokasi" target="_blank" rel="noopener noreferrer"><I_Location class="size-5.5 phone:size-5 sm:size-5.5 lg:size-6.5 text-green-500"/></a>
                                 <span class="text-sm sm:text-base lg:text-lg xl:text-xl">{{ inpData.nama_lokasi }}</span>
-                                <I_Bookmark class="size-5.5 phone:size-5 sm:size-5.5 lg:size-8 text-green-500"/>
+                                <I_Bookmark class="size-5.5 phone:size-5 sm:size-5.5 lg:size-6.5 text-green-500"/>
                             </div>
                         </template>
                     </Card>

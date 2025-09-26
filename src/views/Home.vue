@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onBeforeMount, markRaw, h, useSlots, defineComponent, type ComponentPublicInstance } from 'vue'
+import { ref, reactive, onBeforeMount, markRaw, h, useSlots, defineComponent, type ComponentPublicInstance, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
@@ -8,6 +8,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/autoplay';
 import { useConfig } from '@/composables/useConfig'
+import { breakpoints } from '@/composables/useScreenSize'
 import { useFetchDataStore } from '@/stores/FetchData'
 import { getImgURL } from '@/utils/global'
 import CustomCardWithSkeletonComponent from '@/components/CustomCardWithSkeleton.vue'
@@ -92,7 +93,7 @@ const metaDataUpcoming = {
             }
         }
     }),
-    customTWTransition: 'h-full mt-1.5 lg:mt-5 grid grid-cols-1 phone:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3.5 lg:gap-4',
+    customTWTransition: 'h-full mt-1.5 phone:mt-2.5 sm:mt-4 lg:mt-5 grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4',
 }
 const metaDataPast = {
     wrapper: () => defineComponent({
@@ -105,7 +106,7 @@ const metaDataPast = {
             }
         }
     }),
-    customTWTransition: 'h-full mt-1.5 lg:mt-5 grid grid-cols-1 phone:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-2 lg:gap-4',
+    customTWTransition: 'h-full mt-1.5 phone:mt-2.5 sm:mt-4 lg:mt-5 grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4',
 }
 const metaDataReviews = {
     wrapper: () => defineComponent({
@@ -122,32 +123,36 @@ const metaDataReviews = {
 }
 </script>
 <template>
-    <section class="relative lg:h-screen pt-10 pb-30">
+    <section class="relative h-screen pt-10 pb-20 sm:pb-25 lg:pb-30">
         <div class="absolute top-0 left-0 w-full h-full -z-1">
             <img src="@/assets/images/party-1.png" alt="" class="w-full h-full object-cover" />
             <div class="absolute top-0 left-0 w-full h-full opacity-90" style="background: #ED4690; background: linear-gradient(145deg,rgba(237, 70, 144, 1) 0%, rgba(85, 34, 204, 1) 100%)"/>
         </div>
-        <div class="relative flex flex-col justify-between items-center h-full text-white">
+        <div class="relative flex flex-col justify-between items-center h-full bg-red-500 text-white">
             <Swiper v-if="local.upcoming_events && local.upcoming_events.length > 0" :modules="[Navigation, Pagination, Autoplay]" :slides-per-view="1" :space-between="20" :loop="true" :autoplay="{ delay: 3000 }" :pagination="{ clickable: true }" :allow-touch-move="false" :simulate-touch="false" :keyboard="{ enabled: false }" :mousewheel="{ enabled: false }" :navigation="{ nextEl: '.btn-next', prevEl: '.btn-prev' }" class="w-[85%] lg:w-[92%] aspect-video lg:aspect-auto h-3/4 rounded-xl"  @slideChange="onSlideChange">
                 <template v-for="(item, index) in local.upcoming_events" :key="index">
                     <SwiperSlide><img :src="item.img" alt="" class="w-full object-contain"></SwiperSlide>
                 </template>
                 <div class="absolute z-2 w-full h-full top-0 left-0 backdrop-blur-[1px]">
                     <div class="absolute z-3 w-full h-full top-0 left-0 opacity-70" style="background: #5420B4; background: linear-gradient(45deg,rgba(84, 32, 180, 1) 100%, rgba(0, 0, 0, 1) 13%);"></div>
-                    <div class="relative z-4 w-[75%] h-full mx-auto flex justify-between items-center">
-                        <div class="lg:w-[40%] 2xl:w-[30%] h-fit flex justify-around items-center">
-                            <I_VLeft class="btn-prev size-8"/>
-                            <div class="w-[90%] h- ">
-                                <h4 class="text-4xl">{{ local.upcoming_events[activeIndex].event_name }}</h4>
-                                <Button :as="RouterLink" :to="'/events/' + local.upcoming_events[activeIndex]!.link_event" severity="secondary" class="w-fit h-fit">Learn More</Button>
+                    <div class="w-[75%] h-[60%] relative z-4 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center sm:block bg-black">
+                        <I_VLeft v-if="breakpoints.smaller('sm').value" class="btn-prev size-8 text-black-500"/>
+                        <div class="w-full h-full flex flex-col sm:flex-row justify-between items-center bg-green-500">
+                            <div class="lg:w-[40%] 2xl:w-[30%] h-fit flex justify-around items-center bg-amber-500">
+                                <I_VLeft v-if="breakpoints.greater('sm').value" class="btn-prev size-8"/>
+                                <div class="w-[90%] h- ">
+                                    <h4 class="text-sm sm:text-base lg:text-lg xl:text-xl">{{ local.upcoming_events[activeIndex].event_name }}</h4>
+                                    <Button :as="RouterLink" :to="'/events/' + local.upcoming_events[activeIndex]!.link_event" severity="secondary" class="w-fit h-fit">Learn More</Button>
+                                </div>
+                                <I_VRight v-if="breakpoints.greater('sm').value" class="btn-next size-8"/>
                             </div>
-                            <I_VRight class="btn-next size-8"/>
+                            <div class="lg:w-[30%] 2xl:w-[30%] h-fit bg-amber-500">
+                                <h4 class="text-sm sm:text-base lg:text-lg xl:text-xl">Uni Events</h4>
+                                <p class="text-xs sm:text-sm lg:text-base xl:text-lg">Stay updated with the latest academic talks, workshops, and social gatherings across Sri Lankan universities. Whether you're here to network, learn, or have fun, there’s something for everyone!</p>
+                                <RouterLink to="/about" class="w-fit h-fit px-3 py-2 sm:px-3.25 sm:py-2.25 lg:px-3.5 lg:py-2.5 text-[#3D37F1] border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-[#3D37F1] rounded-lg md:rounded-xl flex justify-center items-center hover:bg-[#3D37F1] text-xs sm:text-sm lg:text-base xl:text-lg hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">Load More</RouterLink>
+                            </div>
                         </div>
-                        <div class="lg:w-[30%] 2xl:w-[30%] h-[40%]">
-                            <h4 class="text-4xl">Uni Events</h4>
-                            <p class="">Stay updated with the latest academic talks, workshops, and social gatherings across Sri Lankan universities. Whether you're here to network, learn, or have fun, there’s something for everyone!</p>
-                            <Button :as="RouterLink" to="/about" severity="danger">About US</Button>
-                        </div>
+                        <I_VRight v-if="breakpoints.smaller('sm').value" class="btn-next size-8"/>
                     </div>
                 </div>
             </Swiper>
@@ -164,8 +169,9 @@ const metaDataReviews = {
     <!-- CARDS / UPCOMING -->
     <section class="relative flex flex-col overflow-x-clip">
         <img src="@/assets/images/cele-3.png" alt="" class="absolute bottom-0 -right-[32%] w-[75%] h-[75%] -z-1 object-cover opacity-30" />
-        <div class="w-[90%] mx-auto h-fit">
-            <h2 class="w-fit mt-5 mx-auto lg:mx-0 text-base xl:text-3xl font-medium phone:font-semibold lg:font-bold text-[#242565]">Upcoming Events</h2>
+        <div class="w-[90%] sm:w-[92%] lg:w-[95%] xl:w-[97%] mx-auto h-fit">
+            <h2 class="w-fit mt-5 mx-auto text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold text-[#242565]">All Events</h2>
+            <!-- <p></p> -->
             <CustomCardWithSkeletonComponent :metaData="metaDataUpcoming" :inpData="local.upcoming_events" :paralelRender="2">
                 <template #skeleton="{ index, skeletonRefs }">
                     <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 -top-[2%] left-0 w-full h-[102%] flex flex-col items-center transition-opacity duration-100">
@@ -178,7 +184,7 @@ const metaDataReviews = {
                     </div>
                 </template>
                 <template #card="{ index, inpData, toggleSkeleton, cardRefs }">
-                    <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" :pt="{ root: { class: ['h-full pt-0 pb-0 rounded-md lg:rounded-[20px] overflow-hidden opacity-0 transition-opacity duration-100'], style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, body: { class: ['!gap-1'] }, caption: { class: ['!gap-0'] }, title: { class: ['!text-sm phone:text-base'] }, subtitle: { class: ['!text-xs'] }, footer: { class: 'flex justify-between items-center' }}">
+                    <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" :pt="{ root: { class: ['rounded-md lg:rounded-[20px] overflow-hidden opacity-0 transition-opacity duration-100'], style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, body: { class: ['!gap-1 !p-4 lg:!p-5 xl:!px-7 xl:!py-5'] }}">
                         <template #header>
                             <img :src="getImgURL(inpData.img)" alt="" class="w-full h-[120px] phone:h-[170px] lg:h-[197px] object-cover" :ref="((el: any) => {
                                     if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
@@ -187,39 +193,43 @@ const metaDataReviews = {
                                     inpData.imgLoad = true
                                     toggleSkeleton(index)
                                 }" @error="() => toggleSkeleton(index)"/>
-                            <img :src="freeTag" alt="" class="absolute -top-1 -right-1 z-9 h-[17%] lg:h-[20%]">
+                            <img :src="freeTag" alt="" class="absolute -top-0.5 -right-0.5 z-9 h-[17%] lg:h-[18%]">
                         </template>
-                        <template #title>{{ inpData.event_name }}</template>
-                        <template #subtitle>{{ inpData.start_date }}</template>
-                        <template #footer>
-                            <a :href="inpData.link_lokasi" target="_blank" rel="noopener noreferrer"><I_Location class="w-5 h-5 sm:w-8 sm:h-8 text-green-500"/></a>
-                            <span class="text-sm">{{ inpData.nama_lokasi }}</span>
-                            <I_Bookmark class="w-5 h-5 sm:w-8 sm:h-8 text-green-500"/>
+                        <template #content>
+                            <div class="flex flex-col gap-0">
+                                <h5 class="text-sm sm:text-base lg:text-lg xl:text-xl font:medium lg:font-semibold">{{ inpData.event_name }}</h5>
+                                <span class="text-xs sm:text-sm lg:text-base xl:text-lg">{{ inpData.start_date }}</span>
+                            </div>
+                            <div class="mt-4 sm:mt-3 lg:mt-5 xl:mt-7 flex justify-between">
+                                <a :href="inpData.link_lokasi" target="_blank" rel="noopener noreferrer"><I_Location class="size-5.5 phone:size-5 sm:size-5.5 lg:size-6.5 text-green-500"/></a>
+                                <span class="text-sm sm:text-base lg:text-lg xl:text-xl">{{ inpData.nama_lokasi }}</span>
+                                <I_Bookmark class="size-5.5 phone:size-5 sm:size-5.5 lg:size-6.5 text-green-500"/>
+                            </div>
                         </template>
                     </Card>
                 </template>
             </CustomCardWithSkeletonComponent>
-            <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 w-[30%] xs:w-[32%] xl:w-[11%] 2xl:w-[10%] h-7 xs:h-11 xl:h-12 mt-5 lg:mt-10 text-[#3D37F1] border xl:border-2 border-[#3D37F1] lg:px-0 lg:py-2 rounded-lg lg:rounded-2xl xl:rounded-xl flex justify-center items-center hover:bg-[#3D37F1] text-xs lg:text-xl hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">See All Events</RouterLink>
+            <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 w-fit h-fit mt-5 lg:mt-10 px-3 py-2 sm:px-3.25 sm:py-2.25 lg:px-3.5 lg:py-2.5 text-[#3D37F1] border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-[#3D37F1] rounded-lg md:rounded-xl flex justify-center items-center hover:bg-[#3D37F1] text-sm sm:text-base lg:text-lg xl:text-lg hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">See All Events</RouterLink>
         </div>
         <div class="h-17 sm:h-55 xl:h-60 mt-17 lg:mt-50 bg-purple-500">
             <div class="w-[95%] lg:w-[90%] xl:w-[75%] h-full relative left-1/2 -translate-x-1/2 flex justify-between items-end overflow-y-visible">
                 <img src="@/assets/images/image-3.png" alt="" class="h-30 lg:h-100 self-end">
                 <div class="w-[40%] lg:w-fit h-fit self-center flex flex-col items-center text-white text-center lg:text-start">
                     <h2 class="text-sm lg:text-2xl xl:text-2xl">Add Your Loving Event</h2>
-                    <RouterLink to="/" class="mt-3 px-2 lg:px-4 py-1 lg:py-2 rounded-sm lg:rounded-md text-xs xl:text-lg 2xl:text-xl" style="background-color:#F5167E">View all events</RouterLink>
+                    <RouterLink to="/" class="mt-3 px-2 lg:px-4 py-1 lg:py-2 rounded-sm lg:rounded-md text-xs sm:text-sm lg:text-base xl:text-lg" style="background-color:#F5167E">View all events</RouterLink>
                 </div>
             </div>
         </div>
     </section>
     <section class="relative mt-10 mb-15 lg:mb-20">
-        <img src="@/assets/images/cele-2.png" alt="" class="absolute top-1/2 -translate-y-1/2 -left-[29.5%] w-[75%] h-[75%] -z-1 object-cover opacity-30" />
+        <img src="@/assets/images/cele-2.png" alt="" class="absolute top-1/2 -translate-y-1/2 -left-[29.5%] w-[75%] h-[75%] -z-1 object-cover opacity-30"/>
         <div class="w-[95%] mx-auto">
-            <h2 class="w-fit mt-5 mx-auto lg:mx-0 text-lg phone:text-xl xl:text-3xl font-medium phone:font-semibold lg:font-bold text-[#242565]">Past Events</h2>
-            <CustomCardWithSkeletonComponent :metaData="metaDataPast" :inpData="local.past_events" :paralelRender="4">
+            <h2 class="w-fit mt-5 mx-auto lg:mx-0 text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold text-[#242565]">Past Events</h2>
+            <CustomCardWithSkeletonComponent :metaData="metaDataPast" :inpData="local.past_events" :paralelRender="2">
                 <template #skeleton="{ index, skeletonRefs }">
-                    <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 top-0 left-0 flex flex-col w-full h-full transition-opacity duration-100">
-                        <Skeleton :pt="{ root: { class: ['!h-[55%] lg:h-[65%] !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                        <div class="w-[97%] mt-4.25 lg:mt-1.5 mx-auto">
+                    <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 -top-[2%] left-0 w-full h-[102%] flex flex-col items-center transition-opacity duration-100">
+                        <Skeleton :pt="{ root: { class: ['!w-[104%] !h-[57%] lg:h-[65%] !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                        <div class="w-[97%] mt-3.5 lg:mt-1.5 mx-auto">
                             <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 !rounded-sm ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                             <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 mt-1 lg:mt-1.5 !rounded-md ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                             <Skeleton :pt="{ root: { class: ['!h-6.5 lg:h-11 mt-1.5 lg:mt-2 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
@@ -227,7 +237,7 @@ const metaDataReviews = {
                     </div>
                 </template>
                 <template #card="{ index, inpData, toggleSkeleton, cardRefs }">
-                    <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" :pt="{ root: { class: ['h-full pt-0 pb-0 rounded-md lg:rounded-[20px] overflow-hidden opacity-0 transition-opacity duration-100'], style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, body: { class: ['!gap-1'] }, caption: { class: ['!gap-0'] }, title: { class: ['!text-sm phone:text-base'] }, subtitle: { class: ['!text-xs'] }, footer: { class: 'flex justify-between items-center' }}">
+                    <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" :pt="{ root: { class: ['rounded-md lg:rounded-[20px] overflow-hidden opacity-0 transition-opacity duration-100'], style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, body: { class: ['!gap-1 !p-4 lg:!p-5 xl:!px-7 xl:!py-5'] }}">
                         <template #header>
                             <img :src="getImgURL(inpData.img)" alt="" class="w-full h-[120px] phone:h-[170px] lg:h-[197px] object-cover" :ref="((el: any) => {
                                     if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
@@ -236,22 +246,26 @@ const metaDataReviews = {
                                     inpData.imgLoad = true
                                     toggleSkeleton(index)
                                 }" @error="() => toggleSkeleton(index)"/>
-                            <img :src="freeTag" alt="" class="absolute -top-1 -right-1 z-9 h-[17%] lg:h-[20%]">
+                            <img :src="freeTag" alt="" class="absolute -top-0.5 -right-0.5 z-9 h-[17%] lg:h-[20%]">
                         </template>
-                        <template #title>{{ inpData.event_name }}</template>
-                        <template #subtitle>{{ inpData.start_date }}</template>
-                        <template #footer>
-                            <a :href="inpData.link_lokasi" target="_blank" rel="noopener noreferrer"><I_Location class="w-5 h-5 sm:w-8 sm:h-8 text-green-500"/></a>
-                            <span class="text-sm">{{ inpData.nama_lokasi }}</span>
-                            <I_Bookmark class="w-5 h-5 sm:w-8 sm:h-8 text-green-500"/>
+                        <template #content>
+                            <div class="flex flex-col gap-0">
+                                <h5 class="text-sm sm:text-base lg:text-lg xl:text-xl font:medium lg:font-semibold">{{ inpData.event_name }}</h5>
+                                <span class="text-xs sm:text-sm lg:text-base xl:text-lg">{{ inpData.start_date }}</span>
+                            </div>
+                            <div class="mt-4 sm:mt-3 lg:mt-5 xl:mt-7 flex justify-between">
+                                <a :href="inpData.link_lokasi" target="_blank" rel="noopener noreferrer"><I_Location class="size-5.5 phone:size-5 sm:size-5.5 lg:size-6.5 text-green-500"/></a>
+                                <span class="text-sm sm:text-base lg:text-lg xl:text-xl">{{ inpData.nama_lokasi }}</span>
+                                <I_Bookmark class="size-5.5 phone:size-5 sm:size-5.5 lg:size-6.5 text-green-500"/>
+                            </div>
                         </template>
                     </Card>
                 </template>
             </CustomCardWithSkeletonComponent>
-            <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 w-[30%] xs:w-[32%] xl:w-[11%] 2xl:w-[8%] h-7 xs:h-11 xl:h-12 mt-5 lg:mt-10 text-[#3D37F1] border xl:border-2 border-[#3D37F1] lg:px-0 lg:py-2 rounded-lg lg:rounded-2xl xl:rounded-xl flex justify-center items-center hover:bg-[#3D37F1] text-xs lg:text-xl hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">Load More</RouterLink>
+            <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 w-fit h-fit mt-5 lg:mt-10 px-3 py-2 sm:px-3.25 sm:py-2.25 lg:px-3.5 lg:py-2.5 text-[#3D37F1] border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-[#3D37F1] rounded-lg md:rounded-xl flex justify-center items-center hover:bg-[#3D37F1] text-sm sm:text-base lg:text-lg xl:text-lg hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">Load More</RouterLink>
         </div>
         <div class="w-[90%] lg:w-[95%] xl:w-[97%] mx-auto mt-20 lg:mt-50">
-            <h2 class="w-fit mx-auto text-lg sm:text-text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold text-[#242565]">Reviews About Us</h2>
+            <h2 class="w-fit mx-auto text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold text-[#242565]">Reviews About Us</h2>
             <p class="w-fit mx-auto text-sm sm:text-text-base md:text-lg lg:text-xl xl:text-2xl text-center text-[#242565]">See what our amazing customers have to say about us!</p>
             <CustomCardWithSkeletonComponent :metaData="metaDataReviews" :inpData="local.reviews" :paralelRender="1">
                 <template #skeleton="{ index, skeletonRefs }">
