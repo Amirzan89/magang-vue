@@ -6,7 +6,6 @@ import { formatTgl } from "@/utils/global"
 import useAxios from '@/composables/api/axios'
 import useEncryption from '@/composables/encryption'
 import { width, isMobile, isDesktop } from '@/composables/useScreenSize'
-import { useFetchDataStore } from '@/stores/FetchData'
 import { getImgURL } from '@/utils/global'
 import CustomCardWithSkeletonComponent from '@/components/CustomCardWithSkeleton.vue'
 import I_DRight from '@/assets/icons/card_events/double-right.svg?component'
@@ -17,14 +16,14 @@ import router from '@/router'
 const route = useRoute()
 const { axiosJson, fetchCsrfToken } = useAxios()
 const { encryptReq, decryptRes } = useEncryption()
-const fetchDataS = useFetchDataStore()
 const SideFilterRef = ref(null)
 const DialogContentRef = ref(null)
 const local = reactive({
     fetchData: [] as any,
     past_events: null as any,
     reviews: null as any,
-    isLoading: false,
+    isLoading: true,
+    isFirstLoad: true,
 })
 // const itemsPopularFilter = ref([
 //     { name: 'None', value: '' },
@@ -78,12 +77,15 @@ const currentInput = reactive<InputForm>({
 })
 const isDialogOpen = ref(false)
 const teleportTarget = ref(null)
+let abortFormController: AbortController | null = null
+let debounceTimer: ReturnType<typeof setTimeout> | null = null
 watch(width, () => {
     if(!isMobile.value && isDialogOpen.value){
         isDialogOpen.value = false
     }
 })
-watch([isDialogOpen, isDesktop], async () => {
+const teleportTargetFn = async() => {
+    if(local.fetchData == 0 || local.isFirstLoad) return
     await nextTick()
     if(isDesktop.value){
         teleportTarget.value = SideFilterRef.value
@@ -92,29 +94,44 @@ watch([isDialogOpen, isDesktop], async () => {
     }else{
         teleportTarget.value = null
     }
-}, { immediate: true })
-let abortFormController: AbortController | null = null
-let debounceTimer: ReturnType<typeof setTimeout> | null = null
-watch(() => currentInput.category, () => {
-    if(debounceTimer) clearTimeout(debounceTimer)
-    debounceTimer = setTimeout(async () => {
-        await formSearchFilter()
-    }, 500)
-}, { deep: true })
-watch(() => currentInput.dates, () => {
-    if(debounceTimer) clearTimeout(debounceTimer)
-        debounceTimer = setTimeout(async () => {
-        await formSearchFilter()
-    }, 500)
-}, { deep: true })
-watch(() => currentInput.pay, async() => {
-    if(currentInput.pay != oldInput.pay){
-        await formSearchFilter()
-        // if(debounceTimer) clearTimeout(debounceTimer)
-        //     debounceTimer = setTimeout(async () => {
-        // }, 500)
+    console.log('targett ', teleportTarget.value)
+}
+watch([isDialogOpen, isDesktop], teleportTargetFn, { immediate: true })
+watch(() => currentInput, async (newVal, oldVal) => {
+    if(local.isFirstLoad){
+        local.isFirstLoad = false
+        return
     }
-})
+
+    if(newVal.category !== oldVal.category){
+        console.log("entok category", newVal.category)
+        if(debounceTimer) clearTimeout(debounceTimer)
+        debounceTimer = setTimeout(async () => {
+            console.log("akuu1")
+            await formSearchFilter()
+        }, 500)
+    }
+
+    if(newVal.dates !== oldVal.dates){
+        if(newVal.dates && newVal.dates.length === 2){
+            const [d1, d2] = newVal.dates
+            if (d1 && d2 && d1 > d2) {
+                currentInput.dates = [d2, d1]
+            }
+        }
+        if(debounceTimer) clearTimeout(debounceTimer)
+        debounceTimer = setTimeout(async () => {
+            await formSearchFilter()
+        }, 750)
+    }
+
+    if(newVal.pay !== oldVal.pay){
+        if(debounceTimer) clearTimeout(debounceTimer)
+        debounceTimer = setTimeout(async() => {
+            await formSearchFilter()
+        }, 500)
+    }
+},{ deep: true })
 const keyword = ref('')
 const sanitizeQuery = <T extends FilterKey>(key: T, value: unknown): InputForm[T] | null => {
     const allowed = filterRules[key] as readonly string[]
@@ -149,14 +166,6 @@ const sanitizeAllQuery = (rawQuery: Record<string, unknown>): InputForm => {
     }
     return clean as InputForm
 }
-watch(() => currentInput.dates, (val) => {
-    if(val && val.length === 2){
-        const [d1, d2] = val
-        if(d1 && d2 && d1 > d2){
-            currentInput.dates = [d2, d1]
-        }
-    }
-}, { deep: true })
 const queryParamHandler = (inp: InputForm) => {
     const formatDate = (d: Date) => {
         const y = d.getFullYear()
@@ -200,31 +209,33 @@ onBeforeMount(async() => {
         ...sanitized,
         category: sanitized.category ? [...sanitized.category] : []
     })
-    const res = await fetchDataS.fetchPage(route.path, newQuery, {})
-    if(res ==  undefined || res.status == 'error'){
-        return
-    }
-    local.fetchData = res.data
+    console.log('isiii')
+    await formSearchFilter()
+    local.isFirstLoad = false
     // await nextTick()
     // keyword.value = currentInput.search
 })
 const formSearchFilter = async() => {
     if(abortFormController) abortFormController.abort()
-    let isUpdated = false
-    const isEqual = (a: unknown, b: unknown): boolean => {
-        if(Array.isArray(a) && Array.isArray(b)){
-            if(a.length !== b.length) return false
-            return a.every((val, idx) => val === b[idx])
+    if(!local.isFirstLoad){
+        let isUpdated = false
+        const isEqual = (a: unknown, b: unknown): boolean => {
+            if(Array.isArray(a) && Array.isArray(b)){
+                if(a.length !== b.length) return false
+                return a.every((val, idx) => val === b[idx])
+            }
+            return a === b
         }
-        return a === b
-    }
-    for(const key of Object.keys(oldInput) as (keyof typeof oldInput)[]){
-        if(!isEqual(oldInput[key], currentInput[key])){
-            isUpdated = true
-            break
+        for(const key of Object.keys(oldInput) as (keyof typeof oldInput)[]){
+            if(!isEqual(oldInput[key], currentInput[key])){
+                isUpdated = true
+                break
+            }
         }
+        console.log('akuuuu', local.isFirstLoad)
+        if(!isUpdated) return
     }
-    if(!isUpdated) return
+    console.log('laporaannn23232')
     abortFormController = new AbortController()
     let retryCount = 0
     const searchFilterAPI = async(signal: AbortSignal) => {
@@ -284,6 +295,7 @@ const formSearchFilter = async() => {
             return { status:'error', message: err }
         }finally{
             local.isLoading = false
+            await teleportTargetFn()
         }
     }
     searchFilterAPI(abortFormController.signal)
@@ -300,6 +312,9 @@ const metaDataSearch = {
         }
     }),
     customTWTransition: 'flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-2 lg:gap-4',
+}
+const metaDataLoading = {
+    customTWTransition: 'flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 grid-rows-[repeat(auto-fit,20rem)] gap-2 lg:gap-4',
 }
 </script>
 <template>
@@ -327,8 +342,9 @@ const metaDataSearch = {
             <Select v-model:model-value="currentInput.pay" :options="itemsPaysFilter" optionLabel="name" optionValue="value" placeholder="Select event fee" class="w-full md:w-56"/>
         </FormField>
     </Teleport>
-    <section class="relative min-h-screen flex flex-col">
-        <div class="w-[97%] mx-auto mt-7">
+    <section class="relative h-screen flex flex-col overflow-x-hidden">
+        <img src="@/assets/images/cele-3.png" alt="" class="absolute bottom-0 -right-[30%] w-[75%] h-[75%] -z-1 object-cover opacity-30" />
+        <div class="w-[97%] mx-auto mt-7 flex-1 flex flex-col">
             <div class="relative flex items-center justify-between">
                 <h2 class="w-fit text-4xl">Search Events</h2>
                 <div class="flex gap-5">
@@ -337,8 +353,8 @@ const metaDataSearch = {
                 </div>
                 <Button v-if="isMobile && local.fetchData.length > 0" @click="isDialogOpen = true">Filters</Button>
             </div>
-            <div class="relative">
-                <p v-if="local.fetchData.length > 0">Menampilkan Event "{{ keyword }}" menemukan {{ local.fetchData.length }}</p>
+            <div v-if="local.fetchData.length > 0" class="relative flex-1">
+                <p>Menampilkan Event "{{ keyword }}" menemukan {{ local.fetchData.length }}</p>
                 <div class="relative flex gap-3">
                     <Transition name="sidefilter" appear>
                         <Form v-if="isDesktop" :ref="el => SideFilterRef =  (el as ComponentPublicInstance)?.$el" class="sticky w-75 h-full rounded-xl flex flex-col gap-2 pt-3 pb-5 pl-5 pr-5" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1); top: calc(var(--paddTop) + 10px);"/>
@@ -378,13 +394,29 @@ const metaDataSearch = {
                     </CustomCardWithSkeletonComponent>
                 </div>
             </div>
+            <div v-else-if="local.isLoading" class="flex-1 mt-5 flex">
+                <CustomCardWithSkeletonComponent :metaData="metaDataLoading" :paralelRender="Infinity" :isLoading="true">
+                    <div class="skeleton-wrapper flex-1 flex flex-col items-center">
+                        <Skeleton :pt="{ root: { class: ['flex-1 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                        <div class="w-[97%] mt-3.5 lg:mt-1.5 mx-auto">
+                            <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 !rounded-sm ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                            <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 mt-1 lg:mt-1.5 !rounded-md ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                            <Skeleton :pt="{ root: { class: ['!h-6.5 lg:h-11 mt-1.5 lg:mt-2 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                        </div>
+                    </div>
+                </CustomCardWithSkeletonComponent>
+            </div>
+            <div v-else class="w-[75%] mx-auto flex-1 flex justify-between items-center">
+                <img src="@/assets/images/notfound.png" alt="" class="bottom-0 -right-[30%] w-[40%] -z-1 object-cover" />
+                <h3 class="text-5xl text-red-500">Event Tidak Ditemukan</h3>
+            </div>
         </div>
-        <Dialog v-model:visible="isDialogOpen" modal dismissableMask pt:mask:class="backdrop-blur-sm">
-            <template #container>
-                <Form :ref="el => DialogContentRef =  (el as ComponentPublicInstance)?.$el"/>
-            </template>
-        </Dialog>
     </section>
+    <Dialog v-model:visible="isDialogOpen" modal dismissableMask pt:mask:class="backdrop-blur-sm">
+        <template #container>
+            <Form :ref="el => DialogContentRef =  (el as ComponentPublicInstance)?.$el"/>
+        </template>
+    </Dialog>
 </template>
 <style scoped>
 .sidefilter-enter-active,

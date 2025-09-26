@@ -4,4 +4,4 @@ const breakpoints = useBreakpoints(breakpointsTailwind)
 const isMobile = breakpoints.smaller('sm')
 const isTablet = breakpoints.between('sm', 'lg')
 const isDesktop = breakpoints.greater('lg')
-export { width, isMobile, isTablet, isDesktop }
+export { width, breakpoints, isMobile, isTablet, isDesktop }

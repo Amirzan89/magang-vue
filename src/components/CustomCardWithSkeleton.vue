@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref, useSlots, type Component } from 'vue'
+import { ref, useSlots, computed, type Component } from 'vue'
+import { breakpoints } from '@/composables/useScreenSize'
 const slots = useSlots()
 const props = defineProps<{
+    isLoading?: boolean,
     inpVar?: Record<string, any>
     metaData: {
-        wrapper: (inpData: any) => Component,
+        wrapper?: (inpData: any) => Component,
         customTWTransition?: string,
         customCSSTransition?: string,
     }
@@ -55,14 +57,34 @@ const handleToggleSkeleton = (index: number) => {
     queue.push(index)
     processQueue()
 }
+const parseGridCols = (classStr: string) => {
+    const regex = /([a-z0-9]*:)?grid-cols-(\d+)/g
+    const cols: Record<string, number> = {}
+    let match
+    while((match = regex.exec(classStr)) !== null) {
+        const bp = match[1]?.replace(':', '') || 'base'
+        cols[bp] = parseInt(match[2], 10)
+    }
+    return cols
+}
+const parsedCols = computed(() => parseGridCols(props.metaData.customTWTransition ?? ''))
+const colCount = computed(() => {
+    if(breakpoints['2xl'].value) return parsedCols.value['2xl'] ?? parsedCols.value.lg ?? parsedCols.value.base ?? 1
+    if(breakpoints.lg.value) return parsedCols.value.lg ?? parsedCols.value.base ?? 1
+    if(breakpoints.sm.value) return parsedCols.value.sm ?? parsedCols.value.base ?? 1
+    return parsedCols.value.base ?? 1
+})
 </script>
 <template>
-    <TransitionGroup v-if="props.inpData && props.inpData.length > 0" tag="div" name="fade" mode="out-in" key="annn" :class="metaData.customTWTransition" :style="metaData.customCSSTransition">
-        <template v-for="indexPar in props.inpData.length + (slots['placeholder-card'] ? 1 : 0)" :key="indexPar">
-            <component :is="metaData.wrapper(props.inpData[indexPar - 1])">
+    <TransitionGroup tag="div" name="fade" mode="out-in" key="annn" :class="metaData.customTWTransition" :style="metaData.customCSSTransition">
+        <template v-if="!props.isLoading && props.inpData && props.inpData.length > 0" v-for="indexPar in props.inpData.length + (slots['placeholder-card'] ? 1 : 0)" :key="'ifCard' + indexPar">
+            <component v-if="metaData.wrapper" :is="metaData.wrapper(props.inpData[indexPar - 1])">
                 <slot :name="slotSkeleton(indexPar)" :index="indexPar" :skeletonRefs="skeletonRefs"/>
                 <slot :name="slotCard(indexPar)" :index="indexPar" :inpData="props.inpData[indexPar - 1]" :toggleSkeleton="handleToggleSkeleton" :cardRefs="cardRefs"/>
             </component>
+        </template>
+        <template v-else v-for="indexPar in colCount" :key="'elseCard' + indexPar">
+            <slot/>
         </template>
     </TransitionGroup>
 </template>

@@ -6,13 +6,14 @@ import Skeleton from 'primevue/skeleton'
 import Card from 'primevue/card'
 import IconField from 'primevue/iconfield'
 import InputText from 'primevue/inputtext'
-import DatePicker from 'primevue/datepicker';
-import Select from 'primevue/select';
-import Checkbox from 'primevue/checkbox';
-import CheckboxGroup from 'primevue/checkboxgroup';
-import Avatar from 'primevue/avatar';
+import DatePicker from 'primevue/datepicker'
+import Select from 'primevue/select'
+import Checkbox from 'primevue/checkbox'
+import CheckboxGroup from 'primevue/checkboxgroup'
+import Avatar from 'primevue/avatar'
 import InputIcon from 'primevue/inputicon'
 import ToastService from 'primevue/toastservice'
+import ProgressSpinner from 'primevue/progressspinner'
 export default function setupPrimeVue(app: any){
     app.use(PrimeVue, {
         ripple: true,
@@ -36,4 +37,5 @@ export default function setupPrimeVue(app: any){
     app.component('CheckboxGroup', CheckboxGroup)
     app.component('Avatar', Avatar)
     app.component('InputIcon', InputIcon)
+    app.component('ProgressSpinner', ProgressSpinner)
 }
