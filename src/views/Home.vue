@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, reactive, onBeforeMount, markRaw, h, useSlots, defineComponent, type ComponentPublicInstance, watch } from 'vue'
+import { Swiper, SwiperSlide } from 'swiper/vue'
+import { Navigation, Pagination, Autoplay } from 'swiper/modules'
+import { ref, reactive, onBeforeMount, markRaw, h, useSlots, defineComponent, type ComponentPublicInstance } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
-import { Swiper, SwiperSlide } from 'swiper/vue';
-import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
@@ -12,8 +12,8 @@ import { breakpoints } from '@/composables/useScreenSize'
 import { useFetchDataStore } from '@/stores/FetchData'
 import { getImgURL } from '@/utils/global'
 import CustomCardWithSkeletonComponent from '@/components/CustomCardWithSkeleton.vue'
-import I_VLeft from '@/assets/icons/hero_home/vector-left.svg?component'
-import I_VRight from '@/assets/icons/hero_home/vector-right.svg?component'
+import I_VLeft from '@/assets/icons/vector-left.svg?component'
+import I_VRight from '@/assets/icons/vector-right.svg?component'
 import I_music from '@/assets/icons/hero_home/music_note.svg?component'
 import I_conferences from '@/assets/icons/hero_home/conferences.svg?component'
 import I_celebration from '@/assets/icons/hero_home/celebration.svg?component'
@@ -168,7 +168,7 @@ const metaDataReviews = {
     </section>
     <!-- CARDS / UPCOMING -->
     <section class="relative flex flex-col overflow-x-clip">
-        <img src="@/assets/images/cele-3.png" alt="" class="absolute bottom-0 -right-[32%] w-[75%] h-[75%] -z-1 object-cover opacity-30" />
+        <img src="@/assets/images/cele-3.png" alt="" class="absolute bottom-0 -right-[29.5%] w-[75%] h-[75%] -z-1 object-cover opacity-30" />
         <div class="w-[90%] sm:w-[92%] lg:w-[95%] xl:w-[97%] mx-auto h-fit">
             <h2 class="w-fit mt-5 mx-auto text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold text-[#242565]">All Events</h2>
             <!-- <p></p> -->
