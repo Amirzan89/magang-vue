@@ -64,9 +64,9 @@ const metaDataPopuler = {
                     <span>:</span>
                 </div>
                 <div class="flex flex-col">
+                    <!-- <p>{{ local.event_detail. }}</p>
                     <p>{{ local.event_detail. }}</p>
-                    <p>{{ local.event_detail. }}</p>
-                    <p>{{ local.event_detail.price }}</p>
+                    <p>{{ local.event_detail.price }}</p> -->
                 </div>
             </div>
             <div>
@@ -102,52 +102,38 @@ const metaDataPopuler = {
             </div>
             <CustomCardWithSkeletonComponent :metaData="metaDataPopuler" :inpData="local.all_events" :paralelRender="1">
                 <template #skeleton="{ index, skeletonRefs }">
-                    <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 top-0 left-0 flex flex-col w-full h-full">
-                        <Skeleton class="w-full h-[65%] rounded-lg"/>
-                        <div class="w-[97%] mt-1.5 mx-auto">
-                            <Skeleton class="w-full h-6 rounded-sm"/>
-                            <Skeleton class="w-full h-6 mt-1.5 rounded-md"/>
-                            <Skeleton class="w-full h-11 mt-2 rounded-lg"/>
+                    <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 -top-[2%] left-0 w-full h-[102%] flex flex-col items-center transition-opacity duration-100">
+                        <Skeleton :pt="{ root: { class: ['!w-[104%] !h-[57%] lg:h-[65%] !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                        <div class="w-[97%] mt-3.5 lg:mt-1.5 mx-auto">
+                            <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 !rounded-sm ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                            <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 mt-1 lg:mt-1.5 !rounded-md ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                            <Skeleton :pt="{ root: { class: ['!h-6.5 lg:h-11 mt-1.5 lg:mt-2 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                         </div>
                     </div>
                 </template>
                 <template #card="{ index, inpData, toggleSkeleton, cardRefs }">
-                    <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" class="h-full pt-0 pb-0 rounded-md lg:rounded-[20px] overflow-hidden opacity-0 transition-opacity duration-100" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">
-                        <CardContent class="relative pl-0 pr-0 h-full">
-                            <img :src="getImgURL(inpData.img)" alt="" class="w-full h-[64%] lg:object-cover" :ref="((el: any) => {
+                    <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" :pt="{ root: { class: ['rounded-md lg:rounded-[20px] overflow-hidden opacity-0 transition-opacity duration-100'], style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, body: { class: ['!gap-1 !p-4 lg:!p-5 xl:!px-7 xl:!py-5'] }}">
+                        <template #header>
+                            <img :src="getImgURL(inpData.img)" alt="" class="w-full h-[120px] phone:h-[170px] lg:h-[197px] object-cover" :ref="((el: any) => {
                                     if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
                                 })"
                                 @load="() => {
                                     inpData.imgLoad = true
                                     toggleSkeleton(index)
-                            }" @error="() => toggleSkeleton(index)"/>
-                            <img :src="freeTag" alt="" class="absolute top-0 right-0 z-9 h-[20%]">
-                            <div class="w-[87%] mx-auto flex flex-col mt-2">
-                                <div class="flex flex-col text-black">
-                                    <!-- <div class="flex flex-col">
-                                        <span class="text-[#3D37F1] font-bold text-base">May</span>
-                                        <span class="text-black text-xl">11</span>
-                                    </div> -->
-                                    <RouterLink :to="'/events/' + inpData.event_id" class="text-base sm:text-lg font-medium">{{ inpData.event_name }}</RouterLink>
-                                    <span class="text-sm sm:text-lg">{{ inpData.start_date }}</span>
-                                </div>
-                                <!-- <div class="flex flex-col text-xl">
-                                    <div class="flex gap-2 items-center">
-                                    <I_DRight class="w-5 h-5 text-red-500" />
-                                    <span>Musical Event</span>
-                                    </div>
-                                    <div class="flex gap-2 items-center">
-                                    <I_DRight class="w-5 h-5 text-red-500" />
-                                    <span>All Universities students can join</span>
-                                    </div>
-                                </div> -->
-                                <div class="flex justify-between items-center mt-3">
-                                    <a :href="inpData.link_lokasi" target="_blank" rel="noopener noreferrer"><I_LocationCard class="w-5 h-5 sm:w-8 sm:h-8 text-black"/></a>
-                                    <span class="text-base">{{ inpData.nama_lokasi }}</span>
-                                    <I_Bookmark class="w-5 h-5 sm:w-8 sm:h-8 text-black" />
-                                </div>
+                                }" @error="() => toggleSkeleton(index)"/>
+                            <img :src="freeTag" alt="" class="absolute -top-0.5 -right-0.5 z-9 h-[17%] lg:h-[18%]">
+                        </template>
+                        <template #content>
+                            <div class="flex flex-col gap-0">
+                                <RouterLink :to="'/events/' + inpData.event_id" class="text-sm sm:text-base lg:text-lg xl:text-xl font:medium lg:font-semibold">{{ inpData.event_name }}</RouterLink>
+                                <span class="text-xs sm:text-sm lg:text-base xl:text-lg">{{ inpData.start_date }}</span>
                             </div>
-                        </CardContent>
+                            <div class="mt-4 sm:mt-3 lg:mt-5 xl:mt-7 flex justify-between">
+                                <a :href="inpData.link_lokasi" target="_blank" rel="noopener noreferrer"><I_Location class="size-5.5 phone:size-5 sm:size-5.5 lg:size-6.5 text-green-500"/></a>
+                                <span class="text-sm sm:text-base lg:text-lg xl:text-xl">{{ inpData.nama_lokasi }}</span>
+                                <I_Bookmark class="size-5.5 phone:size-5 sm:size-5.5 lg:size-6.5 text-green-500"/>
+                            </div>
+                        </template>
                     </Card>
                 </template>
             </CustomCardWithSkeletonComponent>

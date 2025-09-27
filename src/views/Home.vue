@@ -197,7 +197,7 @@ const metaDataReviews = {
                         </template>
                         <template #content>
                             <div class="flex flex-col gap-0">
-                                <h5 class="text-sm sm:text-base lg:text-lg xl:text-xl font:medium lg:font-semibold">{{ inpData.event_name }}</h5>
+                                <RouterLink :to="'/events/' + inpData.event_id" class="text-sm sm:text-base lg:text-lg xl:text-xl font:medium lg:font-semibold">{{ inpData.event_name }}</RouterLink>
                                 <span class="text-xs sm:text-sm lg:text-base xl:text-lg">{{ inpData.start_date }}</span>
                             </div>
                             <div class="mt-4 sm:mt-3 lg:mt-5 xl:mt-7 flex justify-between">
@@ -250,7 +250,7 @@ const metaDataReviews = {
                         </template>
                         <template #content>
                             <div class="flex flex-col gap-0">
-                                <h5 class="text-sm sm:text-base lg:text-lg xl:text-xl font:medium lg:font-semibold">{{ inpData.event_name }}</h5>
+                                <RouterLink :to="'/events/' + inpData.event_id" class="text-sm sm:text-base lg:text-lg xl:text-xl font:medium lg:font-semibold">{{ inpData.event_name }}</RouterLink>
                                 <span class="text-xs sm:text-sm lg:text-base xl:text-lg">{{ inpData.start_date }}</span>
                             </div>
                             <div class="mt-4 sm:mt-3 lg:mt-5 xl:mt-7 flex justify-between">

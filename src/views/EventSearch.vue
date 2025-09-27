@@ -369,7 +369,7 @@ const metaDataLoading = {
                             </div>
                         </template>
                         <template #card="{ index, inpData, toggleSkeleton, cardRefs }">
-                            <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" :pt="{ root: { class: ['h-full pt-0 pb-0 rounded-md lg:rounded-[20px] overflow-hidden opacity-0 transition-opacity duration-100'], style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, body: { class: ['!gap-1'] }, caption: { class: ['!gap-0'] }, title: { class: ['!text-sm phone:text-base'] }, subtitle: { class: ['!text-xs'] }, footer: { class: 'flex justify-between items-center' }}">
+                            <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" :pt="{ root: { class: ['rounded-md lg:rounded-[20px] overflow-hidden opacity-0 transition-opacity duration-100'], style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, body: { class: ['!gap-1 !p-4 lg:!p-5 xl:!px-7 xl:!py-5'] }}">
                                 <template #header>
                                     <img :src="getImgURL(inpData.img)" alt="" class="w-full h-[120px] phone:h-[170px] lg:h-[197px] object-cover" :ref="((el: any) => {
                                             if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
@@ -378,14 +378,18 @@ const metaDataLoading = {
                                             inpData.imgLoad = true
                                             toggleSkeleton(index)
                                         }" @error="() => toggleSkeleton(index)"/>
-                                    <img :src="freeTag" alt="" class="absolute -top-1 -right-1 z-9 h-[17%] lg:h-[20%]">
+                                    <img :src="freeTag" alt="" class="absolute -top-0.5 -right-0.5 z-9 h-[17%] lg:h-[18%]">
                                 </template>
-                                <template #title>{{ inpData.event_name }}</template>
-                                <template #subtitle>{{ inpData.start_date }}</template>
-                                <template #footer>
-                                    <a :href="inpData.link_lokasi" target="_blank" rel="noopener noreferrer"><I_Location class="w-5 h-5 sm:w-8 sm:h-8 text-green-500"/></a>
-                                    <span class="text-sm">{{ inpData.nama_lokasi }}</span>
-                                    <I_Bookmark class="w-5 h-5 sm:w-8 sm:h-8 text-green-500"/>
+                                <template #content>
+                                    <div class="flex flex-col gap-0">
+                                        <RouterLink :to="'/events/' + inpData.event_id" class="text-sm sm:text-base lg:text-lg xl:text-xl font:medium lg:font-semibold">{{ inpData.event_name }}</RouterLink>
+                                        <span class="text-xs sm:text-sm lg:text-base xl:text-lg">{{ inpData.start_date }}</span>
+                                    </div>
+                                    <div class="mt-4 sm:mt-3 lg:mt-5 xl:mt-7 flex justify-between">
+                                        <a :href="inpData.link_lokasi" target="_blank" rel="noopener noreferrer"><I_Location class="size-5.5 phone:size-5 sm:size-5.5 lg:size-6.5 text-green-500"/></a>
+                                        <span class="text-sm sm:text-base lg:text-lg xl:text-xl">{{ inpData.nama_lokasi }}</span>
+                                        <I_Bookmark class="size-5.5 phone:size-5 sm:size-5.5 lg:size-6.5 text-green-500"/>
+                                    </div>
                                 </template>
                             </Card>
                         </template>
