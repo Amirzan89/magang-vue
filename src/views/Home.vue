@@ -128,28 +128,28 @@ const metaDataReviews = {
             <img src="@/assets/images/party-1.png" alt="" class="w-full h-full object-cover" />
             <div class="absolute top-0 left-0 w-full h-full opacity-90" style="background: #ED4690; background: linear-gradient(145deg,rgba(237, 70, 144, 1) 0%, rgba(85, 34, 204, 1) 100%)"/>
         </div>
-        <div class="relative flex flex-col justify-between items-center h-full bg-red-500 text-white">
+        <div class="relative flex flex-col justify-between items-center h-full text-white">
             <Swiper v-if="local.upcoming_events && local.upcoming_events.length > 0" :modules="[Navigation, Pagination, Autoplay]" :slides-per-view="1" :space-between="20" :loop="true" :autoplay="{ delay: 3000 }" :pagination="{ clickable: true }" :allow-touch-move="false" :simulate-touch="false" :keyboard="{ enabled: false }" :mousewheel="{ enabled: false }" :navigation="{ nextEl: '.btn-next', prevEl: '.btn-prev' }" class="w-[85%] lg:w-[92%] aspect-video lg:aspect-auto h-3/4 rounded-xl"  @slideChange="onSlideChange">
                 <template v-for="(item, index) in local.upcoming_events" :key="index">
                     <SwiperSlide><img :src="item.img" alt="" class="w-full object-contain"></SwiperSlide>
                 </template>
                 <div class="absolute z-2 w-full h-full top-0 left-0 backdrop-blur-[1px]">
                     <div class="absolute z-3 w-full h-full top-0 left-0 opacity-70" style="background: #5420B4; background: linear-gradient(45deg,rgba(84, 32, 180, 1) 100%, rgba(0, 0, 0, 1) 13%);"></div>
-                    <div class="w-[75%] h-[60%] relative z-4 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center sm:block bg-black">
+                    <div class="w-[75%] h-[60%] relative z-4 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center sm:block">
                         <I_VLeft v-if="breakpoints.smaller('sm').value" class="btn-prev size-8 text-black-500"/>
-                        <div class="w-full h-full flex flex-col sm:flex-row justify-between items-center bg-green-500">
-                            <div class="lg:w-[40%] 2xl:w-[30%] h-fit flex justify-around items-center bg-amber-500">
+                        <div class="w-full h-full flex flex-col sm:flex-row justify-between items-center">
+                            <div class="w-full sm:w-[50%] lg:w-[40%] 2xl:w-[30%] h-[30%] sm:h-fit flex justify-around items-center">
                                 <I_VLeft v-if="breakpoints.greater('sm').value" class="btn-prev size-8"/>
-                                <div class="w-[90%] h- ">
+                                <div class="w-full sm:w-[90%] h-full sm:h-fit flex flex-col justify-between items-start">
                                     <h4 class="text-sm sm:text-base lg:text-lg xl:text-xl">{{ local.upcoming_events[activeIndex].event_name }}</h4>
-                                    <Button :as="RouterLink" :to="'/events/' + local.upcoming_events[activeIndex]!.link_event" severity="secondary" class="w-fit h-fit">Learn More</Button>
+                                    <a :href="'/events/' + local.upcoming_events[activeIndex]!.link_event" class="w-fit h-fit px-3 py-2 sm:px-3.25 sm:py-2.25 lg:px-3.5 lg:py-2.5 text-[#fff] border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-[#fff] rounded-lg md:rounded-xl flex justify-center items-center hover:bg-[#fff] text-xs sm:text-sm lg:text-base xl:text-lg hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">Learn More</a>
                                 </div>
                                 <I_VRight v-if="breakpoints.greater('sm').value" class="btn-next size-8"/>
                             </div>
-                            <div class="lg:w-[30%] 2xl:w-[30%] h-fit bg-amber-500">
+                            <div class="lg:w-[30%] 2xl:w-[30%] h-fit">
                                 <h4 class="text-sm sm:text-base lg:text-lg xl:text-xl">Uni Events</h4>
                                 <p class="text-xs sm:text-sm lg:text-base xl:text-lg">Stay updated with the latest academic talks, workshops, and social gatherings across Sri Lankan universities. Whether you're here to network, learn, or have fun, there’s something for everyone!</p>
-                                <RouterLink to="/about" class="w-fit h-fit px-3 py-2 sm:px-3.25 sm:py-2.25 lg:px-3.5 lg:py-2.5 text-[#3D37F1] border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-[#3D37F1] rounded-lg md:rounded-xl flex justify-center items-center hover:bg-[#3D37F1] text-xs sm:text-sm lg:text-base xl:text-lg hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">Load More</RouterLink>
+                                <RouterLink to="/about" class="w-fit h-fit px-3 py-2 sm:px-3.25 sm:py-2.25 lg:px-3.5 lg:py-2.5 text-[#fff] border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-[#fff] rounded-lg md:rounded-xl flex justify-center items-center hover:bg-[#fff] text-xs sm:text-sm lg:text-base xl:text-lg hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">Load More</RouterLink>
                             </div>
                         </div>
                         <I_VRight v-if="breakpoints.smaller('sm').value" class="btn-next size-8"/>
