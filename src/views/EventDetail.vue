@@ -22,20 +22,13 @@ import I_Bookmark from '@/assets/icons/card_events/bookmark.svg?component'
 import freeTag from '@/assets/images/free-tag.png';
 const fetchDataS = useFetchDataStore()
 const local = reactive({
-    event_detail: null as any,
+    detail_event: null as any,
     all_events: null as any,
     inpSearch: '',
     isLoading: false,
 })
 const thumbsSwiper = ref<SwiperType | null>(null)
 const mainSwiper = ref<SwiperType | null>(null);
-// const onMainSwiper = (swiper) => {
-//     swiper.on("slideChange", () => {
-//         if (thumbsSwiper.value) {
-//         thumbsSwiper.value.slideTo(swiper.realIndex); // sync posisi
-//         }
-//     })
-// }
 const onMainSwiper = (swiper: SwiperType) => {
     mainSwiper.value = swiper;
     swiper.on("slideChange", () => {
@@ -61,11 +54,11 @@ onBeforeMount(async() =>{
         return
     }
     console.log('enttokk dataa ', res.data)
-    local.event_detail = res.data.event_detail
+    local.detail_event = res.data.detail_event
     local.all_events = res.data.all_events
-    local.event_detail.img.forEach((val, i) => {
-        console.log(i, JSON.stringify(val), val.charCodeAt(0))
-    })
+    // local.detail_event.img.forEach((val, i) => {
+    //     console.log(i, JSON.stringify(val), val.charCodeAt(0))
+    // })
 })
 const metaDataPopuler = {
     wrapper: () => defineComponent({
@@ -85,13 +78,13 @@ const metaDataLoading = {
 }
 </script>
 <template>
-    <section class="h-screen flex flex-col sm:flex-row gap-5">
-        <div class="relative top-1/2 -translate-y-1/2 sm:w-[50%] lg:w-[45%] xl:w-[40%] h-1/2 bg-red-500">
-            <div v-if="local.event_detail && local.event_detail.img && local.event_detail.img.length > 0">
-                <Swiper :modules="[Navigation, Thumbs, Autoplay]" :thumbs="{ swiper: thumbsSwiper }" :space-between="10" :navigation="{ nextEl: '.btn-next', prevEl: '.btn-prev' }" :loop="true" :autoplay="{ delay: 1000, disableOnInteraction: false }" @swiper="onMainSwiper" class="relative w-[300px] h-[400px] mb-4 group" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
-                    <template v-for="(img, i) in local.event_detail.img.filter(x => x && x !== '-')" :key="i">
+    <section class="w-[95%] mt-10 mx-auto flex flex-col sm:flex-row gap-5">
+        <div class="relative sm:w-[50%] lg:w-[45%] xl:w-[40%]">
+            <div v-if="local.detail_event && local.detail_event.img && local.detail_event.img.length > 0">
+                <Swiper :modules="[Navigation, Thumbs, Autoplay]" :thumbs="{ swiper: thumbsSwiper }" :space-between="10" :navigation="{ nextEl: '.btn-next', prevEl: '.btn-prev' }" :loop="true" :autoplay="{ delay: 30000, disableOnInteraction: false }" @swiper="onMainSwiper" class="relative  h-[400px] mb-3 group" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
+                    <template v-for="(img, i) in local.detail_event.img.filter(x => x && x !== '-')" :key="i">
                         <SwiperSlide>
-                            <img v-if="img && (img !== '-')" :src="img" class="w-full h-full object-contain" />
+                            <img v-if="img && (img !== '-')" :src="img" class="w-full h-full object-cover" />
                         </SwiperSlide>
                     </template>
                     <div class="absolute z-2 inset-0 flex justify-between items-center px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -99,22 +92,27 @@ const metaDataLoading = {
                         <I_VRight class="btn-next size-8 text-black-500">next</I_VRight>
                     </div>
                 </Swiper>
-                <Swiper :modules="[Navigation, Thumbs, Autoplay]" @Swiper="(swiper) => (thumbsSwiper = swiper)" :space-between="10" :slides-per-view="3" centered-slides watch-slides-progress class="w-[300px] h-[100px]">
-                    <SwiperSlide v-for="(img, i) in local.event_detail.img" :key="i">
-                        <img v-if="cleanImg(img) !== '-'" :src="cleanImg(img)" class="w-full h-full object-contain" />
+                <Swiper :modules="[Navigation, Thumbs, Autoplay]" @Swiper="(swiper) => (thumbsSwiper = swiper)" :space-between="0" :slides-per-view="3" centered-slides watch-slides-progress class="w-4/5 h-[100px]">
+                    <SwiperSlide v-for="(img, i) in local.detail_event.img" :key="i" class="w-fit">
+                        <img v-if="cleanImg(img) !== '-'" :src="cleanImg(img)" class="h-full object-contain" />
                     </SwiperSlide>
                 </Swiper>
             </div>
             <div v-else>
-                Skeleton
+                <Skeleton :pt="{ root: { class: ['!h-[400px] !rounded-lg mb-3'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                <div class="w-4/5 h-[100px] mx-auto flex gap-5">
+                    <Skeleton :pt="{ root: { class: ['flex-1 !h-full !rounded-sm ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                    <Skeleton :pt="{ root: { class: ['flex-1 !h-full !rounded-md ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                    <Skeleton :pt="{ root: { class: ['flex-1 !h-full !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                </div>
             </div>
         </div>
         <div class="bg-amber-500 flex-1">
-            <h3 class="w-fit mt-5 text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-semibold text-[#242565]">All Events</h3>
-            <p class="mt-5 text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl">Lorem ipsum dolor sit amet consectetur adipisicing elit. Asperiores, atque! Nihil consequuntur quasi perferendis neque facilis iusto dolore eaque. Ullam pariatur amet dicta voluptatum minima laudantium voluptates, rem quia ex.</p>
-            <!-- <h3>{{ local.event_detail.name_event }}</h3> -->
-            <!-- <h3>{{ local.event_detail.description_event }}</h3> -->
-            <!-- <p>{{ local.event_detail.description_event }}</p> -->
+            <h3 class="w-fit mt-5 text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold text-[#242565]">All Events</h3>
+            <p class="mt-5 text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl">Lorem ipsum dolor sit amet consectetur adipisicing elit. Asperiores, atque! Nihil consequuntur quasi perferendis neque facilis iusto dolore eaque. Ullam pariatur amet dicta voluptatum minima laudantium voluptates, rem quia ex.</p>
+            <!-- <h3>{{ local.detail_event.name_event }}</h3> -->
+            <!-- <h3>{{ local.detail_event.event_description }}</h3> -->
+            <!-- <p>{{ local.detail_event.event_description }}</p> -->
             <div class="mt-5 flex">
                 <div class="flex flex-col">
                     <I_Location class="w-5 h-5 sm:w-8 sm:h-8 text-black"/>
@@ -132,14 +130,14 @@ const metaDataLoading = {
                     <span>:</span>
                 </div>
                 <div class="flex flex-col">
-                    <!-- <p>{{ local.event_detail. }}</p>
-                    <p>{{ local.event_detail. }}</p>
-                    <p>{{ local.event_detail.price }}</p> -->
+                    <!-- <p>{{ local.detail_event. }}</p>
+                    <p>{{ local.detail_event. }}</p>
+                    <p>{{ local.detail_event.price }}</p> -->
                 </div>
             </div>
             <div>
-                <!-- <a :href="local.event_detail.link_event" target="_blank" rel="noopener noreferrer">Book Event</a> -->
-                <!-- <a :href="local.event_detail.price.detail_event" target="_blank" rel="noopener noreferrer">Learn More</a> -->
+                <a :href="local.detail_event?.link_event" target="_blank" rel="noopener noreferrer">Book Event</a>
+                <a :href="local.detail_event?.event_detail" target="_blank" rel="noopener noreferrer">Learn More</a>
             </div>
         </div>
     </section>
