@@ -98,7 +98,7 @@ const metaDataLoading = {
                         <I_VRight class="btn-next size-8 text-black-500">next</I_VRight>
                     </div>
                 </Swiper>
-                <Swiper :modules="[Navigation, Thumbs, Autoplay]" @Swiper="(swiper) => (thumbsSwiper = swiper)" :space-between="0" :slides-per-view="slidePerView" centered-slides watch-slides-progress class="w-[63%] xs:w-[54%] phone:w-[60%] sm:w-[45%] lg:w-[78%] xl:w-4/5 h-[65px] xs:h-[70px] phone:h-[80px] sm:h-[90px] md:h-[95px] lg:h-[102px] xl:h-[110px] 2xl:h-[120px] bg-red-500"> 
+                <Swiper :modules="[Navigation, Thumbs, Autoplay]" @Swiper="(swiper) => (thumbsSwiper = swiper)" :space-between="0" :slides-per-view="slidePerView" centered-slides watch-slides-progress class="w-[63%] xs:w-[54%] phone:w-[60%] sm:w-[45%] lg:w-[78%] xl:w-4/5 h-[65px] xs:h-[70px] phone:h-[80px] sm:h-[90px] md:h-[95px] lg:h-[102px] xl:h-[110px] 2xl:h-[120px]"> 
                     <SwiperSlide v-for="(img, i) in local.detail_event.img" :key="i" class="w-fit">
                         <img v-if="cleanImg(img) !== '-'" :src="cleanImg(img)" class="h-full object-contain" />
                     </SwiperSlide>

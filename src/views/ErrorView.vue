@@ -1,4 +1,5 @@
 <template>
+    <HeaderComponent></HeaderComponent>
     <!-- <template v-if="curLayout === 'default'">
     </template>
     <template v-else-if="curLayout === 'auth'">
@@ -11,11 +12,12 @@
     <template v-if="curLayout !== 'empty'">
     </template> -->
     <NotFound/>
-    <Footer></Footer>
+    <FooterComponent></FooterComponent>
 </template>
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-// import HeaderAuth from '@/components/HeaderAuth.vue'
+import HeaderComponent from '@/components/HeaderHome.vue'
+import FooterComponent from '@/components/Footer.vue'
 import NotFound from '@/components/Error/NotFound.vue'
 const curLayout = useRoute().meta.layout
 </script>
