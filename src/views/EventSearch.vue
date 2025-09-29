@@ -86,7 +86,6 @@ const teleportTargetFn = async() => {
     }else{
         teleportTarget.value = null
     }
-    console.log('targett ', teleportTarget.value)
 }
 let abortFormController: AbortController | null = null
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
@@ -96,24 +95,23 @@ watch(width, () => {
     }
 })
 watch([isDialogOpen, isDesktop], teleportTargetFn, { immediate: true })
-watch(() => currentInput, async (newVal, oldVal) => {
+watch(currentInput, async() => {
     if(local.isFirstLoad){
         local.isFirstLoad = false
         return
     }
 
-    if(newVal.category !== oldVal.category){
-        console.log("entok category", newVal.category)
-        if(debounceTimer) clearTimeout(debounceTimer)
-        debounceTimer = setTimeout(async () => {
-            console.log("akuu1")
+    const arraysEqual = (a: any, b: any) => Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((val, i) => val === b[i]);
+    if(debounceTimer) clearTimeout(debounceTimer)
+        if(!arraysEqual(currentInput.category, oldInput.category)){
+            debounceTimer = setTimeout(async () => {
             await formSearchFilter()
         }, 500)
     }
 
-    if(newVal.dates !== oldVal.dates){
-        if(newVal.dates && newVal.dates.length === 2){
-            const [d1, d2] = newVal.dates
+    if(currentInput.dates !== oldInput.dates){
+        if(currentInput.dates && currentInput.dates.length === 2){
+            const [d1, d2] = currentInput.dates
             if (d1 && d2 && d1 > d2) {
                 currentInput.dates = [d2, d1]
             }
@@ -124,7 +122,7 @@ watch(() => currentInput, async (newVal, oldVal) => {
         }, 750)
     }
 
-    if(newVal.pay !== oldVal.pay){
+    if(currentInput.pay !== oldInput.pay){
         if(debounceTimer) clearTimeout(debounceTimer)
         debounceTimer = setTimeout(async() => {
             await formSearchFilter()
@@ -146,7 +144,7 @@ const sanitizeQuery = <T extends FilterKey>(key: T, value: unknown): InputForm[T
 const sanitizeAllQuery = (rawQuery: Record<string, unknown>): InputForm => {
     const query = {
         search: rawQuery.find,
-        category: rawQuery.f_category,
+        category: Array.isArray(rawQuery.f_category) ? rawQuery.f_category : rawQuery.f_category ? [rawQuery.f_category] : [],
         pay: rawQuery.f_pay,
         start_date: rawQuery.f_sr_date,
         end_date: rawQuery.f_er_date,
@@ -194,7 +192,7 @@ onBeforeMount(async() => {
     const sanitized = sanitizeAllQuery(route.query)
     const newQuery = queryParamHandler(sanitized)
     if(Object.keys(newQuery).length > 0){
-        router.replace({ query: newQuery }).catch(() => {})
+        router.replace({ path: '/search', query: newQuery }).catch(() => {})
     }
     if(Object.keys(newQuery).length === 0){
         console.log("Tidak ada query parameter. Hentikan eksekusi.")
@@ -233,7 +231,6 @@ const formSearchFilter = async() => {
         }
         if(!isUpdated) return
     }
-    console.log('laporaannn23232')
     abortFormController = new AbortController()
     let retryCount = 0
     const searchFilterAPI = async(signal: AbortSignal) => {
