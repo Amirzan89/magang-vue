@@ -25,29 +25,25 @@ const local = reactive({
     isLoading: false,
     isFirstLoad: true,
 })
-// const itemsPopularFilter = ref([
-//     { name: 'None', value: '' },
-//     { name: 'Free', value: 'free' },
-//     { name: 'All', value: 'all' },
-//     { name: 'Pay', value: 'pay' },
-// ])
-const itemsCategoryFilter = [
-    { label: 'Tech', value: 'tech' },
-    { label: 'Design', value: 'design' },
-    { label: 'Games', value: 'games' },
-    { label: 'Olahraga', value: 'olahraga' },
-    { label: 'Seni', value: 'seni' },
-]
+// const itemsCategoryFilter = [
+//     { label: 'Tech', value: 'tech' },
+//     { label: 'Design', value: 'design' },
+//     { label: 'Games', value: 'games' },
+//     { label: 'Olahraga', value: 'olahraga' },
+//     { label: 'Seni', value: 'seni' },
+// ]
+const itemsCategoryFilter = ref<{ label: string, value: string }[]>([])
 const itemsPaysFilter = ref([
     { name: 'Free', value: 'free' },
     { name: 'All', value: 'all' },
     { name: 'Pay', value: 'pay' },
 ])
-const filterRules = {
+let filterRules = {
     pay: ["pay", "free", "all"] as const,
-    category: ["tech", "design", "games", "olahraga", "seni"] as const,
+    // category: ["tech", "design", "games", "olahraga", "seni"] as const,
+    category: [] as any,
     dates: null as Date[] | null,
-} as const
+}
 type FilterKey = keyof typeof filterRules
 type FilterValues = {
     [K in FilterKey]:
@@ -87,6 +83,7 @@ const teleportTargetFn = async() => {
         teleportTarget.value = null
     }
 }
+let categoryHydrationController: AbortController | null = null
 let abortFormController: AbortController | null = null
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 watch(width, () => {
@@ -184,7 +181,82 @@ const queryParamHandler = (inp: InputForm) => {
     }
     return filteredParams
 }
+const APIComposables = async(path: string, inpSignal: AbortSignal) => {
+    let retryCount = 0
+    local.isLoading = true
+    const APIReq = async(signal: AbortSignal) => {
+        try{
+            router.push({
+                query: queryParamHandler(currentInput)
+            })
+            const encr = await encryptReq({})
+            const res = (await(await axiosJson()).post(path, {
+                uniqueid: encr.iv,
+                cipher: encr.data,
+                mac: encr.mac,
+            }, { params: { ...route.query, _: Date.now() }, signal, headers: { 'X-Merseal': sessionStorage.merseal }})).data
+            if(signal.aborted){
+                return { status: 'error', message: 'Request dibatalkan' }
+            }
+            const decRes = decryptRes(res.data, encr.iv)
+            console.log('desccc ress', decRes)
+            return { status: 'success', data: decRes }
+        }catch(err: any){
+            if(err.name === "CanceledError"){
+                console.log("Request dibatalkan")
+                return { status: 'error', message: 'Request dibatalkan' }
+            }else if(err.response){
+                let cusRedirect: string | null = null
+                if(err.response.status === 404){
+                    return { status:'error', message: 'not found', code: 404 }
+                }
+                if([419, 429].includes(err.response.status)){
+                    if(retryCount <= 3){
+                        retryCount++
+                        await fetchCsrfToken()
+                        return APIReq(signal)
+                    }else{
+                        retryCount = 0
+                        console.log('Request failed')
+                        // return toast
+                        return { status: 'error', message: 'Request failed' }
+                    }
+                }
+                if(err.response.status === 500){
+                    console.log('500', err.response.data.message)
+                    // return toast
+                    return { status: 'error', message: err.response.data.message }
+                }
+                console.log('err response', err.response.data.message)
+                // return toast
+                return { status:'error', message: err.response.data.message, code: err.response.status, data: { redirect: cusRedirect }}
+            }
+            console.log('errror', err)
+            // return toast
+            return { status:'error', message: err }
+        }finally{
+            local.isLoading = false
+            if(path === '/search'){
+                await teleportTargetFn()
+            }
+        }
+    }
+    return APIReq(inpSignal)
+}
 onBeforeMount(async() => {
+    categoryHydrationController = new AbortController()
+    const res = await APIComposables('/events-category', categoryHydrationController.signal)
+    if(res.status == 'error'){
+        return console.log('error')
+    }
+    res.data.forEach((item: any, i: number) => {
+        if((item['event_group_name'] && item['event_group']) && ((item['event_group_name'] != '') && (item['event_group'] != ''))){
+            itemsCategoryFilter.value = [...itemsCategoryFilter.value, { label: item['event_group_name'], value: item['event_group'] }]
+            filterRules.category = [...filterRules.category, item['event_group']]
+        }
+    })
+})
+onMounted(async() => {
     if(!route.query || Object.keys(route.query).length === 0){
         console.log('Tidak ada query parameter. Hentikan eksekusi.')
         return
@@ -232,68 +304,16 @@ const formSearchFilter = async() => {
         if(!isUpdated) return
     }
     abortFormController = new AbortController()
-    let retryCount = 0
-    const searchFilterAPI = async(signal: AbortSignal) => {
-        local.isLoading = true
-        try{
-            router.push({
-                query: queryParamHandler(currentInput)
-            })
-            const encr = await encryptReq({})
-            const res = (await(await axiosJson()).post('/search', {
-                uniqueid: encr.iv,
-                cipher: encr.data,
-                mac: encr.mac,
-            }, { params: { ...route.query, _: Date.now() }, signal, headers: { 'X-Merseal': sessionStorage.merseal }})).data
-            if(!signal.aborted){
-                const decRes = decryptRes(res.data, encr.iv)
-                console.log('desccc ress', decRes)
-                local.fetchData = decRes
-                keyword.value = currentInput.search
-                oldInput.search = currentInput.search
-                oldInput.category = [ ...currentInput.category ]
-                oldInput.pay = currentInput.pay
-                await nextTick()
-            }
-        }catch(err: any){
-            if(err.name === "CanceledError"){
-                console.log("Request dibatalkan")
-                return
-            }else if(err.response){
-                let cusRedirect: string | null = null
-                if(err.response.status === 404){
-                    return { status:'error', message: 'not found', code: 404 }
-                }
-                if([419, 429].includes(err.response.status)){
-                    if(retryCount <= 3){
-                        retryCount++
-                        await fetchCsrfToken()
-                        return searchFilterAPI(signal)
-                    }else{
-                        retryCount = 0
-                        console.log('Request failed')
-                        // return toast
-                        return { status: 'error', message: 'Request failed' }
-                    }
-                }
-                if(err.response.status === 500){
-                    console.log('500', err.response.data.message)
-                    // return toast
-                    return { status: 'error', message: err.response.data.message }
-                }
-                console.log('err response', err.response.data.message)
-                // return toast
-                return { status:'error', message: err.response.data.message, code: err.response.status, data: { redirect: cusRedirect }}
-            }
-            console.log('errror', err)
-            // return toast
-            return { status:'error', message: err }
-        }finally{
-            local.isLoading = false
-            await teleportTargetFn()
-        }
+    const res = await APIComposables('/search', abortFormController.signal)
+    if(res.status == 'error'){
+        return console.log('error')
     }
-    searchFilterAPI(abortFormController.signal)
+    local.fetchData = res.data
+    keyword.value = currentInput.search
+    oldInput.search = currentInput.search
+    oldInput.category = [ ...currentInput.category ]
+    oldInput.pay = currentInput.pay
+    await nextTick()
 }
 const metaDataSearch = {
     wrapper: (inpData: any) => defineComponent({
