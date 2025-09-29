@@ -6,6 +6,12 @@ export default [
         meta: { layout: 'default' },
     },
     {
+        path: '/about',
+        name: 'AboutPage',
+        component: () => import('@/views/About.vue'),
+        meta: { layout: 'default' },
+    },
+    {
         path: '/events',
         name: 'EventAllPage',
         component: () => import('@/views/Events.vue'),
