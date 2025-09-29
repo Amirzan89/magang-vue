@@ -1,6 +1,7 @@
 import{ type Router } from 'vue-router'
 import{ useFetchDataStore } from '@/stores/FetchData'
 export function setupGuards(router: Router){
+    return true
     router.beforeEach(async (to) => {
         if(typeof window === 'undefined') return true
             // cek dynamic path
