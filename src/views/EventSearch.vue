@@ -94,6 +94,7 @@ watch(width, () => {
 })
 watch([isDialogOpen, isDesktop], teleportTargetFn, { immediate: true })
 watch(() => ({ category: currentInput.category, dates: currentInput.dates, pay: currentInput.pay } as WatchedInput), async(newVal, oldVal) => {
+    if(local.isFirstLoad) return
     const keys = Object.keys(newVal) as (keyof WatchedInput)[]
     for(const key of keys){
         if(JSON.stringify(newVal[key]) !== JSON.stringify(oldVal[key])){
