@@ -140,7 +140,7 @@ const sanitizeAllQuery = (rawQuery: Record<string, unknown>): InputForm => {
         if(key === "dates"){
             const start = query.start_date ? new Date(query.start_date as string) : null
             const end = query.end_date ? new Date(query.end_date as string) : null
-            clean.dates = start && end ? [start, end] : null
+            clean.dates = end && !start ? null : [start, end]
             continue
         }
         const value = query[key]
@@ -239,27 +239,31 @@ onBeforeMount(async() => {
             filterRules.category = [...filterRules.category, item['event_group']]
         }
     })
-    if(!route.query || Object.keys(route.query).length === 0){
-        console.log('Tidak ada query parameter. Hentikan eksekusi.')
-        return
-    }
+    // if(!route.query || Object.keys(route.query).length === 0){
+    //     console.log('Tidak ada query parameter. Hentikan eksekusi.')
+    //     local.isFirstLoad = false
+    //     return
+    // }
     const sanitized = sanitizeAllQuery(route.query)
     const newQuery = queryParamHandler(sanitized)
+    router.replace({ path: '/search', query: newQuery }).catch(() => {})
+    // if(Object.keys(newQuery).length > 0){
+    //     router.replace({ path: '/search', query: newQuery }).catch(() => {})
+    // }
+    // if(Object.keys(newQuery).length === 0){
+    //     console.log("Tidak ada query parameter. Hentikan eksekusi.")
+    //     return
+    // }
     if(Object.keys(newQuery).length > 0){
-        router.replace({ path: '/search', query: newQuery }).catch(() => {})
+        Object.assign(oldInput, {
+            ...sanitized,
+            category: sanitized.category ? [...sanitized.category] : []
+        })
+        Object.assign(currentInput, {
+            ...sanitized,
+            category: sanitized.category ? [...sanitized.category] : []
+        })
     }
-    if(Object.keys(newQuery).length === 0){
-        console.log("Tidak ada query parameter. Hentikan eksekusi.")
-        return
-    }
-    Object.assign(oldInput, {
-        ...sanitized,
-        category: sanitized.category ? [...sanitized.category] : []
-    })
-    Object.assign(currentInput, {
-        ...sanitized,
-        category: sanitized.category ? [...sanitized.category] : []
-    })
     await formSearchFilter()
     local.isFirstLoad = false
     await nextTick()
@@ -288,7 +292,7 @@ const formSearchFilter = async() => {
     const res = await APIComposables('/search', abortFormController.signal)
     keyword.value = currentInput.search
     if(res.status == 'error'){
-        return console.log('error')
+        return console.log('error', res.message)
     }
     local.fetchData = res.data
     oldInput.search = currentInput.search
