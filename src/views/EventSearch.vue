@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form, FormField } from '@primevue/forms'
-import { ref, reactive, computed, watch, onBeforeMount, onMounted, h, useSlots, defineComponent, nextTick, Teleport, type Ref, type ComponentPublicInstance } from 'vue'
+import { ref, reactive, computed, watch, onBeforeMount, h, useSlots, defineComponent, nextTick, Teleport, type Ref, type ComponentPublicInstance } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { formatTgl } from "@/utils/global"
 import useAxios from '@/composables/api/axios'
@@ -55,6 +55,7 @@ type FilterValues = {
 type InputForm = FilterValues & {
     search: string
 }
+type WatchedInput = Pick<InputForm, "category" | "dates" | "pay">
 const oldInput = reactive<InputForm>({
     search: '',
     // popular: '' as any,
@@ -85,47 +86,33 @@ const teleportTargetFn = async() => {
 }
 let categoryHydrationController: AbortController | null = null
 let abortFormController: AbortController | null = null
-let debounceTimer: ReturnType<typeof setTimeout> | null = null
+let debounceTimers: Partial<Record<keyof WatchedInput, ReturnType<typeof setTimeout>>> = {}
 watch(width, () => {
     if(!isMobile.value && isDialogOpen.value){
         isDialogOpen.value = false
     }
 })
 watch([isDialogOpen, isDesktop], teleportTargetFn, { immediate: true })
-watch(currentInput, async() => {
-    if(local.isFirstLoad){
-        local.isFirstLoad = false
-        return
-    }
-
-    const arraysEqual = (a: any, b: any) => Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((val, i) => val === b[i]);
-    if(debounceTimer) clearTimeout(debounceTimer)
-        if(!arraysEqual(currentInput.category, oldInput.category)){
-            debounceTimer = setTimeout(async () => {
-            await formSearchFilter()
-        }, 500)
-    }
-
-    if(currentInput.dates !== oldInput.dates){
-        if(currentInput.dates && currentInput.dates.length === 2){
-            const [d1, d2] = currentInput.dates
-            if (d1 && d2 && d1 > d2) {
-                currentInput.dates = [d2, d1]
-            }
+watch(() => ({ category: currentInput.category, dates: currentInput.dates, pay: currentInput.pay } as WatchedInput), async(newVal, oldVal) => {
+    const keys = Object.keys(newVal) as (keyof WatchedInput)[]
+    for(const key of keys){
+        if(JSON.stringify(newVal[key]) !== JSON.stringify(oldVal[key])){
+            if(debounceTimers[key]) clearTimeout(debounceTimers[key])
+            const delay = key === "dates" ? 750 : 500
+            debounceTimers[key] = setTimeout(async() => {
+                await formSearchFilter()
+                if(key === "category"){
+                    oldInput.category = [...currentInput.category]
+                }else if(key === "pay"){
+                    oldInput.pay = currentInput.pay
+                }else if(key === "dates"){
+                    oldInput.dates = currentInput.dates
+                }
+                await nextTick()
+            }, delay)
         }
-        if(debounceTimer) clearTimeout(debounceTimer)
-        debounceTimer = setTimeout(async () => {
-            await formSearchFilter()
-        }, 750)
     }
-
-    if(currentInput.pay !== oldInput.pay){
-        if(debounceTimer) clearTimeout(debounceTimer)
-        debounceTimer = setTimeout(async() => {
-            await formSearchFilter()
-        }, 500)
-    }
-},{ deep: true })
+}, { deep: true })
 const keyword = ref('')
 const sanitizeQuery = <T extends FilterKey>(key: T, value: unknown): InputForm[T] | null => {
     const allowed = filterRules[key] as readonly string[]
@@ -186,9 +173,6 @@ const APIComposables = async(path: string, inpSignal: AbortSignal) => {
     local.isLoading = true
     const APIReq = async(signal: AbortSignal) => {
         try{
-            router.push({
-                query: queryParamHandler(currentInput)
-            })
             const encr = await encryptReq({})
             const res = (await(await axiosJson()).post(path, {
                 uniqueid: encr.iv,
@@ -199,7 +183,6 @@ const APIComposables = async(path: string, inpSignal: AbortSignal) => {
                 return { status: 'error', message: 'Request dibatalkan' }
             }
             const decRes = decryptRes(res.data, encr.iv)
-            console.log('desccc ress', decRes)
             return { status: 'success', data: decRes }
         }catch(err: any){
             if(err.name === "CanceledError"){
@@ -255,8 +238,6 @@ onBeforeMount(async() => {
             filterRules.category = [...filterRules.category, item['event_group']]
         }
     })
-})
-onMounted(async() => {
     if(!route.query || Object.keys(route.query).length === 0){
         console.log('Tidak ada query parameter. Hentikan eksekusi.')
         return
@@ -278,11 +259,9 @@ onMounted(async() => {
         ...sanitized,
         category: sanitized.category ? [...sanitized.category] : []
     })
-    console.log('isiii')
     await formSearchFilter()
     local.isFirstLoad = false
-    // await nextTick()
-    // keyword.value = currentInput.search
+    await nextTick()
 })
 const formSearchFilter = async() => {
     if(abortFormController) abortFormController.abort()
@@ -304,16 +283,14 @@ const formSearchFilter = async() => {
         if(!isUpdated) return
     }
     abortFormController = new AbortController()
+    router.push({ path: '/search', query: queryParamHandler(currentInput) })
     const res = await APIComposables('/search', abortFormController.signal)
+    keyword.value = currentInput.search
     if(res.status == 'error'){
         return console.log('error')
     }
     local.fetchData = res.data
-    keyword.value = currentInput.search
     oldInput.search = currentInput.search
-    oldInput.category = [ ...currentInput.category ]
-    oldInput.pay = currentInput.pay
-    await nextTick()
 }
 const metaDataSearch = {
     wrapper: (inpData: any) => defineComponent({
