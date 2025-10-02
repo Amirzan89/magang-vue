@@ -35,14 +35,18 @@ const metaDataReviews = {
             }
         }
     }),
-    customTWTransition: 'h-full mt-5 grid grid-cols-1 phone:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4',
+    customTWTransition: 'flex-1 mt-5 grid grid-cols-1 phone:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4',
 }
 </script>
 <template>
-    <section class="flex justify-center items-center">
-            <h1>About Us</h1>
+    <section class="relative h-50 flex justify-center items-center">
+        <div class="absolute top-0 left-0 w-full h-full -z-1">
+            <img src="@/assets/images/party-1.png" alt="" class="w-full h-full object-cover" />
+            <div class="absolute top-0 left-0 w-full h-full opacity-90" style="background: #ED4690; background: linear-gradient(145deg,rgba(237, 70, 144, 1) 0%, rgba(85, 34, 204, 1) 100%)"/>
+        </div>
+        <h1 class="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold text-white">About Us</h1>
     </section>
-    <section class="h-screen flex flex-col items-center">
+    <section class="min-h-screen flex flex-col items-center">
         <img src="@/assets/images/cele-2.png" alt="" class="absolute top-1/2 -translate-y-1/2 -left-[29.5%] w-[75%] h-[75%] -z-1 object-cover opacity-30"/>
         <div>
             <h2>What We Offer</h2>
