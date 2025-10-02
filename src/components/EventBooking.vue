@@ -35,7 +35,6 @@ const formBooking = ({ valid, states }: any) => {
     local.isRequestInProgress = true
     const APIReq = async(signal: AbortSignal) => {
         try{
-            console.log('mlebuu encryptt', states)
             const encr = await encryptReq({
                 nama: states.nama.value,
                 gender: states.gender.value,
@@ -45,7 +44,6 @@ const formBooking = ({ valid, states }: any) => {
                 qty: states.qty.value,
                 email: states.email.value,
             })
-            console.log('enccc',)
             const res = (await(await axiosJson()).post('/event-booking', {
                 uniqueid: encr.iv,
                 cipher: encr.data,
@@ -97,37 +95,37 @@ const formBooking = ({ valid, states }: any) => {
 }
 </script>
 <template>
-    <section class="relative overflow-x-clip">
-        <img src="@/assets/images/cele-3.png" alt="" class="absolute bottom-0 -right-[29.5%] w-[75%] h-[75%] -z-1 object-cover opacity-30"/>
-        <Form :resolver="bookingValidator" @submit="formBooking" v-slot="$form">
-            <FormField name="nama" class="flex flex-col gap-1">
+    <section class="relative overflow-x-clip mt-5 mb-10 sm:mb-15 lg:pb-20">
+        <img src="@/assets/images/cele-3.png" alt="" class="absolute -bottom-[60%] -right-[40.5%] w-fit h-fit -z-1 object-cover opacity-30"/>
+        <Form :resolver="bookingValidator" @submit="formBooking" v-slot="$form" class="w-[90%] lg:w-[95%] mx-auto flex flex-col gap-0.5 phone:gap-1 md:gap-2 xl:gap-2.5">
+            <FormField name="nama" class="flex flex-col gap-0.25">
                 <label for="nama">Nama</label>
-                <InputText id="nama"/>
+                <InputText id="nama" placeholder="Masukkan Nama"/>
                 <Message v-if="$form.nama?.invalid" severity="error">{{ $form.nama.error?.message }}</Message>
             </FormField>
-            <FormField name="gender" class="flex flex-col gap-1">
-                <label for="gender">Jenis Kelamin</label>
-                <Select id="gender" :options="[{ name: 'Laki-laki', value: 'M' }, { name: 'Perempuan', value: 'F' }]" optionLabel="name" optionValue="value" placeholder="Pilih Gender" />
-                <Message v-if="$form.gender?.invalid" severity="error">{{ $form.gender.error?.message }}</Message>
-            </FormField>
-            <div class="flex">
-                <FormField name="qty" class="flex flex-col gap-1">
-                    <label for="qty">Jumlah Tiket</label>
-                    <InputNumber id="qty"/>
-                    <Message v-if="$form.qty?.invalid" severity="error">{{ $form.qty.error?.message }}</Message>
+            <div class="w-full grid gap-1 md:gap-3 xl:gap-5 sm:grid-cols-2 sm:items-start md:grid-cols-3">
+                <FormField name="gender" class="flex flex-col gap-0.25">
+                    <label for="gender">Jenis Kelamin</label>
+                    <Select id="gender" :options="[{ name: 'Laki-laki', value: 'M' }, { name: 'Perempuan', value: 'F' }]" optionLabel="name" optionValue="value" placeholder="Pilih Gender" />
+                    <Message v-if="$form.gender?.invalid" severity="error">{{ $form.gender.error?.message }}</Message>
                 </FormField>
-                <FormField name="mobileno" class="flex flex-col gap-1">
+                <FormField name="mobileno" class="flex flex-col gap-0.25">
                     <label for="mobileno">mobile number</label>
                     <InputText id="mobileno" type="tel" placeholder="08xxxxxxxx" />
                     <Message v-if="$form.mobileno?.invalid" severity="error">{{ $form.mobileno.error?.message }}</Message>
                 </FormField>
+                <FormField name="qty" class="flex flex-col gap-0.25 sm:col-span-2 md:col-span-1">
+                    <label for="qty">Jumlah Tiket</label>
+                    <InputNumber id="qty" placeholder="Masukkan Jumlah Tiket"/>
+                    <Message v-if="$form.qty?.invalid" severity="error">{{ $form.qty.error?.message }}</Message>
+                </FormField>
             </div>
-            <FormField name="email" class="flex flex-col gap-1">
-                <label for="email">Email</label>
-                <InputText id="email" placeholder="Masukkan Email" />
+            <FormField name="email" class="flex flex-col gap-0.25">
+                <label for="email">Email Pengguna</label>
+                <InputText id="email" placeholder="Masukkan Email Pengguna" />
                 <Message v-if="$form.email?.invalid" severity="error">{{ $form.email.error?.message }}</Message>
             </FormField>
-            <Button type="submit" label="Kirim" :loading="local.isRequestInProgress" />
+            <Button type="submit" label="Kirim" :loading="local.isRequestInProgress" class="w-fit mx-auto mt-7.5"/>
         </Form>
     </section>
 </template>

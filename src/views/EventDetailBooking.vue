@@ -114,9 +114,9 @@ onBeforeMount(async() =>{
                     <span>:</span>
                 </div>
                 <div class="ml-1 flex flex-col text-sm sm:text-base lg:text-lg xl:text-xl">
-                    <!-- <p>{{ local.detail_event.nama_lokasi }}</p>
-                    <p>{{ local.detail_event.start_date }}</p>
-                    <p>{{ local.detail_event.price }}</p> -->
+                    <p>{{ local.detail_event.nama_lokasi ?? '-' }}</p>
+                    <p>{{ local.detail_event.start_date ?? '-' }}</p>
+                    <p>{{ local.detail_event.price ?? '-' }}</p>
                 </div>
             </div>
             <div class="w-fit relative left-1/2 -translate-x-1/2 mt-5 flex items-center gap-5">
