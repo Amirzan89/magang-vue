@@ -28,16 +28,20 @@ const headerRef = ref(null)
 const bgLayer = ref(null)
 onMounted(async() => {
     router.isReady().then(() => {
-        gsap.fromTo(bgLayer.value,{ opacity: 0, y: 50 }, {
-        opacity: 1,
-        y: 0,
-        scrollTrigger: {
-            trigger: 'section:first-of-type',
-            start: "bottom top",
-            end: "bottom+=200 top",
-            scrub: 1,
-            markers: true
-        }})
+        gsap.fromTo(bgLayer.value,{ opacity: 0, y: -50 }, {
+            opacity: 1,
+            y: 0,
+            scrollTrigger: {
+                trigger: 'section:first-of-type',
+                start: "bottom-=120 top",
+                end: "bottom-=40 top",
+                scrub: true,
+            },
+            stagger: {
+                from: 'start',
+                each: 0.1,
+            }
+        })
     })
 })
 </script>
