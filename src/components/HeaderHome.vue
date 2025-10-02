@@ -33,9 +33,10 @@ onMounted(async() => {
             y: 0,
             scrollTrigger: {
                 trigger: 'section:first-of-type',
-                start: "bottom-=120 top",
-                end: "bottom-=40 top",
+                start: "bottom-=40 top+=40",
+                end: "bottom+=40 top+=40",
                 scrub: true,
+                markers: true,
             },
             stagger: {
                 from: 'start',
