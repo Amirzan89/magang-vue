@@ -24,9 +24,15 @@ export default [
         meta: { layout: 'default' },
     },
     {
-        path: '/events/:id',
+        path: '/event/:id',
         name: 'EventDetailPage',
-        component: () => import('@/views/EventDetail.vue'),
+        component: () => import('@/views/EventDetailBooking.vue'),
+        meta: { layout: 'default' },
+    },
+    {
+        path: '/booking/:id',
+        name: 'EventBookingPage',
+        component: () => import('@/views/EventDetailBooking.vue'),
         meta: { layout: 'default' },
     },
 ]
