@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
+import { gsap } from "gsap"
+import { ScrollTrigger } from "gsap/ScrollTrigger"
+gsap.registerPlugin(ScrollTrigger)
 const navOpen = ref(false)
 const routeItems = reactive([
     {
@@ -20,10 +23,23 @@ const routeItems = reactive([
         'link': '/contact',
     },
 ])
+const headerRef = ref(null)
+const bgLayer = ref(null)
+onMounted(() => {
+    gsap.fromTo(bgLayer.value,{ opacity: 1 }, {
+    opacity: 0,
+    scrollTrigger: {
+        trigger: 'section',
+        start: "bottom top",
+        end: "bottom-=200 top",
+        scrub: true,
+        markers: true
+    }})
+})
 </script>
 <template>
-    <header class="sticky w-full z-20 top-0 start-0">
-        <div class="absolute top-0 left-0 w-full h-full -z-1">
+    <header ref="headerRef" class="sticky w-full z-20 top-0 start-0">
+        <div ref="bgLayer" class="absolute top-0 left-0 w-full h-full -z-1">
             <img src="@/assets/images/header.png" alt="" class="w-full h-full object-cover" />
             <div class="absolute top-0 left-0 w-full h-full opacity-90 bg-red-500" style="background: #ED4690; background: linear-gradient(145deg,rgba(237, 70, 144, 1) 0%, rgba(85, 34, 204, 1) 100%)"></div>
         </div>
