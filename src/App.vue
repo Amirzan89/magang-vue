@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, provide, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import theme from '@/theme'
 import Toast from 'primevue/toast'
@@ -24,6 +24,7 @@ const dynamicPad: Record<string, string> = {
     const updatePadding = () => {
     const breakpoint = [...screenCon].sort((a,b) => b-a).find(b => width.value >= b)
     const pad = breakpoint ? dynamicPad[Object.keys(dynamicPad)[screenCon.indexOf(breakpoint)]] : '50px'
+    provide('header', pad)
     document.documentElement.style.setProperty('--paddTop', pad)
 }
 updatePadding()

@@ -98,4 +98,9 @@ const metaDataAll = {
     </section>
 </template>
 <style scoped>
+header{
+    z-index: z-50;
+    height: var(--paddTop);
+    scroll-padding-top: var(--paddTop);
+}
 </style>

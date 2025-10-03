@@ -320,4 +320,7 @@ const metaDataReviews = {
     </section>
 </template>
 <style scoped>
+section:nth-of-type(2){
+    padding-top: var(--paddTop);
+}
 </style>

@@ -432,4 +432,9 @@ const metaDataLoading = {
 .sidefilter-leave-from{
     transform: translateX(0);
 }
+header{
+    z-index: z-50;
+    height: var(--paddTop);
+    scroll-padding-top: var(--paddTop);
+}
 </style>
