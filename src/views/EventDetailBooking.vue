@@ -18,6 +18,7 @@ import I_Location from '@/assets/icons/detail_event/location.svg?component'
 import I_Date from '@/assets/icons/detail_event/date.svg?component'
 import I_Ticket from '@/assets/icons/detail_event/ticket.svg?component'
 const fetchDataS = useFetchDataStore()
+const route = useRoute()
 const local = reactive({
     detail_event: {} as Record<string, any>,
     all_events: null as any,
@@ -120,12 +121,12 @@ onBeforeMount(async() =>{
                 </div>
             </div>
             <div class="w-fit relative left-1/2 -translate-x-1/2 mt-5 flex items-center gap-5">
-                <Button variant="outlined" as="a" :href="local.detail_event?.link_event" target="_blank" rel="noopener noreferrer" class="w-fit !text-[#3D37F1] hover:!text-white !border-[#3D37F1] hover:!bg-[#3D37F1] !text-sm sm:!text-base lg:!text-lg xl:!text-xl">Book Event</Button>
+                <Button variant="outlined" :as="RouterLink" :to="(route.path.startsWith('/event') ? '/booking/' : '/event/')+ route.params.id" class="w-fit !text-[#3D37F1] hover:!text-white !border-[#3D37F1] hover:!bg-[#3D37F1] !text-sm sm:!text-base lg:!text-lg xl:!text-xl">Book Event</Button>
                 <Button variant="outlined" as="a" :href="local.detail_event?.event_detail" target="_blank" rel="noopener noreferrer" class="w-fit !text-[#3D37F1] hover:!text-white !border-[#3D37F1] hover:!bg-[#3D37F1] !text-sm sm:!text-base lg:!text-lg xl:!text-xl">Learn More</Button>
             </div>
         </div>
     </section>
-    <EventDetailComponent v-if="useRoute().path == '/events'" :all_events="local.all_events" />
+    <EventDetailComponent v-if="route.path.startsWith('/event')" :all_events="local.all_events ?? []" />
     <EventBookingComponent v-else :detail_event="local.detail_event" />
 </template>
 <style scoped>

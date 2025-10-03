@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Navigation, Pagination, Autoplay } from 'swiper/modules'
-import { ref, reactive, onBeforeMount, markRaw, h, useSlots, defineComponent, type ComponentPublicInstance } from 'vue'
+import { ref, reactive, onBeforeMount, markRaw, h, useSlots, defineComponent, type ComponentPublicInstance, nextTick, onMounted } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -9,6 +10,7 @@ import 'swiper/css/pagination';
 import 'swiper/css/autoplay';
 import { useConfig } from '@/composables/useConfig'
 import { breakpoints } from '@/composables/useScreenSize'
+import { eventBus } from '@/eventBus'
 import { useFetchDataStore } from '@/stores/FetchData'
 import { getImgURL } from '@/utils/global'
 import CustomCardWithSkeletonComponent from '@/components/CustomCardWithSkeleton.vue'
@@ -59,6 +61,7 @@ onBeforeMount(async() =>{
     local.upcoming_events = res.data.upcoming_events
     local.past_events = res.data.past_events
     local.reviews = res.data.reviews
+    eventBus.emit('tHeader')
 })
 const activeIndex = ref(0)
 const onSlideChange = (swiper: any) => {
@@ -131,7 +134,7 @@ const metaDataReviews = {
         <div class="relative flex flex-col justify-between items-center h-full text-white">
             <Swiper v-if="local.upcoming_events && local.upcoming_events.length > 0" :modules="[Navigation, Pagination, Autoplay]" :slides-per-view="1" :space-between="20" :loop="true" :autoplay="{ delay: 3000 }" :pagination="{ clickable: true }" :allow-touch-move="false" :simulate-touch="false" :keyboard="{ enabled: false }" :mousewheel="{ enabled: false }" :navigation="{ nextEl: '.btn-next', prevEl: '.btn-prev' }" class="w-[85%] lg:w-[92%] aspect-video lg:aspect-auto h-3/4 rounded-xl"  @slideChange="onSlideChange">
                 <template v-for="(item, index) in local.upcoming_events" :key="index">
-                    <SwiperSlide><img :src="item.img" alt="" class="w-full object-contain"></SwiperSlide>
+                    <SwiperSlide><img :src="item.img" alt="" class="w-full object-contain" loading="lazy"></SwiperSlide>
                 </template>
                 <div class="absolute z-2 w-full h-full top-0 left-0 backdrop-blur-[1px]">
                     <div class="absolute z-3 w-full h-full top-0 left-0 opacity-70" style="background: #5420B4; background: linear-gradient(45deg,rgba(84, 32, 180, 1) 100%, rgba(0, 0, 0, 1) 13%);"></div>
@@ -142,7 +145,7 @@ const metaDataReviews = {
                                 <I_VLeft v-if="breakpoints.greater('sm').value" class="btn-prev size-8"/>
                                 <div class="w-full sm:w-[90%] h-full sm:h-fit flex flex-col justify-between items-start">
                                     <h4 class="text-sm sm:text-base lg:text-lg xl:text-xl">{{ local.upcoming_events[activeIndex].event_name }}</h4>
-                                    <a :href="'/events/' + local.upcoming_events[activeIndex]!.link_event" class="w-fit h-fit px-3 py-2 sm:px-3.25 sm:py-2.25 lg:px-3.5 lg:py-2.5 text-[#fff] border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-[#fff] rounded-lg md:rounded-xl flex justify-center items-center hover:bg-[#fff] text-xs sm:text-sm lg:text-base xl:text-lg hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">Learn More</a>
+                                    <a :href="'/event/' + local.upcoming_events[activeIndex]!.link_event" class="w-fit h-fit px-3 py-2 sm:px-3.25 sm:py-2.25 lg:px-3.5 lg:py-2.5 text-[#fff] border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-[#fff] rounded-lg md:rounded-xl flex justify-center items-center hover:bg-[#fff] text-xs sm:text-sm lg:text-base xl:text-lg hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">Learn More</a>
                                 </div>
                                 <I_VRight v-if="breakpoints.greater('sm').value" class="btn-next size-8"/>
                             </div>
@@ -197,7 +200,7 @@ const metaDataReviews = {
                         </template>
                         <template #content>
                             <div class="flex flex-col gap-0">
-                                <RouterLink :to="'/events/' + inpData.event_id" class="text-sm sm:text-base lg:text-lg xl:text-xl font:medium lg:font-semibold">{{ inpData.event_name }}</RouterLink>
+                                <RouterLink :to="'/event/' + inpData.event_id" class="text-sm sm:text-base lg:text-lg xl:text-xl font:medium lg:font-semibold">{{ inpData.event_name }}</RouterLink>
                                 <span class="text-xs sm:text-sm lg:text-base xl:text-lg">{{ inpData.start_date }}</span>
                             </div>
                             <div class="mt-4 sm:mt-3 lg:mt-5 xl:mt-7 flex justify-between">
@@ -209,7 +212,7 @@ const metaDataReviews = {
                     </Card>
                 </template>
             </CustomCardWithSkeletonComponent>
-            <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 w-fit h-fit mt-5 lg:mt-10 px-3 py-2 sm:px-3.25 sm:py-2.25 lg:px-3.5 lg:py-2.5 text-[#3D37F1] border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-[#3D37F1] rounded-lg md:rounded-xl flex justify-center items-center hover:bg-[#3D37F1] text-sm sm:text-base lg:text-lg xl:text-lg hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">See All Events</RouterLink>
+            <RouterLink to="/event" class="relative left-1/2 -translate-x-1/2 w-fit h-fit mt-5 lg:mt-10 px-3 py-2 sm:px-3.25 sm:py-2.25 lg:px-3.5 lg:py-2.5 text-[#3D37F1] border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-[#3D37F1] rounded-lg md:rounded-xl flex justify-center items-center hover:bg-[#3D37F1] text-sm sm:text-base lg:text-lg xl:text-lg hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">See All Events</RouterLink>
         </div>
         <div class="h-17 sm:h-55 xl:h-60 mt-17 lg:mt-50 bg-purple-500">
             <div class="w-[95%] lg:w-[90%] xl:w-[75%] h-full relative left-1/2 -translate-x-1/2 flex justify-between items-end overflow-y-visible">
@@ -250,7 +253,7 @@ const metaDataReviews = {
                         </template>
                         <template #content>
                             <div class="flex flex-col gap-0">
-                                <RouterLink :to="'/events/' + inpData.event_id" class="text-sm sm:text-base lg:text-lg xl:text-xl font:medium lg:font-semibold">{{ inpData.event_name }}</RouterLink>
+                                <RouterLink :to="'/event/' + inpData.event_id" class="text-sm sm:text-base lg:text-lg xl:text-xl font:medium lg:font-semibold">{{ inpData.event_name }}</RouterLink>
                                 <span class="text-xs sm:text-sm lg:text-base xl:text-lg">{{ inpData.start_date }}</span>
                             </div>
                             <div class="mt-4 sm:mt-3 lg:mt-5 xl:mt-7 flex justify-between">
@@ -262,7 +265,7 @@ const metaDataReviews = {
                     </Card>
                 </template>
             </CustomCardWithSkeletonComponent>
-            <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 w-fit h-fit mt-5 lg:mt-10 px-3 py-2 sm:px-3.25 sm:py-2.25 lg:px-3.5 lg:py-2.5 text-[#3D37F1] border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-[#3D37F1] rounded-lg md:rounded-xl flex justify-center items-center hover:bg-[#3D37F1] text-sm sm:text-base lg:text-lg xl:text-lg hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">Load More</RouterLink>
+            <RouterLink to="/event" class="relative left-1/2 -translate-x-1/2 w-fit h-fit mt-5 lg:mt-10 px-3 py-2 sm:px-3.25 sm:py-2.25 lg:px-3.5 lg:py-2.5 text-[#3D37F1] border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-[#3D37F1] rounded-lg md:rounded-xl flex justify-center items-center hover:bg-[#3D37F1] text-sm sm:text-base lg:text-lg xl:text-lg hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">Load More</RouterLink>
         </div>
         <div class="w-[90%] lg:w-[95%] xl:w-[97%] mx-auto mt-20 lg:mt-50">
             <h2 class="w-fit mx-auto text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold text-[#242565]">Reviews About Us</h2>

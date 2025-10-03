@@ -24,6 +24,10 @@ export default [
         meta: { layout: 'default' },
     },
     {
+        path: '/event',
+        redirect: '/events',
+    },
+    {
         path: '/event/:id',
         name: 'EventDetailPage',
         component: () => import('@/views/EventDetailBooking.vue'),

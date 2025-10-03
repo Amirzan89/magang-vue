@@ -76,7 +76,7 @@ const metaDataLoading = {
                                 </template>
                                 <template #content>
                                     <div class="flex flex-col gap-0">
-                                        <RouterLink :to="'/events/' + inpData.event_id" class="text-sm sm:text-base lg:text-lg xl:text-xl font:medium lg:font-semibold">{{ inpData.event_name }}</RouterLink>
+                                        <RouterLink :to="'/event/' + inpData.event_id" class="text-sm sm:text-base lg:text-lg xl:text-xl font:medium lg:font-semibold">{{ inpData.event_name }}</RouterLink>
                                         <span class="text-xs sm:text-sm lg:text-base xl:text-lg">{{ inpData.start_date }}</span>
                                     </div>
                                     <div class="mt-4 sm:mt-3 lg:mt-5 xl:mt-7 flex justify-between">
@@ -98,7 +98,7 @@ const metaDataLoading = {
                                 </div>
                             </div>
                         </CustomCardWithSkeletonComponent>
-                    <RouterLink to="/events" class="relative left-1/2 -translate-x-1/2 w-fit h-fit mt-3 sm:mt-5 lg:mt-7 px-3 py-2 sm:px-3.25 sm:py-2.25 lg:px-3.5 lg:py-2.5 text-[#3D37F1] border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-[#3D37F1] rounded-lg md:rounded-xl flex justify-center items-center hover:bg-[#3D37F1] text-sm sm:text-base lg:text-lg xl:text-lg hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">Load More</RouterLink>
+                    <RouterLink to="/event" class="relative left-1/2 -translate-x-1/2 w-fit h-fit mt-3 sm:mt-5 lg:mt-7 px-3 py-2 sm:px-3.25 sm:py-2.25 lg:px-3.5 lg:py-2.5 text-[#3D37F1] border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-[#3D37F1] rounded-lg md:rounded-xl flex justify-center items-center hover:bg-[#3D37F1] text-sm sm:text-base lg:text-lg xl:text-lg hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">Load More</RouterLink>
                 </div>
             </div>
         </div>
