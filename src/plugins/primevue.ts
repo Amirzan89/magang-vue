@@ -1,12 +1,16 @@
 import 'primeicons/primeicons.css'
 import PrimeVue from 'primevue/config'
 import Aura from '@primeuix/themes/aura'
-import StyleClass from 'primevue/styleclass';
-import Button from 'primevue/button'
+import StyleClass from 'primevue/styleclass'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import ColumnGroup from 'primevue/columngroup'
+import Row from 'primevue/row'
 import Dialog from 'primevue/dialog'
 import Skeleton from 'primevue/skeleton'
 import Card from 'primevue/card'
 import Message from 'primevue/message'
+import Button from 'primevue/button'
 import IconField from 'primevue/iconfield'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
@@ -31,11 +35,15 @@ export default function setupPrimeVue(app: any){
     })
     app.use(ToastService)
     app.directive('styleclass', StyleClass)
-    app.component('Button', Button)
     app.component('Dialog', Dialog)
+    app.component('DataTable', DataTable)
+    app.component('Column', Column)
+    app.component('ColumnGroup', ColumnGroup)
+    app.component('Row', Row)
     app.component('Skeleton', Skeleton)
     app.component('Card', Card)
     app.component('Message', Message)
+    app.component('Button', Button)
     app.component('IconField', IconField)
     app.component('InputText', InputText)
     app.component('InputNumber', InputNumber)
