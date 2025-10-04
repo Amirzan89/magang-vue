@@ -2,16 +2,15 @@
 import { computed, provide, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import theme from '@/theme'
-import Toast from 'primevue/toast'
 import { width } from '@/composables/useScreenSize'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
-import AuthLayout from '@/layouts/AuthLayout.vue'
+import AdminLayout from '@/layouts/AdminLayout.vue'
 import EmptyLayout from '@/layouts/EmptyLayout.vue'
 import LoadingComponent from './components/Loading.vue'
 const route = useRoute()
 const layouts: Record<string, any> = {
     default: DefaultLayout,
-    auth: AuthLayout,
+    admin: AdminLayout,
     empty: EmptyLayout,
 }
 const layoutName = computed(() => route.matched[route.matched.length - 1]?.meta?.layout || 'default')
@@ -32,10 +31,9 @@ watch(width, updatePadding)
 </script>
 <template>
     <!-- <transition name="fade" mode="out-in"> -->
-        <component :is="Layout" :key="layoutName" />
     <!-- </transition> -->
+        <component :is="Layout" :key="layoutName" />
     <LoadingComponent/>
-    <Toast position="bottom-right" />
 </template>
 <style>
 .fade-enter-active,.fade-leave-active { transition: opacity .15s }

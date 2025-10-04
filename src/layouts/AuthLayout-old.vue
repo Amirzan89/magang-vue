@@ -4,6 +4,6 @@
     <FooterComponent/>
 </template>
 <script setup lang="ts">
-import HeaderComponent from './HeaderHome.vue'
-import FooterComponent from './FooterHome.vue'
+import HeaderComponent from '@/layouts/HeaderHome.vue'
+import FooterComponent from '@/layouts/FooterHome.vue'
 </script>

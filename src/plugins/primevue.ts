@@ -1,5 +1,7 @@
+import 'primeicons/primeicons.css'
 import PrimeVue from 'primevue/config'
 import Aura from '@primeuix/themes/aura'
+import StyleClass from 'primevue/styleclass';
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import Skeleton from 'primevue/skeleton'
@@ -16,17 +18,19 @@ import Avatar from 'primevue/avatar'
 import InputIcon from 'primevue/inputicon'
 import ToastService from 'primevue/toastservice'
 import ProgressSpinner from 'primevue/progressspinner'
+import Toast from 'primevue/toast'
 export default function setupPrimeVue(app: any){
     app.use(PrimeVue, {
         ripple: true,
         theme: {
             preset: Aura,
             options: {
-                darkModeSelector: '',
+                darkModeSelector: '.app-dark',
             }
         }
     })
     app.use(ToastService)
+    app.directive('styleclass', StyleClass)
     app.component('Button', Button)
     app.component('Dialog', Dialog)
     app.component('Skeleton', Skeleton)
@@ -42,4 +46,5 @@ export default function setupPrimeVue(app: any){
     app.component('Avatar', Avatar)
     app.component('InputIcon', InputIcon)
     app.component('ProgressSpinner', ProgressSpinner)
+    app.component('Toast', Toast)
 }

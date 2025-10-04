@@ -16,8 +16,8 @@
 </template>
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import HeaderComponent from '@/components/HeaderHome.vue'
-import FooterComponent from '@/components/Footer.vue'
+import HeaderComponent from '@/layouts/HeaderHome.vue'
+import FooterComponent from '@/layouts/FooterHome.vue'
 import NotFound from '@/components/Error/NotFound.vue'
 const curLayout = useRoute().meta.layout
 </script>
