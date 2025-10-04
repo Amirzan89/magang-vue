@@ -14,13 +14,13 @@ export default [
     {
         path: '/events',
         name: 'EventAllPage',
-        component: () => import('@/views/Events.vue'),
+        component: () => import('@/views/EventHome/EventAll.vue'),
         meta: { layout: 'default' },
     },
     {
         path: '/search',
         name: 'EventSearchPage',
-        component: () => import('@/views/EventSearch.vue'),
+        component: () => import('@/views/EventHome/EventSearch.vue'),
         meta: { layout: 'default' },
     },
     {
@@ -30,13 +30,13 @@ export default [
     {
         path: '/event/:id',
         name: 'EventDetailPage',
-        component: () => import('@/views/EventDetailBooking.vue'),
+        component: () => import('@/views/EventHome/EventDetailBooking.vue'),
         meta: { layout: 'default' },
     },
     {
         path: '/booking/:id',
         name: 'EventBookingPage',
-        component: () => import('@/views/EventDetailBooking.vue'),
+        component: () => import('@/views/EventHome/EventDetailBooking.vue'),
         meta: { layout: 'default' },
     },
 ]
