@@ -10,10 +10,9 @@ const model = ref<{label: string, icon: string, to: string, key: string, visible
     { label: 'Dashboard', icon: 'pi pi-fw pi-home', key: 'DashboardPage', to: '/dashboard' },
 ])
 onBeforeMount(() => {
-    model.value.forEach((element, index) => {
+    model.value.forEach((element) => {
         itemKey.value.push(element.key)
         const activeItem: string | null = layoutState.activeMenuItem
-        console.log('isii activee ', activeItem)
         isActiveMenu.value = (activeItem === itemKey.value) || activeItem ? activeItem!.startsWith(itemKey.value + '-') : false
     });
 })

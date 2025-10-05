@@ -6,6 +6,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import ColumnGroup from 'primevue/columngroup'
 import Row from 'primevue/row'
+import Chart from 'primevue/chart';
 import Dialog from 'primevue/dialog'
 import Skeleton from 'primevue/skeleton'
 import Card from 'primevue/card'
@@ -40,6 +41,7 @@ export default function setupPrimeVue(app: any){
     app.component('Column', Column)
     app.component('ColumnGroup', ColumnGroup)
     app.component('Row', Row)
+    app.component('Chart', Chart)
     app.component('Skeleton', Skeleton)
     app.component('Card', Card)
     app.component('Message', Message)
