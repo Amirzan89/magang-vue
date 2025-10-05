@@ -67,9 +67,37 @@ onBeforeMount(async() => {
 })
 </script>
 <template>
-    <main class="grid">
-        <div class="">
-            <Chart type="doughnut" :data="chartData" :options="chartOptions" class="w-full md:w-[30rem]"></Chart>
+    <main class="grid grid-cols-12 gap-8">
+        <div class="col-span-12 xl:col-span-6 xl:row-span-2">
+            <div class="card">
+                <Chart type="doughnut" :data="chartData" :options="chartOptions" class="w-full md:w-[30rem]"></Chart>
+            </div>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+            <div class="card mb-0 h-full">
+                <div class="flex justify-between mb-4">
+                    <div>
+                        <span class="block text-muted-color font-medium mb-4">Total Event</span>
+                        <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">{{ local.total_event }}</div>
+                    </div>
+                    <div class="flex items-center justify-center bg-blue-100 dark:bg-blue-400/10 rounded-border" style="width: 2.5rem; height: 2.5rem">
+                        <i class="pi pi-shopping-cart text-blue-500 !text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+            <div class="card mb-0 h-full">
+                <div class="flex justify-between mb-4">
+                    <div>
+                        <span class="block text-muted-color font-medium mb-4">Total Kategori</span>
+                        <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">{{ local.total_event }}</div>
+                    </div>
+                    <div class="flex items-center justify-center bg-blue-100 dark:bg-blue-400/10 rounded-border" style="width: 2.5rem; height: 2.5rem">
+                        <i class="pi pi-shopping-cart text-blue-500 !text-xl"></i>
+                    </div>
+                </div>
+            </div>
         </div>
         <DataTable :value="local.list_events" tableStyle="min-width: 50rem" :pt="{ root: { class: ['col-span-12 rounded-xl'] } }">
             <template #header>
