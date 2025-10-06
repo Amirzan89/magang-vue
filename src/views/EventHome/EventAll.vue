@@ -1,31 +1,98 @@
 <script setup lang="ts">
 import { reactive, onBeforeMount, defineComponent, useSlots, h, type ComponentPublicInstance, onMounted } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
-import { useFetchDataStore } from '@/stores/FetchData'
 import { getImgURL } from '@/utils/global'
+import useAxios from '@/composables/api/axios'
+import useEncryption from '@/composables/encryption'
 import CustomCardWithSkeletonComponent from '@/components/CustomCardWithSkeleton.vue'
 import I_Location from '@/assets/icons/card_events/location.svg?component'
 import I_Bookmark from '@/assets/icons/card_events/bookmark.svg?component'
-import freeTag from '@/assets/images/free-tag.png';
+import freeTag from '@/assets/images/free-tag.png'
 const router = useRouter()
-const fetchDataS = useFetchDataStore()
+const route = useRoute()
+const { axiosJson, fetchCsrfToken } = useAxios()
+const { encryptReq, decryptRes } = useEncryption()
 const local = reactive({
     fetchData: null as any,
-    past_events: null as any,
-    reviews: null as any,
+    next_cursor: null as string | null,
+    has_more: false,
     inpSearch: '',
     isLoading: false,
 })
-onBeforeMount(async() =>{
-    const res = (await fetchDataS.fetchPage(useRoute().path, {}))
-    if(res ==  undefined || res.status == 'error'){
-        return
+let hydrationController: AbortController | null = null
+const APIComposables = async(path: string, inpSignal: AbortSignal, requestBody = null as any) => {
+    let retryCount = 0
+    local.isLoading = true
+    const APIReq = async(signal: AbortSignal) => {
+        try{
+            const encr = await encryptReq(requestBody)
+            const res = (await(await axiosJson()).post(path, {
+                uniqueid: encr.iv,
+                cipher: encr.data,
+                mac: encr.mac,
+            }, { params: { ...route.query,_: Date.now() }, signal, headers: { 'X-Merseal': sessionStorage.merseal }})).data
+            if(signal.aborted){
+                return { status: 'error', message: 'Request dibatalkan' }
+            }
+            const decRes = decryptRes(res.message, encr.iv)
+            return { status: 'success', data: decRes }
+        }catch(err: any){
+            if(err.name === "CanceledError"){
+                console.log("Request dibatalkan")
+                return { status: 'error', message: 'Request dibatalkan' }
+            }else if(err.response){
+                let cusRedirect: string | null = null
+                if(err.response.status === 404){
+                    return { status:'error', message: 'not found', code: 404 }
+                }
+                if([419, 429].includes(err.response.status)){
+                    if(retryCount <= 3){
+                        retryCount++
+                        await fetchCsrfToken()
+                        return APIReq(signal)
+                    }else{
+                        retryCount = 0
+                        console.log('Request failed')
+                        // return toast
+                        return { status: 'error', message: 'Request failed' }
+                    }
+                }
+                if(err.response.status === 500){
+                    console.log('500', err.response.data.message)
+                    // return toast
+                    return { status: 'error', message: err.response.data.message }
+                }
+                console.log('err response', err.response.data.message)
+                // return toast
+                return { status:'error', message: err.response.data.message, code: err.response.status, data: { redirect: cusRedirect }}
+            }
+            console.log('errror', err)
+            // return toast
+            return { status:'error', message: err }
+        }finally{
+            local.isLoading = false
+        }
+    }
+    return APIReq(inpSignal)
+}
+onBeforeMount(async() => {
+    const{ id_page, limit } = route.query
+    const isLimitValid = limit && !isNaN(Number(limit)) && Number(limit) > 0 && Number(limit) <= 30
+    const isIdPageValid = id_page ? typeof id_page === 'string' && id_page.length <= 100 : true
+    if(!isIdPageValid || !isLimitValid){
+        await router.replace({ path:'/events', query: { 'limit': 15 }})
+    }
+    hydrationController = new AbortController()
+    const res = await APIComposables(route.path, hydrationController.signal)
+    if(res.status == 'error'){
+        return console.log('error hydration')
     }
     console.log('enttokk dataa ', res.data)
-    local.fetchData = res.data
+    local.fetchData = res.data.data
+    local.next_cursor = res.data.next_cursor
+    local.has_more = res.data.has_more
 })
 const redirectToSearchPage = async() => {
-    console.log('iisii ', local.inpSearch)
     router.push({
         path: '/search',
         query: {
@@ -45,6 +112,25 @@ const metaDataAll = {
         }
     }),
     customTWTransition: 'mt-1.5 phone:mt-2.5 sm:mt-4 lg:mt-5 grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4',
+    pagination: {
+        rowsPerPage: 2,
+        lazyLoading: true,
+        preRenderPage: 1,
+    }
+}
+const lazyDataData = async() => {
+    if(local.has_more){
+        await router.replace({ path:'/events', query: { 'next_page': local.next_cursor,'limit': 15 }})
+        hydrationController = new AbortController()
+        const res = await APIComposables(route.path, hydrationController.signal)
+        if(res.status == 'error'){
+            return console.log('error lazy')
+        }
+        console.log('lazyy res',res.data)
+        local.fetchData.push(...res.data.data)
+        local.next_cursor = res.data.next_cursor
+        local.has_more = res.data.has_more
+    }
 }
 </script>
 <template>
@@ -57,7 +143,7 @@ const metaDataAll = {
                     <Button class="w-16 h-10 !p-0 lg:px-3 lg:py-2 !text-sm sm:text-base lg:text-lg xl:text-xl" @click="redirectToSearchPage()">Search</Button>
                 </div>
             </div>
-            <CustomCardWithSkeletonComponent :metaData="metaDataAll" :inpData="local.fetchData" :paralelRender="2">
+            <CustomCardWithSkeletonComponent :metaData="metaDataAll" :inpData="local.fetchData" :paralelRender="2" @lazy-data="lazyDataData">
                 <template #skeleton="{ index, skeletonRefs }">
                     <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 -top-[2%] left-0 w-full h-[102%] flex flex-col items-center transition-opacity duration-100">
                         <Skeleton :pt="{ root: { class: ['!w-[104%] !h-[57%] lg:h-[65%] !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>

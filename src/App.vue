@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { computed, provide, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import theme from '@/theme'
-import { width } from '@/composables/useScreenSize'
+import { customBreakpoints, width } from '@/composables/useScreenSize'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import EmptyLayout from '@/layouts/EmptyLayout.vue'
@@ -18,9 +17,9 @@ const Layout = computed(() => layouts[layoutName.value] ?? layouts.empty)
 const dynamicPad: Record<string, string> = {
     '3xs':'55px','2xs':'55px','xs':'60px', 'phone': '70px', 'sm':'70px',
     'md':'70px','lg':'70px','xl':'70px','2xl':'75px',
-    }
-    const screenCon = Object.values(theme.screens).map(s => parseInt(s.replace('px','')))
-    const updatePadding = () => {
+}
+const updatePadding = () => {
+    const screenCon = Object.values(customBreakpoints)
     const breakpoint = [...screenCon].sort((a,b) => b-a).find(b => width.value >= b)
     const pad = breakpoint ? dynamicPad[Object.keys(dynamicPad)[screenCon.indexOf(breakpoint)]] : '50px'
     provide('header', pad)

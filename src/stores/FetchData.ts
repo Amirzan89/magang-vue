@@ -36,7 +36,7 @@ export const useFetchDataStore = defineStore('fetchDataStore', {
                     mac: encr.mac,
                 }, { params: {...params, _: Date.now()}, headers: { 'X-Merseal': sessionStorage.merseal }})).data
                 this.processFetch = { isDone: 'success', message: ''}
-                return { status: 'success', data: decryptRes(res.data, encr.iv) }
+                return { status: 'success', data: decryptRes(res.message, encr.iv) }
             }catch(err: any){
                 if (err.response){
                     let cusRedirect: string | null = null

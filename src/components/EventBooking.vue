@@ -52,7 +52,7 @@ const formBooking = ({ valid, states }: any) => {
             if(signal.aborted){
                 return { status: 'error', message: 'Request dibatalkan' }
             }
-            const decRes = decryptRes(res.data, encr.iv)
+            const decRes = decryptRes(res.message, encr.iv)
             return { status: 'success', data: decRes }
         }catch(err: any){
             if(err.name === "CanceledError"){

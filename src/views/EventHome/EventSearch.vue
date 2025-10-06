@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { Form, FormField } from '@primevue/forms'
-import { ref, reactive, computed, watch, onBeforeMount, h, useSlots, defineComponent, nextTick, Teleport, type Ref, type ComponentPublicInstance } from 'vue'
+import { ref, reactive, watch, onBeforeMount, h, useSlots, defineComponent, nextTick, Teleport, type Ref, type ComponentPublicInstance } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
-import { formatTgl } from "@/utils/global"
 import useAxios from '@/composables/api/axios'
 import useEncryption from '@/composables/encryption'
 import { width, isMobile, isDesktop } from '@/composables/useScreenSize'
 import { getImgURL } from '@/utils/global'
 import CustomCardWithSkeletonComponent from '@/components/CustomCardWithSkeleton.vue'
-import I_DRight from '@/assets/icons/card_events/double-right.svg?component'
 import I_Location from '@/assets/icons/card_events/location.svg?component'
 import I_Bookmark from '@/assets/icons/card_events/bookmark.svg?component'
 import freeTag from '@/assets/images/free-tag.png';
@@ -25,13 +23,6 @@ const local = reactive({
     isLoading: false,
     isFirstLoad: true,
 })
-// const itemsCategoryFilter = [
-//     { label: 'Tech', value: 'tech' },
-//     { label: 'Design', value: 'design' },
-//     { label: 'Games', value: 'games' },
-//     { label: 'Olahraga', value: 'olahraga' },
-//     { label: 'Seni', value: 'seni' },
-// ]
 const itemsCategoryFilter = ref<{ label: string, value: string }[]>([])
 const itemsPaysFilter = ref([
     { name: 'Free', value: 'free' },
@@ -40,7 +31,6 @@ const itemsPaysFilter = ref([
 ])
 let filterRules = {
     pay: ["pay", "free", "all"] as const,
-    // category: ["tech", "design", "games", "olahraga", "seni"] as const,
     category: [] as any,
     dates: null as Date[] | null,
 }
@@ -183,7 +173,7 @@ const APIComposables = async(path: string, inpSignal: AbortSignal) => {
             if(signal.aborted){
                 return { status: 'error', message: 'Request dibatalkan' }
             }
-            const decRes = decryptRes(res.data, encr.iv)
+            const decRes = decryptRes(res.message, encr.iv)
             return { status: 'success', data: decRes }
         }catch(err: any){
             if(err.name === "CanceledError"){
@@ -229,7 +219,7 @@ const APIComposables = async(path: string, inpSignal: AbortSignal) => {
 }
 onBeforeMount(async() => {
     categoryHydrationController = new AbortController()
-    const res = await APIComposables('/event-category', categoryHydrationController.signal)
+    const res = await APIComposables('/event-categories', categoryHydrationController.signal)
     if(res.status == 'error'){
         return console.log('error')
     }

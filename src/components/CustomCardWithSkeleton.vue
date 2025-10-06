@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, useSlots, computed, type Component } from 'vue'
+import { ref, useSlots, computed, type Component, watch } from 'vue'
 import { breakpoints } from '@/composables/useScreenSize'
 const slots = useSlots()
 const props = defineProps<{
@@ -9,10 +9,43 @@ const props = defineProps<{
         wrapper?: (inpData: any) => Component,
         customTWTransition?: string,
         customCSSTransition?: string,
+        pagination?: {
+            rowsPerPage: number,
+            lazyLoading?: false,
+            preRenderPage?: number,
+        } 
     }
     inpData?: Record<string, any>[]
     paralelRender: number
+    serverSide?: boolean,
 }>()
+const emit = defineEmits(['lazy-data'])
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+const rowCountPagination = 2
+const pagedData = computed(() => {
+    if (props.serverSide) return props.inpData
+    return props.inpData?.slice(first.value, first.value + (rows.value ?? 0)) ?? []
+})
+const skeletonRefs: any = ref([])
+const cardRefs: any = ref([])
+const queue: number[] = []
+const active = new Set<number>()
+const parallelLimit = ref(props.paralelRender ?? 1)
+const first = ref(0)
+const rows = ref(props.metaData.pagination?.rowsPerPage)
+const resizePaginationTimer = ref<any>(null)
+const total = computed(() => props.inpData?.length)
+const hasData = computed(() => {
+    return props.metaData.pagination ? (pagedData && pagedData.value!.length > 0) : (props.inpData && props.inpData!.length > 0)
+})
+const renderCards = (cond: 'v-for' | 'item') => {
+    if(cond == 'v-for'){
+        const base = props.metaData.pagination ? pagedData.value!.length : props.inpData!.length
+        return  base + (slots['placeholder-card'] ? 1 : 0)
+    }else if(cond == 'item'){
+        return props.metaData.pagination ? pagedData.value : props.inpData
+    }
+}
 const slotSkeleton = (indexPar: number) => {
     if(indexPar <= props.inpData!.length){
         return 'skeleton'
@@ -29,12 +62,6 @@ const slotCard = (indexPar: number) => {
     }
     return undefined
 }
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
-const skeletonRefs: any = ref([])
-const cardRefs: any = ref([])
-const queue: number[] = []
-const active = new Set<number>()
-const parallelLimit = ref(props.paralelRender ?? 1)
 const runAnimation = async (index: number) => {
     active.add(index)
     await delay(10)
@@ -69,24 +96,51 @@ const parseGridCols = (classStr: string) => {
 }
 const parsedCols = computed(() => parseGridCols(props.metaData.customTWTransition ?? ''))
 const colCount = computed(() => {
-    if(breakpoints['2xl'].value) return parsedCols.value['2xl'] ?? parsedCols.value.lg ?? parsedCols.value.base ?? 1
-    if(breakpoints.lg.value) return parsedCols.value.lg ?? parsedCols.value.base ?? 1
-    if(breakpoints.sm.value) return parsedCols.value.sm ?? parsedCols.value.base ?? 1
+    if(breakpoints['2xl'].value) return parsedCols.value['2xl']
+    if(breakpoints.lg.value) return parsedCols.value.lg
+    if(breakpoints.md.value) return parsedCols.value.md
+    if(breakpoints.phone.value) return parsedCols.value.phone
     return parsedCols.value.base ?? 1
+})
+const handlePage = (e: any) => {
+    first.value = e.first
+    rows.value = e.rows
+    if(props.metaData.pagination?.lazyLoading && (((e.page + 1) + (props.metaData.pagination.preRenderPage ?? 0)) >= e.pageCount)){
+        emit('lazy-data', e)
+    }
+}
+watch([() => props.inpData, colCount], () => {
+    if (resizePaginationTimer.value) clearTimeout(resizePaginationTimer.value)
+    resizePaginationTimer.value = setTimeout(() => {
+        if(props.inpData && props.inpData.length > 0 && props.metaData.pagination){
+            const baseRows = props.metaData.pagination.rowsPerPage ?? rowCountPagination
+            rows.value = colCount.value * baseRows
+            first.value = 0
+        }
+    }, 10)
 })
 </script>
 <template>
-    <TransitionGroup tag="div" name="fade" mode="out-in" key="annn" :class="metaData.customTWTransition" :style="metaData.customCSSTransition">
-        <template v-if="!props.isLoading && props.inpData && props.inpData.length > 0" v-for="indexPar in props.inpData.length + (slots['placeholder-card'] ? 1 : 0)" :key="'ifCard' + indexPar">
-            <component v-if="metaData.wrapper" :is="metaData.wrapper(props.inpData[indexPar - 1])">
-                <slot :name="slotSkeleton(indexPar)" :index="indexPar" :skeletonRefs="skeletonRefs"/>
-                <slot :name="slotCard(indexPar)" :index="indexPar" :inpData="props.inpData[indexPar - 1]" :toggleSkeleton="handleToggleSkeleton" :cardRefs="cardRefs"/>
-            </component>
-        </template>
-        <template v-else v-for="indexPar in colCount" :key="'elseCard' + indexPar">
-            <slot/>
-        </template>
-    </TransitionGroup>
+    <div>
+        <div :class="metaData.customTWTransition" :style="metaData.customCSSTransition">
+            <template v-if="!props.isLoading && hasData" v-for="indexPar in renderCards('v-for')" :key="'ifCard' + indexPar + Date.now()">
+                <component v-if="metaData.wrapper" :is="metaData.wrapper(renderCards('item')[indexPar - 1])">
+                    <slot :name="slotSkeleton(indexPar)" :index="indexPar" :skeletonRefs="skeletonRefs"/>
+                    <slot :name="slotCard(indexPar)" :index="indexPar" :inpData="renderCards('item')[indexPar - 1]" :toggleSkeleton="handleToggleSkeleton" :cardRefs="cardRefs"/>
+                </component>
+            </template>
+            <!-- <template v-if="!props.isLoading && pagedData && pagedData.length > 0" v-for="indexPar in pagedData.length + (slots['placeholder-card'] ? 1 : 0)" :key="'ifCard' + indexPar">
+                <component v-if="metaData.wrapper" :is="metaData.wrapper(pagedData[indexPar - 1])">
+                    <slot :name="slotSkeleton(indexPar)" :index="indexPar" :skeletonRefs="skeletonRefs"/>
+                    <slot :name="slotCard(indexPar)" :index="indexPar" :inpData="pagedData[indexPar - 1]" :toggleSkeleton="handleToggleSkeleton" :cardRefs="cardRefs"/>
+                </component>
+            </template> -->
+            <template v-else v-for="indexPar in colCount" :key="'elseCard' + indexPar">
+                <slot/>
+            </template>
+        </div>
+        <Paginator v-if="!props.isLoading && pagedData && pagedData.length > 0 && metaData.pagination" class="mt-6 flex justify-center" :first="first" :rows="rows" :totalRecords="total" @page="handlePage"/>
+    </div>
 </template>
 <style scoped>
     .shimmer{

@@ -2,6 +2,7 @@ import 'primeicons/primeicons.css'
 import PrimeVue from 'primevue/config'
 import Aura from '@primeuix/themes/aura'
 import StyleClass from 'primevue/styleclass'
+import Paginator from 'primevue/paginator'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import ColumnGroup from 'primevue/columngroup'
@@ -36,12 +37,13 @@ export default function setupPrimeVue(app: any){
     })
     app.use(ToastService)
     app.directive('styleclass', StyleClass)
-    app.component('Dialog', Dialog)
+    app.component('Paginator', Paginator)
     app.component('DataTable', DataTable)
     app.component('Column', Column)
     app.component('ColumnGroup', ColumnGroup)
     app.component('Row', Row)
     app.component('Chart', Chart)
+    app.component('Dialog', Dialog)
     app.component('Skeleton', Skeleton)
     app.component('Card', Card)
     app.component('Message', Message)
