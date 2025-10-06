@@ -11,7 +11,7 @@ const props = defineProps<{
         customCSSTransition?: string,
         pagination?: {
             rowsPerPage: number,
-            lazyLoading?: false,
+            lazyLoading?: boolean,
             preRenderPage?: number,
         } 
     }
@@ -22,10 +22,7 @@ const props = defineProps<{
 const emit = defineEmits(['lazy-data'])
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 const rowCountPagination = 2
-const pagedData = computed(() => {
-    if (props.serverSide) return props.inpData
-    return props.inpData?.slice(first.value, first.value + (rows.value ?? 0)) ?? []
-})
+const wrapperCache = new Map()
 const skeletonRefs: any = ref([])
 const cardRefs: any = ref([])
 const queue: number[] = []
@@ -35,16 +32,25 @@ const first = ref(0)
 const rows = ref(props.metaData.pagination?.rowsPerPage)
 const resizePaginationTimer = ref<any>(null)
 const total = computed(() => props.inpData?.length)
+const pagedData = computed(() => {
+    if (props.serverSide) return props.inpData
+    return props.inpData?.slice(first.value, first.value + (rows.value ?? 0)) ?? []
+})
 const hasData = computed(() => {
     return props.metaData.pagination ? (pagedData && pagedData.value!.length > 0) : (props.inpData && props.inpData!.length > 0)
 })
-const renderCards = (cond: 'v-for' | 'item') => {
-    if(cond == 'v-for'){
-        const base = props.metaData.pagination ? pagedData.value!.length : props.inpData!.length
-        return  base + (slots['placeholder-card'] ? 1 : 0)
-    }else if(cond == 'item'){
-        return props.metaData.pagination ? pagedData.value : props.inpData
+const renderForCards = computed(() => {
+    return (props.metaData.pagination ? pagedData.value!.length : props.inpData!.length) + + (slots['placeholder-card'] ? 1 : 0)
+})
+const renderItemCards = computed(() => {
+    return props.metaData.pagination ? pagedData.value : props.inpData
+})
+const getWrapper = (inpData: any) => {
+    const key = inpData?.wrapperKey || inpData?.event_id || 'default'
+    if(!wrapperCache.has(key)){
+        wrapperCache.set(key, props.metaData.wrapper!(inpData))
     }
+    return wrapperCache.get(key)
 }
 const slotSkeleton = (indexPar: number) => {
     if(indexPar <= props.inpData!.length){
@@ -123,21 +129,11 @@ watch([() => props.inpData, colCount], () => {
 <template>
     <div>
         <div :class="metaData.customTWTransition" :style="metaData.customCSSTransition">
-            <template v-if="!props.isLoading && hasData" v-for="indexPar in renderCards('v-for')" :key="'ifCard' + indexPar + Date.now()">
-                <component v-if="metaData.wrapper" :is="metaData.wrapper(renderCards('item')[indexPar - 1])">
-                    <slot :name="slotSkeleton(indexPar)" :index="indexPar" :skeletonRefs="skeletonRefs"/>
-                    <slot :name="slotCard(indexPar)" :index="indexPar" :inpData="renderCards('item')[indexPar - 1]" :toggleSkeleton="handleToggleSkeleton" :cardRefs="cardRefs"/>
-                </component>
-            </template>
-            <!-- <template v-if="!props.isLoading && pagedData && pagedData.length > 0" v-for="indexPar in pagedData.length + (slots['placeholder-card'] ? 1 : 0)" :key="'ifCard' + indexPar">
-                <component v-if="metaData.wrapper" :is="metaData.wrapper(pagedData[indexPar - 1])">
-                    <slot :name="slotSkeleton(indexPar)" :index="indexPar" :skeletonRefs="skeletonRefs"/>
-                    <slot :name="slotCard(indexPar)" :index="indexPar" :inpData="pagedData[indexPar - 1]" :toggleSkeleton="handleToggleSkeleton" :cardRefs="cardRefs"/>
-                </component>
-            </template> -->
-            <template v-else v-for="indexPar in colCount" :key="'elseCard' + indexPar">
-                <slot/>
-            </template>
+            <component v-if="!props.isLoading && hasData" v-for="indexPar in renderForCards" :key="`card-${indexPar}`" :is="getWrapper(renderItemCards?.[indexPar - 1])">
+                <slot :name="slotSkeleton(indexPar)" :index="indexPar" :skeletonRefs="skeletonRefs"/>
+                <slot :name="slotCard(indexPar)" :index="indexPar" :inpData="renderItemCards![indexPar - 1]" :toggleSkeleton="handleToggleSkeleton" :cardRefs="cardRefs"/>
+            </component>
+            <slot v-else v-for="indexPar in colCount" :key="`elseCard-${indexPar}`"/>
         </div>
         <Paginator v-if="!props.isLoading && pagedData && pagedData.length > 0 && metaData.pagination" class="mt-6 flex justify-center" :first="first" :rows="rows" :totalRecords="total" @page="handlePage"/>
     </div>
