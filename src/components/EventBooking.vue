@@ -22,11 +22,14 @@ const bookingValidator = zodResolver(z.object({
     nama: z.string({ message: "Nama tidak boleh kosong !" }).min(1, { message: "Nama harus di isi !" }).max(50, { message: "Nama maksimal 50 karakter" }),
     gender: z.enum(["M", "F"], { message: "Pilih jenis kelamin" }),
     mobileno: z.string().min(10, { message: "Nomor HP minimal 10 digit" }).max(15, { message: "Nomor HP maksimal 15 digit" }).regex(/^\d+$/, { message: "Nomor HP hanya boleh angka" }),
-    qty: z.number().min(1, { message: "Jumlah minimal 1" }).max(10, { message: "Jumlah maksimal 10" }),
+    qty: z.preprocess((val) => {
+        if(val === '' || val === null || val === undefined) return undefined
+        return Number(val)
+    }, z.number({ message: "Jumlah Tiket tidak boleh kosong !" }).min(1, { message: "Jumlah Tiket minimal 1" }).max(10, { message: "Jumlah Tiket maksimal 10" })),
     email: z.string({ message: "Email tidak boleh kosong !" }).trim().max(50, { message: "Email maksimal 50 karakter" }).pipe(z.email({ message: "Format email tidak valid" }))
 }))
 let abortFormController: AbortController | null = null
-const formBooking = ({ valid, states }: any) => {
+const formBooking = ({ valid, states, reset }: any) => {
     if(!valid) return
     if(local.isRequestInProgress) return
     if(abortFormController) abortFormController.abort()
@@ -53,15 +56,20 @@ const formBooking = ({ valid, states }: any) => {
                 return { status: 'error', message: 'Request dibatalkan' }
             }
             const decRes = decryptRes(res.message, encr.iv)
-            return { status: 'success', data: decRes }
+            reset()
+            console.log('res sukses', decRes.message)
+            toast.add({
+                severity: 'success',
+                summary: 'Sukses',
+                detail: decRes.message,
+                life: 3000
+            })
         }catch(err: any){
             if(err.name === "CanceledError"){
-                console.log("Request dibatalkan")
-                return { status: 'error', message: 'Request dibatalkan' }
+                return console.log("Request dibatalkan")
             }else if(err.response){
-                let cusRedirect: string | null = null
                 if(err.response.status === 404){
-                    return { status:'error', message: 'not found', code: 404 }
+                    return console.log("not found")
                 }
                 if([419, 429].includes(err.response.status)){
                     if(retryCount <= 3){
@@ -70,23 +78,15 @@ const formBooking = ({ valid, states }: any) => {
                         return APIReq(signal)
                     }else{
                         retryCount = 0
-                        console.log('Request failed')
-                        // return toast
-                        return { status: 'error', message: 'Request failed' }
+                        return console.log("Request failed")
                     }
                 }
                 if(err.response.status === 500){
-                    console.log('500', err.response.data.message)
-                    // return toast
-                    return { status: 'error', message: err.response.data.message }
+                    return console.log('500', err.response.data.message)
                 }
-                console.log('err response', err.response.data.message)
-                // return toast
-                return { status:'error', message: err.response.data.message, code: err.response.status, data: { redirect: cusRedirect }}
+                return console.log('errr response', err.response.data.message)
             }
-            console.log('errror', err)
-            // return toast
-            return { status:'error', message: err }
+            return console.log('errror', err)
         }finally{
             local.isRequestInProgress = false
         }

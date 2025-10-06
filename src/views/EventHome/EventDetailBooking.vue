@@ -6,7 +6,7 @@ import 'swiper/css'
 import 'swiper/css/navigation'
 import "swiper/css/thumbs"
 import 'swiper/css/autoplay'
-import { reactive, onBeforeMount, defineComponent, useSlots, h, type ComponentPublicInstance, ref, computed } from 'vue'
+import { reactive, ref, computed, onBeforeMount } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { breakpoints } from '@/composables/useScreenSize'
 import { useFetchDataStore } from '@/stores/FetchData'
@@ -60,9 +60,6 @@ onBeforeMount(async() =>{
     console.log('enttokk dataa ', res.data)
     local.detail_event = res.data.detail_event
     local.all_events = res.data.all_events
-    // local.detail_event.img.forEach((val, i) => {
-    //     console.log(i, JSON.stringify(val), val.charCodeAt(0))
-    // })
 })
 </script>
 <template>
@@ -121,7 +118,8 @@ onBeforeMount(async() =>{
                 </div>
             </div>
             <div class="w-fit relative left-1/2 -translate-x-1/2 mt-5 flex items-center gap-5">
-                <Button variant="outlined" :as="RouterLink" :to="(route.path.startsWith('/event') ? '/booking/' : '/event/')+ route.params.id" class="w-fit !text-[#3D37F1] hover:!text-white !border-[#3D37F1] hover:!bg-[#3D37F1] !text-sm sm:!text-base lg:!text-lg xl:!text-xl">Book Event</Button>
+                <Button v-if="route.path.startsWith('/event')" variant="outlined" :as="RouterLink" :to="'/booking/' + route.params.id" class="w-fit !text-[#3D37F1] hover:!text-white !border-[#3D37F1] hover:!bg-[#3D37F1] !text-sm sm:!text-base lg:!text-lg xl:!text-xl">Book Event</Button>
+                <Button v-if="route.path.startsWith('/booking')" variant="outlined" :as="RouterLink" :to="'/event/' + route.params.id" class="w-fit !text-[#3D37F1] hover:!text-white !border-[#3D37F1] hover:!bg-[#3D37F1] !text-sm sm:!text-base lg:!text-lg xl:!text-xl">Detail Event</Button>
                 <Button variant="outlined" as="a" :href="local.detail_event?.event_detail" target="_blank" rel="noopener noreferrer" class="w-fit !text-[#3D37F1] hover:!text-white !border-[#3D37F1] hover:!bg-[#3D37F1] !text-sm sm:!text-base lg:!text-lg xl:!text-xl">Learn More</Button>
             </div>
         </div>
