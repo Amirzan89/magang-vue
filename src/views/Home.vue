@@ -125,12 +125,6 @@ const metaDataPast = {
 }
 const metaDataEventLoading = {
     customTWTransition: 'flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 grid-rows-[repeat(auto-fit,20rem)] gap-2 lg:gap-4',
-    snapshots: {
-        base: 5,
-        sm: 5,
-        md: 3,
-        xl: 2,
-    },
 }
 
 const metaDataReviews = {
@@ -145,7 +139,12 @@ const metaDataReviews = {
         }
     }),
     customTWTransition: 'h-full mt-5 grid grid-cols-1 phone:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4',
-    snapshots: 2,
+    snapshots: {
+        base: 5,
+        sm: 5,
+        md: 3,
+        xl: 2,
+    },
 }
 const metaDataReviewLoading = {
     customTWTransition: 'flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 grid-rows-[repeat(auto-fit,20rem)] gap-2 lg:gap-4',

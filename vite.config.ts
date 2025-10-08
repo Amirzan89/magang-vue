@@ -31,4 +31,7 @@ export default defineConfig({
     tailwindcss(),
     svgLoader(),
   ],
+  define: {
+    __VUE_PROD_DEVTOOLS__: false,
+  }
 })

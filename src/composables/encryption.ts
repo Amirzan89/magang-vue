@@ -28,8 +28,10 @@ export default () => {
         const mac = new Uint8Array(await crypto.subtle.sign('HMAC', hmacKey, payload))
         return { iv: rsaComp.hexCus.enc(iv), data: cipherHex, mac: rsaComp.hexCus.enc(mac) }
     }
-    const decryptRes = (cipher: any, iv: any) => {
-        return JSON.parse(CryptoJS.AES.decrypt({ ciphertext: CryptoJS.enc.Hex.parse(cipher) }, CryptoJS.enc.Hex.parse(sessionStorage.aes_key), { iv: CryptoJS.enc.Hex.parse(iv) }).toString(CryptoJS.enc.Utf8))
-    }
+    const decryptRes = (cipher: string, iv: string) => {
+        const cipherParams = CryptoJS.lib.CipherParams.create({ ciphertext: CryptoJS.enc.Hex.parse(cipher) })
+        const decrypted = CryptoJS.AES.decrypt(cipherParams, CryptoJS.enc.Hex.parse(sessionStorage.aes_key), { iv: CryptoJS.enc.Hex.parse(iv) })
+        return JSON.parse(decrypted.toString(CryptoJS.enc.Utf8))
+    };
     return { encryptReq, decryptRes }
 }

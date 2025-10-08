@@ -8,7 +8,6 @@ import { reactive, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import useAxios from '@/composables/api/axios'
 import useEncryption from '@/composables/encryption'
-import DynamicFormComponent from '@/components/DynamicForm/DynamicForm.vue'
 const { axiosJson, fetchCsrfToken } = useAxios()
 const { encryptReq, decryptRes } = useEncryption()
 const toast = useToast()
