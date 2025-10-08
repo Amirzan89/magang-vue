@@ -9,11 +9,12 @@ const props = defineProps<{
         wrapper?: (inpData: any) => Component,
         customTWTransition?: string,
         customCSSTransition?: string,
+        snapshots?: Partial<Record<keyof typeof breakpoints | 'base', number>>
         pagination?: {
             rowsPerPage: number,
             lazyLoading?: boolean,
             preRenderPage?: number,
-        } 
+        }
     }
     inpData?: Record<string, any>[]
     paralelRender: number
@@ -32,15 +33,25 @@ const first = ref(0)
 const rows = ref(props.metaData.pagination?.rowsPerPage)
 const resizePaginationTimer = ref<any>(null)
 const total = computed(() => props.inpData?.length)
+const pSnapshots = computed<number>(() => {
+    const snaps = props.metaData.snapshots
+    if(!snaps || typeof snaps !== 'object') return 1
+    const active = (Object.keys(breakpoints) as (keyof typeof breakpoints)[]).reverse().find(bp => {
+        const val = breakpoints[bp]
+        return typeof val === 'object' && 'value' in val && val.value && bp in snaps
+    })
+    return (active ? (snaps[active] as number) : (snaps.base as number)) ?? 1
+})
 const pagedData = computed(() => {
     if (props.serverSide) return props.inpData
+    if(props.metaData.snapshots) return props.inpData?.slice(0, (colCount.value ?? 0) * pSnapshots.value) ?? []
     return props.inpData?.slice(first.value, first.value + (rows.value ?? 0)) ?? []
 })
 const hasData = computed(() => {
     return props.metaData.pagination ? (pagedData && pagedData.value!.length > 0) : (props.inpData && props.inpData!.length > 0)
 })
 const renderForCards = computed(() => {
-    return (props.metaData.pagination ? pagedData.value!.length : props.inpData!.length) + + (slots['placeholder-card'] ? 1 : 0)
+    return ((props.metaData.snapshots || props.metaData.pagination) ? pagedData.value!.length : props.inpData!.length) + (slots['placeholder-card'] ? 1 : 0)
 })
 const renderItemCards = computed(() => {
     return props.metaData.pagination ? pagedData.value : props.inpData

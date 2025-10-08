@@ -97,6 +97,12 @@ const metaDataUpcoming = {
         }
     }),
     customTWTransition: 'h-full mt-1.5 phone:mt-2.5 sm:mt-4 lg:mt-5 grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4',
+    snapshots: {
+        base: 3,
+        sm: 3,
+        md: 3,
+        xl: 1,
+    },
 }
 const metaDataPast = {
     wrapper: () => defineComponent({
@@ -110,7 +116,23 @@ const metaDataPast = {
         }
     }),
     customTWTransition: 'h-full mt-1.5 phone:mt-2.5 sm:mt-4 lg:mt-5 grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4',
+    snapshots: {
+        base: 3,
+        sm: 3,
+        md: 3,
+        xl: 1,
+    },
 }
+const metaDataEventLoading = {
+    customTWTransition: 'flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 grid-rows-[repeat(auto-fit,20rem)] gap-2 lg:gap-4',
+    snapshots: {
+        base: 5,
+        sm: 5,
+        md: 3,
+        xl: 2,
+    },
+}
+
 const metaDataReviews = {
     wrapper: () => defineComponent({
         setup(){
@@ -123,10 +145,14 @@ const metaDataReviews = {
         }
     }),
     customTWTransition: 'h-full mt-5 grid grid-cols-1 phone:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4',
+    snapshots: 2,
+}
+const metaDataReviewLoading = {
+    customTWTransition: 'flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 grid-rows-[repeat(auto-fit,20rem)] gap-2 lg:gap-4',
 }
 </script>
 <template>
-    <section class="relative h-screen pt-10 pb-20 sm:pb-25 lg:pb-30">
+    <section class="relative h-screen pt-[calc(var(--paddTop)+10px)] sm:pt-[calc(var(--paddTop)+10px)] lg:pt-[calc(var(--paddTop)+15px)] pb-20 sm:pb-25 lg:pb-30 ">
         <div class="absolute top-0 left-0 w-full h-full -z-1">
             <img src="@/assets/images/party-1.png" alt="" class="w-full h-full object-cover" />
             <div class="absolute top-0 left-0 w-full h-full opacity-90" style="background: #ED4690; background: linear-gradient(145deg,rgba(237, 70, 144, 1) 0%, rgba(85, 34, 204, 1) 100%)"/>
@@ -170,12 +196,12 @@ const metaDataReviews = {
         </div>
     </section>
     <!-- CARDS / UPCOMING -->
-    <section class="relative flex flex-col overflow-x-clip">
+    <section class="relative flex flex-col overflow-x-clip pt-5">
         <img src="@/assets/images/cele-3.png" alt="" class="absolute bottom-0 -right-[29.5%] w-[75%] h-[75%] -z-1 object-cover opacity-30" />
         <div class="w-[90%] sm:w-[92%] lg:w-[95%] xl:w-[97%] mx-auto h-fit">
             <h2 class="w-fit mt-5 mx-auto text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold text-[#242565]">All Events</h2>
             <!-- <p></p> -->
-            <CustomCardWithSkeletonComponent :metaData="metaDataUpcoming" :inpData="local.upcoming_events" :paralelRender="2">
+            <CustomCardWithSkeletonComponent v-if="local.upcoming_events" :metaData="metaDataUpcoming" :inpData="local.upcoming_events" :paralelRender="2">
                 <template #skeleton="{ index, skeletonRefs }">
                     <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 -top-[2%] left-0 w-full h-[102%] flex flex-col items-center transition-opacity duration-100">
                         <Skeleton :pt="{ root: { class: ['!w-[104%] !h-[57%] lg:h-[65%] !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
@@ -203,14 +229,19 @@ const metaDataReviews = {
                                 <RouterLink :to="'/event/' + inpData.event_id" class="text-sm sm:text-base lg:text-lg xl:text-xl font:medium lg:font-semibold">{{ inpData.event_name }}</RouterLink>
                                 <span class="text-xs sm:text-sm lg:text-base xl:text-lg">{{ inpData.start_date }}</span>
                             </div>
-                            <div class="mt-4 sm:mt-3 lg:mt-5 xl:mt-7 flex justify-between">
-                                <a :href="inpData.link_lokasi" target="_blank" rel="noopener noreferrer"><I_Location class="size-5.5 phone:size-5 sm:size-5.5 lg:size-6.5 text-green-500"/></a>
-                                <span class="text-sm sm:text-base lg:text-lg xl:text-xl">{{ inpData.nama_lokasi }}</span>
-                                <I_Bookmark class="size-5.5 phone:size-5 sm:size-5.5 lg:size-6.5 text-green-500"/>
-                            </div>
                         </template>
                     </Card>
                 </template>
+            </CustomCardWithSkeletonComponent>
+            <CustomCardWithSkeletonComponent v-else :metaData="metaDataEventLoading" :paralelRender="Infinity" :isLoading="true">
+                <div class="skeleton-wrapper flex-1 flex flex-col items-center">
+                    <Skeleton :pt="{ root: { class: ['flex-1 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                    <div class="w-[97%] mt-3.5 lg:mt-1.5 mx-auto">
+                        <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 !rounded-sm ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                        <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 mt-1 lg:mt-1.5 !rounded-md ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                        <Skeleton :pt="{ root: { class: ['!h-6.5 lg:h-11 mt-1.5 lg:mt-2 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                    </div>
+                </div>
             </CustomCardWithSkeletonComponent>
             <RouterLink to="/event" class="relative left-1/2 -translate-x-1/2 w-fit h-fit mt-5 lg:mt-10 px-3 py-2 sm:px-3.25 sm:py-2.25 lg:px-3.5 lg:py-2.5 text-[#3D37F1] border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-[#3D37F1] rounded-lg md:rounded-xl flex justify-center items-center hover:bg-[#3D37F1] text-sm sm:text-base lg:text-lg xl:text-lg hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">See All Events</RouterLink>
         </div>
@@ -228,7 +259,7 @@ const metaDataReviews = {
         <img src="@/assets/images/cele-2.png" alt="" class="absolute top-1/2 -translate-y-1/2 -left-[29.5%] w-[75%] h-[75%] -z-1 object-cover opacity-30"/>
         <div class="w-[95%] mx-auto">
             <h2 class="w-fit mt-5 mx-auto lg:mx-0 text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold text-[#242565]">Past Events</h2>
-            <CustomCardWithSkeletonComponent :metaData="metaDataPast" :inpData="local.past_events" :paralelRender="2">
+            <CustomCardWithSkeletonComponent v-if="local.past_events" :metaData="metaDataPast" :inpData="local.past_events" :paralelRender="2">
                 <template #skeleton="{ index, skeletonRefs }">
                     <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 -top-[2%] left-0 w-full h-[102%] flex flex-col items-center transition-opacity duration-100">
                         <Skeleton :pt="{ root: { class: ['!w-[104%] !h-[57%] lg:h-[65%] !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
@@ -256,21 +287,26 @@ const metaDataReviews = {
                                 <RouterLink :to="'/event/' + inpData.event_id" class="text-sm sm:text-base lg:text-lg xl:text-xl font:medium lg:font-semibold">{{ inpData.event_name }}</RouterLink>
                                 <span class="text-xs sm:text-sm lg:text-base xl:text-lg">{{ inpData.start_date }}</span>
                             </div>
-                            <div class="mt-4 sm:mt-3 lg:mt-5 xl:mt-7 flex justify-between">
-                                <a :href="inpData.link_lokasi" target="_blank" rel="noopener noreferrer"><I_Location class="size-5.5 phone:size-5 sm:size-5.5 lg:size-6.5 text-green-500"/></a>
-                                <span class="text-sm sm:text-base lg:text-lg xl:text-xl">{{ inpData.nama_lokasi }}</span>
-                                <I_Bookmark class="size-5.5 phone:size-5 sm:size-5.5 lg:size-6.5 text-green-500"/>
-                            </div>
                         </template>
                     </Card>
                 </template>
+            </CustomCardWithSkeletonComponent>
+            <CustomCardWithSkeletonComponent v-else :metaData="metaDataEventLoading" :paralelRender="Infinity" :isLoading="true">
+                <div class="skeleton-wrapper flex-1 flex flex-col items-center">
+                    <Skeleton :pt="{ root: { class: ['flex-1 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                    <div class="w-[97%] mt-3.5 lg:mt-1.5 mx-auto">
+                        <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 !rounded-sm ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                        <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 mt-1 lg:mt-1.5 !rounded-md ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                        <Skeleton :pt="{ root: { class: ['!h-6.5 lg:h-11 mt-1.5 lg:mt-2 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                    </div>
+                </div>
             </CustomCardWithSkeletonComponent>
             <RouterLink to="/event" class="relative left-1/2 -translate-x-1/2 w-fit h-fit mt-5 lg:mt-10 px-3 py-2 sm:px-3.25 sm:py-2.25 lg:px-3.5 lg:py-2.5 text-[#3D37F1] border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-[#3D37F1] rounded-lg md:rounded-xl flex justify-center items-center hover:bg-[#3D37F1] text-sm sm:text-base lg:text-lg xl:text-lg hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">Load More</RouterLink>
         </div>
         <div class="w-[90%] lg:w-[95%] xl:w-[97%] mx-auto mt-20 lg:mt-50">
             <h2 class="w-fit mx-auto text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold text-[#242565]">Reviews About Us</h2>
             <p class="w-fit mx-auto text-sm sm:text-text-base md:text-lg lg:text-xl xl:text-2xl text-center text-[#242565]">See what our amazing customers have to say about us!</p>
-            <CustomCardWithSkeletonComponent :metaData="metaDataReviews" :inpData="local.reviews" :paralelRender="1">
+            <CustomCardWithSkeletonComponent v-if="local.reviews" :metaData="metaDataReviews" :inpData="local.reviews" :paralelRender="1">
                 <template #skeleton="{ index, skeletonRefs }">
                     <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 top-0 left-0 flex flex-col w-full h-full transition-opacity duration-100">
                         <Skeleton :pt="{ root: { class: ['!h-16 sm:!h-19 lg:!h-22 xl:!h-25.5 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
@@ -319,11 +355,16 @@ const metaDataReviews = {
                     </Card>
                 </template>
             </CustomCardWithSkeletonComponent>
+            <CustomCardWithSkeletonComponent v-else :metaData="metaDataReviewLoading" :paralelRender="Infinity" :isLoading="true">
+                <div class="skeleton-wrapper flex-1 flex flex-col items-center">
+                    <Skeleton :pt="{ root: { class: ['flex-1 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                    <div class="w-[97%] mt-3.5 lg:mt-1.5 mx-auto">
+                        <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 !rounded-sm ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                        <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 mt-1 lg:mt-1.5 !rounded-md ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                        <Skeleton :pt="{ root: { class: ['!h-6.5 lg:h-11 mt-1.5 lg:mt-2 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                    </div>
+                </div>
+            </CustomCardWithSkeletonComponent>
         </div>
     </section>
 </template>
-<style scoped>
-section:nth-of-type(2){
-    padding-top: var(--paddTop);
-}
-</style>
