@@ -33,18 +33,35 @@ const first = ref(0)
 const rows = ref(props.metaData.pagination?.rowsPerPage)
 const resizePaginationTimer = ref<any>(null)
 const total = computed(() => props.inpData?.length)
+const breakpointsFn = (inp: Partial<Record<keyof typeof breakpoints | 'base', number>>) => {
+    const active = (Object.keys(breakpoints) as (keyof typeof breakpoints)[]).reverse().find(bp => {
+        const val = breakpoints[bp]
+        return typeof val === 'object' && 'value' in val && val.value && bp in inp
+    })
+    return (active ? (inp[active] as number) : (inp.base as number)) ?? 1
+}
 const pSnapshots = computed<number>(() => {
     const snaps = props.metaData.snapshots
     if(!snaps || typeof snaps !== 'object') return 1
-    const active = (Object.keys(breakpoints) as (keyof typeof breakpoints)[]).reverse().find(bp => {
-        const val = breakpoints[bp]
-        return typeof val === 'object' && 'value' in val && val.value && bp in snaps
-    })
-    return (active ? (snaps[active] as number) : (snaps.base as number)) ?? 1
+    return breakpointsFn(snaps)
+})
+const parseGridCols = (classStr: string) => {
+    const regex = /([a-z0-9]*:)?grid-cols-(\d+)/g
+    const cols: Record<string, number> = {}
+    let match
+    while((match = regex.exec(classStr)) !== null){
+        const bp = match[1]?.replace(':', '') || 'base'
+        cols[bp] = parseInt(match[2], 10)
+    }
+    return cols
+}
+const parsedCols = computed(() => parseGridCols(props.metaData.customTWTransition ?? ''))
+const colCount = computed(() => {
+    return breakpointsFn(parsedCols.value)
 })
 const pagedData = computed(() => {
-    if (props.serverSide) return props.inpData
-    if(props.metaData.snapshots) return props.inpData?.slice(0, (colCount.value ?? 0) * pSnapshots.value) ?? []
+    if(props.serverSide) return props.inpData
+    if(props.metaData.snapshots) return props.inpData?.slice(0, (colCount.value) * pSnapshots.value) ?? []
     return props.inpData?.slice(first.value, first.value + (rows.value ?? 0)) ?? []
 })
 const hasData = computed(() => {
@@ -55,6 +72,9 @@ const renderForCards = computed(() => {
 })
 const renderItemCards = computed(() => {
     return props.metaData.pagination ? pagedData.value : props.inpData
+})
+const loadingItems = computed(() => {
+    return props.metaData.snapshots ? colCount.value * pSnapshots.value : colCount.value
 })
 const getWrapper = (inpData: any) => {
     const key = inpData?.wrapperKey || inpData?.event_id || 'default'
@@ -101,24 +121,6 @@ const handleToggleSkeleton = (index: number) => {
     queue.push(index)
     processQueue()
 }
-const parseGridCols = (classStr: string) => {
-    const regex = /([a-z0-9]*:)?grid-cols-(\d+)/g
-    const cols: Record<string, number> = {}
-    let match
-    while((match = regex.exec(classStr)) !== null) {
-        const bp = match[1]?.replace(':', '') || 'base'
-        cols[bp] = parseInt(match[2], 10)
-    }
-    return cols
-}
-const parsedCols = computed(() => parseGridCols(props.metaData.customTWTransition ?? ''))
-const colCount = computed(() => {
-    if(breakpoints['2xl'].value) return parsedCols.value['2xl']
-    if(breakpoints.lg.value) return parsedCols.value.lg
-    if(breakpoints.md.value) return parsedCols.value.md
-    if(breakpoints.phone.value) return parsedCols.value.phone
-    return parsedCols.value.base ?? 1
-})
 const handlePage = (e: any) => {
     first.value = e.first
     rows.value = e.rows
@@ -144,7 +146,7 @@ watch([() => props.inpData, colCount], () => {
                 <slot :name="slotSkeleton(indexPar)" :index="indexPar" :skeletonRefs="skeletonRefs"/>
                 <slot :name="slotCard(indexPar)" :index="indexPar" :inpData="renderItemCards![indexPar - 1]" :toggleSkeleton="handleToggleSkeleton" :cardRefs="cardRefs"/>
             </component>
-            <slot v-else v-for="indexPar in colCount" :key="`elseCard-${indexPar}`"/>
+            <slot v-else v-for="indexPar in loadingItems" :key="`elseCard-${indexPar}`"/>
         </div>
         <Paginator v-if="!props.isLoading && pagedData && pagedData.length > 0 && metaData.pagination" class="mt-6 flex justify-center" :first="first" :rows="rows" :totalRecords="total" @page="handlePage"/>
     </div>

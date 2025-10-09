@@ -77,7 +77,7 @@ watch(() => route.path, () => {
 })
 </script>
 <template>
-    <header ref="headerRef" :class="['relative layout-topbar top-0 start-0 !bg-transparent', headerBg ? 'sticky' : 'fixed']">
+    <header ref="headerRef" :class="['relative h-full layout-topbar top-0 start-0 !bg-transparent', headerBg ? 'sticky' : 'fixed']">
         <div ref="bgLayer" class="absolute top-0 left-0 w-full h-full -z-1">
             <img src="@/assets/images/header.png" alt="" class="w-full h-full object-cover" />
             <div class="absolute top-0 left-0 w-full h-full opacity-90 bg-red-500" style="background: #ED4690; background: linear-gradient(145deg,rgba(237, 70, 144, 1) 0%, rgba(85, 34, 204, 1) 100%)"></div>
@@ -88,8 +88,8 @@ watch(() => route.path, () => {
             </router-link>
         </div>
         <div class="layout-topbar-actions">
-            <button class="layout-topbar-menu-button layout-topbar-action" v-styleclass="{ selector: '@next', enterFromClass: 'hidden', enterActiveClass: 'animate-scalein', leaveToClass: 'hidden', leaveActiveClass: 'animate-fadeout', hideOnOutsideClick: true }">
-                <i class="pi pi-ellipsis-v"></i>
+            <button class="layout-topbar-menu-button layout-topbar-action group" v-styleclass="{ selector: '@next', enterFromClass: 'hidden', enterActiveClass: 'animate-scalein', leaveToClass: 'hidden', leaveActiveClass: 'animate-fadeout', hideOnOutsideClick: true }">
+                <i class="pi pi-ellipsis-v text-white group-hover:text-black"></i>
             </button>
             <div class="layout-topbar-menu hidden lg:block">
                 <div class="layout-topbar-menu-content lg:!gap-10">
@@ -100,9 +100,4 @@ watch(() => route.path, () => {
     </header>
 </template>
 <style scoped lang="scss">
-header{
-    z-index: z-50;
-    height: var(--paddTop);
-    scroll-padding-top: var(--paddTop);
-}
 </style>
