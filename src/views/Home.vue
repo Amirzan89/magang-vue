@@ -166,8 +166,8 @@ const metaDataReviewLoading = {
             <img src="@/assets/images/party-1.png" alt="" class="w-full h-full object-cover" />
             <div class="absolute top-0 left-0 w-full h-full opacity-90" style="background: #ED4690; background: linear-gradient(145deg,rgba(237, 70, 144, 1) 0%, rgba(85, 34, 204, 1) 100%)"/>
         </div>
-        <div class="relative lg:h-full flex-1x w-full flex flex-col justify-between items-center gap-15 !text-white">
-            <Swiper v-if="local.upcoming_events && local.upcoming_events.length > 0" :modules="[Navigation, Pagination, Autoplay]" :slides-per-view="1" :space-between="20" :loop="true" :autoplay="{ delay: 3000 }" :pagination="{ clickable: true }" :allow-touch-move="false" :simulate-touch="false" :keyboard="{ enabled: false }" :mousewheel="{ enabled: false }" :navigation="{ nextEl: '.btn-next', prevEl: '.btn-prev' }" class="flex-1e lg:flex-initial w-[85%] lg:w-[92%] aspect-video rounded-xl"  @slideChange="onSlideChange">
+        <div class="relative flex-1 h-full w-full flex flex-col justify-between items-center gap-15 !text-white">
+            <Swiper v-if="local.upcoming_events && local.upcoming_events.length > 0" :modules="[Navigation, Pagination, Autoplay]" :slides-per-view="1" :space-between="20" :loop="true" :autoplay="{ delay: 3000 }" :pagination="{ clickable: true }" :allow-touch-move="false" :simulate-touch="false" :keyboard="{ enabled: false }" :mousewheel="{ enabled: false }" :navigation="{ nextEl: '.btn-next', prevEl: '.btn-prev' }" class="flex-1 lg:flex-initial w-[85%] lg:w-[92%] aspect-video rounded-xl"  @slideChange="onSlideChange">
                 <template v-for="(item, index) in local.upcoming_events" :key="index">
                     <SwiperSlide><img :src="item.img" alt="" class="w-full object-contain" loading="lazy"></SwiperSlide>
                 </template>
@@ -314,7 +314,7 @@ const metaDataReviewLoading = {
             <RouterLink to="/event" class="relative left-1/2 -translate-x-1/2 w-fit h-fit mt-5 lg:mt-10 px-3 py-2 sm:px-3.25 sm:py-2.25 lg:px-3.5 lg:py-2.5 text-[#3D37F1] border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-[#3D37F1] rounded-lg md:rounded-xl flex justify-center items-center hover:bg-[#3D37F1] text-sm sm:text-base lg:text-lg xl:text-lg hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">Load More</RouterLink>
         </div>
         <div class="w-[90%] lg:w-[95%] xl:w-[97%] mx-auto mt-20 lg:mt-50">
-            <h2 class="w-fit mx-auto !text-lg sm:!text-xl md:!text-2xl lg:!text-3xl xl:!text-4xl font-semibold text-[#242565]">Reviews About Us</h2>
+            <h2 class="w-fit !m-0 mx-auto !text-lg sm:!text-xl md:!text-2xl lg:!text-3xl xl:!text-4xl font-semibold text-[#242565]">Reviews About Us</h2>
             <p class="w-fit mx-auto text-sm sm:text-text-base md:text-lg lg:text-xl xl:text-2xl text-center text-[#242565]">See what our amazing customers have to say about us!</p>
             <CustomCardWithSkeletonComponent v-if="local.reviews" :metaData="metaDataReviews" :inpData="local.reviews" :paralelRender="1">
                 <template #skeleton="{ index, skeletonRefs }">
@@ -326,8 +326,8 @@ const metaDataReviewLoading = {
                 <template #card="{ index, inpData, toggleSkeleton, cardRefs }">
                     <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" :pt="{ root: { class: ['relative opacity-0 transition-opacity duration-100 rounded-xl flex flex-col gap-2'], style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, body: { class: ['!p-3 lg:!p-4 xl:!p-5']}}">
                         <template #content>
-                            <div class="flex items-center gap-2 xl:gap-3">
-                                <div class="relative right-0 size-10 xl:size-15 wrounded-full pointer-events-none">
+                            <div class="flex items-center gap-3 xl:gap-3">
+                                <div class="relative right-0 size-10 sm:size-15 xl:size-15 wrounded-full pointer-events-none">
                                     <img :src="inpData.photo ? publicConfig.baseURL + inpData.photo : [defaultBoy, defaultGirl][Math.floor(Math.random() * 2)]" alt="" class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-full h-full object-cover" style="clip-path: circle();" :ref="((el: any) => {
                                         if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
                                     })"
@@ -348,11 +348,11 @@ const metaDataReviewLoading = {
                                             <I_EmptyStar v-else class="size-4 sm:size-5 lg:size-6 xl:size-7 text-yellow-500"/>
                                         </template>
                                     </div>
-                                    <h5 class="text-sm sm:text-base lg:text-lg xl:text-xl font-semibold">{{ inpData.name }}</h5>
+                                    <h5 class=" !m-0 text-sm sm:text-base lg:text-lg xl:text-xl font-semibold">{{ inpData.name }}</h5>
                                     <span class="text-xs sm:text-sm lg:text-base xl:text-lg">{{ inpData.date_review }}</span>
                                 </div>
                             </div>
-                            <p class="mt-1 sm:mt-2 lg:mt-3 text-xs sm:text-sm lg:text-base xl:text-lg">{{ inpData.comment }} Lorem ipsum dolor sit, amet consectetur adipisicing elit. Ea autem reiciendis maiores eligendi culpa, maxime qui non perferendis, cupiditate fuga nemo, quis ut alias omnis fugiat dolorem modi perspiciatis quos!</p>
+                            <p class="!mt-1.5 sm:!mt-2 lg:!mt-3 text-xs sm:text-sm lg:text-base xl:text-lg">{{ inpData.comment }} Lorem ipsum dolor sit, amet consectetur adipisicing elit. Ea autem reiciendis maiores eligendi culpa, maxime qui non perferendis, cupiditate fuga nemo, quis ut alias omnis fugiat dolorem modi perspiciatis quos!</p>
                         </template>
                     </Card>
                 </template>
