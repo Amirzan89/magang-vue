@@ -179,7 +179,7 @@ const formFooter = ({ valid, states, reset }: any) => {
                 </div>
                 <div class="w-full md:w-[28%] xl:w-[25%] md:mb-0 flex justify-between gap-10">
                     <div class="flex-1">
-                        <h2 class="!m-0 lg:!mb-2 !text-sm xs:!text-base sm:!text-lg md:!text-base xl:!text-xl font-medium lg:font-semibold !text-white uppercase">Plan Events</h2>
+                        <h6 class="!m-0 lg:!mb-2 !text-sm xs:!text-base sm:!text-lg md:!text-base xl:!text-xl font-medium lg:font-semibold !text-white uppercase">Plan Events</h6>
                         <div class="lg:mt-1 flex flex-col gap-1 text-xs xs:text-sm sm:text-base md:text-sm xl:text-lg lg:font-medium text-white">
                             <template v-for="(item, index) in planItems" :key="index">
                                 <RouterLink :to="item.link" class="">{{ item.label }}</RouterLink>
@@ -187,7 +187,7 @@ const formFooter = ({ valid, states, reset }: any) => {
                         </div>
                     </div>
                     <div class="flex-1">
-                        <h2 class="!m-0 lg:!mb-3 !text-sm xs:!text-base sm:!text-lg md:!text-base xl:!text-xl font-medium lg:font-semibold !text-white uppercase">Eventick</h2>
+                        <h6 class="!m-0 lg:!mb-3 !text-sm xs:!text-base sm:!text-lg md:!text-base xl:!text-xl font-medium lg:font-semibold !text-white uppercase">Eventick</h6>
                         <div class="lg:mt-1 flex flex-col gap-1 text-xs xs:text-sm sm:text-base md:text-sm xl:text-lg lg:font-medium text-white">
                             <template v-for="(item, index) in EventickItems" :key="index">
                                 <RouterLink :to="item.link" class="">{{ item.label }}</RouterLink>
@@ -196,7 +196,7 @@ const formFooter = ({ valid, states, reset }: any) => {
                     </div>
                 </div>
                 <div class="md:w-[42%] xl:w-[40%] lg:mb-0">
-                    <h2 class="!m-0 lg:!mb-3 !text-sm xs:!text-base sm:!text-lg md:!text-base xl:!text-xl font-semibold uppercase !text-white">Stay In The Loop</h2>
+                    <h6 class="!m-0 lg:!mb-3 !text-sm xs:!text-base sm:!text-lg md:!text-base xl:!text-xl font-semibold uppercase !text-white">Stay In The Loop</h6>
                     <p class="!m-0 sm:!mb-4 !text-xs xs:!text-sm sm:!text-base md:!text-sm xl:!text-lg !text-white">Join our mailing list to stay in the loop with our newest for Event and concert</p>
                     <Form :resolver="footerValidator" @submit="formFooter" v-slot="$form" class="w-full 2xs:w-[82%] xs:w-[75%] phone:w-[52%] sm:w-[45%] md:w-[75%] lg:w-[60%] xl:w-[50%] 2xl:w-[40%] h-fit">
                         <FormField name="email" class="relative flex flex-row md:flex-col gap-0.25 sm:col-span-2 md:col-span-1">

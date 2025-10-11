@@ -33,6 +33,7 @@ const first = ref(0)
 const rows = ref(props.metaData.pagination?.rowsPerPage)
 const resizePaginationTimer = ref<any>(null)
 const total = computed(() => props.inpData?.length)
+let counterSkeletonTest = 0
 const breakpointsFn = (inp: Partial<Record<keyof typeof breakpoints | 'base', number>>) => {
     const active = (Object.keys(breakpoints) as (keyof typeof breakpoints)[]).reverse().find(bp => {
         const val = breakpoints[bp]
@@ -112,9 +113,13 @@ const runAnimation = async (index: number) => {
 }
 const processQueue = () => {
     if (queue.length === 0) return
-    while (active.size < parallelLimit.value && queue.length > 0) {
+    while(active.size < parallelLimit.value && queue.length > 0){
+        if(counterSkeletonTest >= 2){
+            break
+        }
         const index = queue.shift()!
         runAnimation(index)
+        counterSkeletonTest++
     }
 }
 const handleToggleSkeleton = (index: number) => {

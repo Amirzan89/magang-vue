@@ -136,13 +136,13 @@ const metaDataReviews = {
         setup(){
             const slots = useSlots()
             return () => {
-                return h('div', { class: 'relative' }, {
+                return h('div', { class: 'relative h-full' }, {
                     default: () => slots.default ? slots.default() : null
                 });
             }
         }
     }),
-    customTWTransition: 'h-full mt-5 grid grid-cols-1 phone:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4',
+    customTWTransition: 'h-full mt-5 grid grid-cols-1 phone:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 [grid-auto-rows:8rem] phone:[grid-auto-rows:11rem] md:[grid-auto-rows:10.75rem] lg:[grid-auto-rows:12.5rem] xl:[grid-auto-rows:14rem] 2xl:[grid-auto-rows:15.5rem] gap-2 md:gap-4',
     snapshots: {
         base: 5,
         sm: 3,
@@ -151,12 +151,12 @@ const metaDataReviews = {
     },
 }
 const metaDataReviewLoading = {
-    customTWTransition: 'flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 grid-rows-[repeat(auto-fit,20rem)] gap-2 lg:gap-4',
+    customTWTransition: 'flex-1 grid grid-cols-1 phone:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 [grid-auto-rows:8rem] phone:[grid-auto-rows:11rem] md:[grid-auto-rows:10.75rem] lg:[grid-auto-rows:12.5rem] xl:[grid-auto-rows:14rem] 2xl:[grid-auto-rows:15.5rem] gap-2 lg:gap-4',
     snapshots: {
         base: 5,
         sm: 5,
         md: 3,
-        xl: 2,
+        xl: 1,
     },
 }
 </script>
@@ -209,7 +209,7 @@ const metaDataReviewLoading = {
     <section class="relative flex flex-col overflow-x-clip pt-5">
         <img src="@/assets/images/cele-3.png" alt="" class="absolute bottom-0 -right-[29.5%] w-[75%] h-[75%] -z-1 object-cover opacity-30" />
         <div class="w-[90%] sm:w-[92%] lg:w-[95%] xl:w-[97%] mx-auto h-fit">
-            <h2 class="w-fit mt-5 !mb-1.25 phone:!mb-1.75 sm:!mb-2 lg:mb-3 mx-auto !text-lg sm:!text-xl md:!text-2xl lg:!text-3xl xl:!text-4xl font-semibold text-[#242565]">All Events</h2>
+            <h2 class="w-fit mt-5 !mb-1.25 phone:!mb-1.75 sm:!mb-2 lg:mb-3 mx-auto !text-lg phone:!text-xl md:!text-2xl lg:!text-3xl xl:!text-4xl font-semibold text-[#242565]">All Events</h2>
             <!-- <p></p> -->
             <CustomCardWithSkeletonComponent v-if="local.upcoming_events" :metaData="metaDataUpcoming" :inpData="local.upcoming_events" :paralelRender="2">
                 <template #skeleton="{ index, skeletonRefs }">
@@ -268,15 +268,14 @@ const metaDataReviewLoading = {
     <section class="relative mt-10 mb-15 lg:mb-20">
         <img src="@/assets/images/cele-2.png" alt="" class="absolute top-1/2 -translate-y-1/2 -left-[29.5%] w-[75%] h-[75%] -z-1 object-cover opacity-30"/>
         <div class="w-[95%] mx-auto">
-            <h2 class="w-fit mt-5 !mb-1.25 phone:!mb-1.75 sm:!mb-2 lg:mb-3 mx-auto lg:mx-0 !text-lg sm:!text-xl md:!text-2xl lg:!text-3xl xl:!text-4xl font-semibold text-[#242565]">Past Events</h2>
+            <h2 class="w-fit mt-5 !mb-1.25 phone:!mb-1.75 sm:!mb-2 lg:mb-3 mx-auto lg:mx-0 !text-lg phone:!text-xl md:!text-2xl lg:!text-3xl xl:!text-4xl font-semibold text-[#242565]">Past Events</h2>
             <CustomCardWithSkeletonComponent v-if="local.past_events" :metaData="metaDataPast" :inpData="local.past_events" :paralelRender="2">
                 <template #skeleton="{ index, skeletonRefs }">
-                    <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 left-0 w-full h-full flex flex-col items-center transition-opacity duration-100">
-                        <Skeleton :pt="{ root: { class: ['!w-full !h-[57%] lg:h-[65%] !rounded-lg'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                    <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 left-0 w-full h-full flex flex-col items-center transition-opacity duration-100 bg-blue-500">
+                        <Skeleton :pt="{ root: { class: ['!h-[120px] phone:!h-[170px] lg:!h-[197px] !rounded-lg'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                         <div class="w-[97%] mt-3.5 lg:mt-1.5 mx-auto">
                             <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 !rounded-sm'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                             <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 mt-1 lg:mt-1.5 !rounded-md'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                            <Skeleton :pt="{ root: { class: ['!h-6.5 lg:h-11 mt-1.5 lg:mt-2 !rounded-lg'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                         </div>
                     </div>
                 </template>
@@ -307,27 +306,33 @@ const metaDataReviewLoading = {
                     <div class="w-[97%] mt-3.5 lg:mt-1.5 mx-auto">
                         <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 !rounded-sm'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                         <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 mt-1 lg:mt-1.5 !rounded-md'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                        <Skeleton :pt="{ root: { class: ['!h-6.5 lg:h-11 mt-1.5 lg:mt-2 !rounded-lg'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                     </div>
                 </div>
             </CustomCardWithSkeletonComponent>
             <RouterLink to="/event" class="relative left-1/2 -translate-x-1/2 w-fit h-fit mt-5 lg:mt-10 px-3 py-2 sm:px-3.25 sm:py-2.25 lg:px-3.5 lg:py-2.5 text-[#3D37F1] border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-[#3D37F1] rounded-lg md:rounded-xl flex justify-center items-center hover:bg-[#3D37F1] text-sm sm:text-base lg:text-lg xl:text-lg hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">Load More</RouterLink>
         </div>
         <div class="w-[90%] lg:w-[95%] xl:w-[97%] mx-auto mt-20 lg:mt-50">
-            <h2 class="w-fit !m-0 mx-auto !text-lg sm:!text-xl md:!text-2xl lg:!text-3xl xl:!text-4xl font-semibold text-[#242565]">Reviews About Us</h2>
+            <h2 class="w-fit !m-0 mx-auto !text-lg phone:!text-xl md:!text-2xl lg:!text-3xl xl:!text-4xl font-semibold text-[#242565]">Reviews About Us</h2>
             <p class="w-fit mx-auto text-sm sm:text-text-base md:text-lg lg:text-xl xl:text-2xl text-center text-[#242565]">See what our amazing customers have to say about us!</p>
             <CustomCardWithSkeletonComponent v-if="local.reviews" :metaData="metaDataReviews" :inpData="local.reviews" :paralelRender="1">
                 <template #skeleton="{ index, skeletonRefs }">
-                    <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 top-0 left-0 flex flex-col w-full h-full transition-opacity duration-100">
-                        <Skeleton :pt="{ root: { class: ['!h-16 sm:!h-19 lg:!h-22 xl:!h-25.5 !rounded-lg'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                        <Skeleton :pt="{ root: { class: ['!flex-1 !rounded-sm mt-1.25 sm:mt-2.25 lg:!mt-3.5'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                    <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 top-0 left-0 w-full h-full p-3 lg:p-4 xl:p-5 flex flex-col transition-opacity duration-100 pointer-events-none">
+                        <div class="w-full h-15 phone:h-18 sm:h-19 md:h-20 lg:h-21 xl:h-22 flex items-center gap-1.25 phone:gap-1.5 md:gap-1.75 xl:gap-2">
+                            <Skeleton shape="circle" :pt="{ root: { class: ['!w-11 phone:!w-14 sm:!w-15 md:!w-16 lg:!w-17 xl:!w-18 !h-11 phone:!h-14 sm:!h-15 md:!h-16 lg:!h-17 xl:!h-18'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                            <div class="flex-1 h-full py-0.5 flex flex-col justify-between">
+                                <Skeleton :pt="{ root: { class: ['!h-[11.4px] xs:!h-[12.25px] sm:!h-[14.5px] lg:!h-[17.75px] xl:!h-[21.25px] 2xl:!h-[23.2px]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                                <Skeleton :pt="{ root: { class: ['!h-[7.4px] xs:!h-[8.25px] sm:!h-[9.5px] lg:!h-[13.75px] xl:!h-[17.25px] 2xl:!h-[19.2px]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                                <Skeleton :pt="{ root: { class: ['!h-[7.4px] xs:!h-[8.25px] sm:!h-[9.5px] lg:!h-[13.75px] xl:!h-[17.25px] 2xl:!h-[19.2px]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                            </div>
+                        </div>
+                        <Skeleton :pt="{ root: { class: ['flex-1 mt-0.5 xs:mt-0.5 sm:mt-1 md:mt-1.5 lg:!mt-2 xl:!mt-3'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                     </div>
                 </template>
                 <template #card="{ index, inpData, toggleSkeleton, cardRefs }">
-                    <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" :pt="{ root: { class: ['relative opacity-0 transition-opacity duration-100 rounded-xl flex flex-col gap-2'], style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, body: { class: ['!p-3 lg:!p-4 xl:!p-5']}}">
+                    <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" :pt="{ root: { class: ['relative !h-full opacity-0 transition-opacity duration-100 rounded-xl flex flex-col gap-2'], style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, body: { class: ['!p-3 lg:!p-4 xl:!p-5']}}">
                         <template #content>
-                            <div class="flex items-center gap-3 xl:gap-3">
-                                <div class="relative right-0 size-10 sm:size-15 xl:size-15 wrounded-full pointer-events-none">
+                            <div class="flex items-center gap-1.25 phone:gap-1.5 md:gap-1.75 xl:gap-2">
+                                <div class="relative right-0 w-11 phone:w-14 sm:w-15 md:w-16 lg:w-17 xl:w-18 h-11 phone:h-14 sm:h-15 md:h-16 lg:h-17 xl:h-18 wrounded-full pointer-events-none">
                                     <img :src="inpData.photo ? publicConfig.baseURL + inpData.photo : [defaultBoy, defaultGirl][Math.floor(Math.random() * 2)]" alt="" class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-full h-full object-cover" style="clip-path: circle();" :ref="((el: any) => {
                                         if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
                                     })"
@@ -343,16 +348,16 @@ const metaDataReviewLoading = {
                                 <div class="flex flex-col gap-0">
                                     <div class="flex">
                                         <template v-for="i in 5" :key="i">
-                                            <I_FullStar v-if="i <= Math.floor(inpData.rating)" class="size-4 sm:size-5 lg:size-6 xl:size-7 text-yellow-500"/>
-                                            <I_HalfStar v-else-if="i === Math.ceil(inpData.rating) && inpData.rating % 1 >= 0.5" class="size-[15.5px] sm:size-[19px] lg:size-[23px] xl:size-[27px] text-yellow-500"/>
-                                            <I_EmptyStar v-else class="size-4 sm:size-5 lg:size-6 xl:size-7 text-yellow-500"/>
+                                            <I_FullStar v-if="i <= Math.floor(inpData.rating)" class="size-4 xs:size-4.25 sm:size-5 lg:size-6 xl:size-7 2xl:size-7.5 text-yellow-500"/>
+                                            <I_HalfStar v-else-if="i === Math.ceil(inpData.rating) && inpData.rating % 1 >= 0.5" class="size-[13.4px] xs:size-[14.25px] sm:size-[16.5px] lg:size-[19.75px] xl:size-[23.25px] 2xl:size-[25.2px] text-yellow-500"/>
+                                            <I_EmptyStar v-else class="size-4 xs:size-4.25 sm:size-5 lg:size-6 xl:size-7 2xl:size-7.5 text-yellow-500"/>
                                         </template>
                                     </div>
-                                    <h5 class=" !m-0 text-sm sm:text-base lg:text-lg xl:text-xl font-semibold">{{ inpData.name }}</h5>
-                                    <span class="text-xs sm:text-sm lg:text-base xl:text-lg">{{ inpData.date_review }}</span>
+                                    <span class=" !m-0 !text-sm xs:!text-base phone:!text-base sm:!text-lg lg:!text-xl xl:!text-2xl font-semibold" style="text-transform: capitalize;">{{ inpData.name }}</span>
+                                    <span class="text-xs xs:text-sm phone:text-sm sm:text-base lg:text-lg xl:text-xl">{{ inpData.date_review }}</span>
                                 </div>
                             </div>
-                            <p class="!mt-1.5 sm:!mt-2 lg:!mt-3 text-xs sm:text-sm lg:text-base xl:text-lg">{{ inpData.comment }} Lorem ipsum dolor sit, amet consectetur adipisicing elit. Ea autem reiciendis maiores eligendi culpa, maxime qui non perferendis, cupiditate fuga nemo, quis ut alias omnis fugiat dolorem modi perspiciatis quos!</p>
+                            <p class="!mt-0.5 xs:!mt-0.5 sm:!mt-1 md:!mt-1.5 lg:!mt-2 xl:!mt-3 text-xs xs:text-sm phone:text-sm sm:text-base lg:text-lg xl:text-xl">{{ inpData.comment }}</p>
                         </template>
                     </Card>
                 </template>
@@ -366,13 +371,16 @@ const metaDataReviewLoading = {
                 </template>
             </CustomCardWithSkeletonComponent>
             <CustomCardWithSkeletonComponent v-else :metaData="metaDataReviewLoading" :paralelRender="Infinity" :isLoading="true">
-                <div class="skeleton-wrapper flex-1 flex flex-col items-center">
-                    <Skeleton :pt="{ root: { class: ['flex-1 !rounded-lg'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                    <div class="w-[97%] mt-3.5 lg:mt-1.5 mx-auto">
-                        <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 !rounded-sm'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                        <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 mt-1 lg:mt-1.5 !rounded-md'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                        <Skeleton :pt="{ root: { class: ['!h-6.5 lg:h-11 mt-1.5 lg:mt-2 !rounded-lg'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                <div class="skeleton-wrapper h-full flex-1 flex flex-col items-center">
+                    <div class="w-full h-15 phone:h-18 sm:h-19 md:h-20 lg:h-21 xl:h-22 flex items-center gap-1.25 phone:gap-1.5 md:gap-1.75 xl:gap-2">
+                        <Skeleton shape="circle" :pt="{ root: { class: ['!w-11 phone:!w-14 sm:!w-15 md:!w-16 lg:!w-17 xl:!w-18 !h-11 phone:!h-14 sm:!h-15 md:!h-16 lg:!h-17 xl:!h-18'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                        <div class="flex-1 h-full py-0.5 flex flex-col justify-between">
+                            <Skeleton :pt="{ root: { class: ['!h-[11.4px] xs:!h-[12.25px] sm:!h-[14.5px] lg:!h-[17.75px] xl:!h-[21.25px] 2xl:!h-[23.2px]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                            <Skeleton :pt="{ root: { class: ['!h-[7.4px] xs:!h-[8.25px] sm:!h-[9.5px] lg:!h-[13.75px] xl:!h-[17.25px] 2xl:!h-[19.2px]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                            <Skeleton :pt="{ root: { class: ['!h-[7.4px] xs:!h-[8.25px] sm:!h-[9.5px] lg:!h-[13.75px] xl:!h-[17.25px] 2xl:!h-[19.2px]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                        </div>
                     </div>
+                    <Skeleton :pt="{ root: { class: ['flex-1 mt-0.5 xs:mt-0.5 sm:mt-1 md:mt-1.5 lg:!mt-2 xl:!mt-3'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                 </div>
             </CustomCardWithSkeletonComponent>
         </div>
