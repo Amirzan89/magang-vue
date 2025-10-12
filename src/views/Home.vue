@@ -255,12 +255,13 @@ const metaDataReviewLoading = {
             </CustomCardWithSkeletonComponent>
             <RouterLink to="/event" class="relative left-1/2 -translate-x-1/2 w-fit h-fit mt-5 lg:mt-10 px-3 py-2 sm:px-3.25 sm:py-2.25 lg:px-3.5 lg:py-2.5 text-[#3D37F1] border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-[#3D37F1] rounded-lg md:rounded-xl flex justify-center items-center hover:bg-[#3D37F1] text-sm sm:text-base lg:text-lg xl:text-lg hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">See All Events</RouterLink>
         </div>
-        <div class="h-17 sm:h-55 xl:h-60 mt-17 lg:mt-50 bg-purple-500">
-            <div class="w-[95%] lg:w-[90%] xl:w-[75%] h-full relative left-1/2 -translate-x-1/2 flex justify-between items-end overflow-y-visible">
-                <img src="@/assets/images/image-3.png" alt="" class="h-30 lg:h-100 self-end">
-                <div class="w-[40%] lg:w-fit h-fit self-center flex flex-col items-center text-white text-center lg:text-start">
-                    <h2 class="!text-sm lg:!text-2xl xl:!text-2xl !text-white !m-0">Add Your Loving Event</h2>
-                    <RouterLink to="/" class="sm:mt-3 px-2 lg:px-4 py-1 lg:py-2 rounded-sm lg:rounded-md text-xs sm:text-sm lg:text-base xl:text-lg" style="background-color:#F5167E">View all events</RouterLink>
+        <div class="h-16 xs:h-16.25 phone:h-21 sm:h-25 md:h-35 lg:h-41 xl:h-51 2xl:h-58 mt-17 xs:mt-20 phone:mt-25 sm:mt-30 md:mt-37 lg:mt-42 xl:mt-50 2xl:mt-60 bg-purple-500">
+            <div class="w-[94%] xs:w-[86%] sm:w-[80%] md:w-[83%] lg:w-[80%] 2xl:w-[70%] h-full relative left-1/2 -translate-x-1/2 flex justify-between items-end overflow-y-visible">
+                <img src="@/assets/images/image-3.png" alt="" class="h-30 xs:h-32 phone:h-43 sm:h-52 md:h-70 lg:h-80 xl:h-97 2xl:h-110">
+                <div class="w-fit lg:max-w-[26rem] xl:max-w-[33rem] h-fit self-center flex flex-col items-center text-white text-center lg:text-start">
+                    <h3 class="!m-0 !text-base phone:!text-lg sm:!text-xl md:!text-2xl lg:!text-3xl xl:!text-3xl !text-white !font-medium md:!font-semibold">Add Your Loving Event</h3>
+                    <p class="hidden lg:!block lg:w-[85%] xl:w-[70%] !text-sm sm:!text-base lg:!text-lg xl:!text-xl text-center line-clamp-2">Want more people to know about your campus event ? Add it to UniEvents now.</p>
+                    <RouterLink to="/" class="mt-1 sm:mt-3 lg:mt-1 px-2 lg:px-4 py-1 lg:py-2 rounded-sm lg:rounded-md text-xs sm:text-sm lg:text-base xl:text-lg !font-normal" style="background-color:#F5167E">View all events</RouterLink>
                 </div>
             </div>
         </div>
