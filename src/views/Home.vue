@@ -166,41 +166,39 @@ const metaDataReviewLoading = {
             <img src="@/assets/images/party-1.png" alt="" class="w-full h-full object-cover" />
             <div class="absolute top-0 left-0 w-full h-full opacity-90" style="background: #ED4690; background: linear-gradient(145deg,rgba(237, 70, 144, 1) 0%, rgba(85, 34, 204, 1) 100%)"/>
         </div>
-        <div class="relative flex-1 h-full w-full flex flex-col justify-between items-center gap-15 !text-white">
-            <Swiper v-if="local.upcoming_events && local.upcoming_events.length > 0" :modules="[Navigation, Pagination, Autoplay]" :slides-per-view="1" :space-between="20" :loop="true" :autoplay="{ delay: 3000 }" :pagination="{ clickable: true }" :allow-touch-move="false" :simulate-touch="false" :keyboard="{ enabled: false }" :mousewheel="{ enabled: false }" :navigation="{ nextEl: '.btn-next', prevEl: '.btn-prev' }" class="flex-1 lg:flex-initial w-[85%] lg:w-[92%] aspect-video rounded-xl"  @slideChange="onSlideChange">
+        <div class="relative flex-1 h-full w-full flex flex-col items-center gap-5 phone:gap-7 sm:gap-10 md:gap-12 lg:gap-15 !text-white">
+            <Swiper v-if="local.upcoming_events && local.upcoming_events.length > 0" :modules="[Navigation, Pagination, Autoplay]" :slides-per-view="1" :space-between="20" :loop="true" :autoplay="{ delay: 3000 }" :pagination="{ clickable: true }" :allow-touch-move="false" :simulate-touch="false" :keyboard="{ enabled: false }" :mousewheel="{ enabled: false }" :navigation="{ nextEl: '.btn-next', prevEl: '.btn-prev' }" class="w-[87%] lg:w-[92%] aspect-video rounded-xl"  @slideChange="onSlideChange" @mouseenter="hoverCar = true" @mouseleave="hoverCar = false">
                 <template v-for="(item, index) in local.upcoming_events" :key="index">
                     <SwiperSlide><img :src="item.img" alt="" class="w-full object-contain" loading="lazy"></SwiperSlide>
                 </template>
                 <div class="absolute z-2 w-full h-full top-0 left-0 backdrop-blur-[1px]">
                     <div class="absolute z-3 w-full h-full top-0 left-0 opacity-70" style="background: #5420B4; background: linear-gradient(45deg,rgba(84, 32, 180, 1) 100%, rgba(0, 0, 0, 1) 13%);"></div>
-                    <div class="w-[90%] lg:w-[75%] h-[77%] lg:h-[60%] relative z-4 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex sm:block">
-                        <I_VLeft v-if="breakpoints.smaller('lg').value" class="btn-prev self-center size-8"/>
-                        <div class="flex-1 flex flex-col sm:flex-row justify-between items-center gap-7">
-                            <div class="w-full sm:w-[50%] lg:w-[40%] 2xl:w-[30%] min-h-[25%] sm:h-fit xl:h-[50%] flex justify-around lg:items-center" @mouseenter="hoverCar = true" @mouseleave="hoverCar = false">
-                                <I_VLeft v-if="breakpoints.greater('lg').value" class="btn-prev size-8 transition-opacity duration-500 ease-in-out" :class="hoverCar ? 'opacity-100' : 'opacity-0 pointer-events-none'"/>
-                                <div class="flex-1 w-full sm:w-[90%] flex flex-col items-start">
-                                    <h4 class="flex-1 !text-base sm:!text-base lg:!text-lg xl:!text-xl !text-white">{{ local.upcoming_events[activeIndex].event_name }}</h4>
-                                    <a :href="'/event/' + local.upcoming_events[activeIndex]!.event_id" class="w-fit h-fit px-3 py-2 sm:px-3.25 sm:py-2.25 lg:px-3.5 lg:py-2.5 text-[#fff] border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-[#fff] rounded-lg md:rounded-xl flex justify-center items-center hover:bg-[#fff] text-xs sm:text-sm lg:text-base xl:text-lg hover:text-black md:font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">Learn More</a>
+                    <div class="w-[92%] md:w-[90%] lg:w-[87%] xl:w-[85%] h-[77%] lg:h-[60%] relative z-4 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex transition-opacity duration-500 ease-in-out" :class="breakpoints.smaller('md').value || hoverCar ? 'opacity-100' : 'opacity-0 pointer-events-none'">
+                        <div class="flex-1 flex flex-col md:flex-row justify-center md:justify-between items-center">
+                            <div class="w-full md:w-auto md:min-w-fit md:max-w-1/2 lg:max-w-[45%] xl:max-w-[80%] 2xl:max-w-[57%] h-fit flex justify-around items-center gap-1 md:gap-0.75 lg:gap-1.25">
+                                <I_VLeft class="btn-prev size-5 xs:size-6 phone:size-7 sm:size-8 md:size-7 lg:size-8 xl:size-8" :class="breakpoints.smaller('md').value || hoverCar ? 'opacity-100' : 'opacity-0 pointer-events-none'"/>
+                                <div class="flex-1 w-full sm:w-[90%] flex flex-col gap-0.5 phone:gap-1 sm:gap-1.25 md:gap-0.75 lg:gap-2">
+                                    <h4 class="!m-0 !text-sm phone:!text-base sm:!text-lg lg:!text-xl xl:!text-3xl !text-white">{{ local.upcoming_events[activeIndex].event_name }}</h4>
+                                    <a :href="'/event/' + local.upcoming_events[activeIndex]!.event_id" class="w-fit h-fit px-2 py-1.5 sm:px-2.5 sm:py-2 md:px-2 md:py-1.75 lg:px-2.5 lg:py-2 text-white border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-white rounded-md sm:rounded-lg md:rounded-md flex justify-center items-center hover:bg-white text-xs phone:text-sm sm:text-base md:text-sm lg:text-base xl:text-xl hover:text-black" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">Learn More</a>
                                 </div>
-                                <I_VRight v-if="breakpoints.greater('lg').value" class="btn-next size-8 transition-opacity duration-500 ease-in-out" :class="hoverCar ? 'opacity-100' : 'opacity-0 pointer-events-none'"/>
+                                <I_VRight class="btn-next size-5 xs:size-6 phone:size-7 sm:size-8 md:size-7 lg:size-8 xl:size-8" :class="breakpoints.smaller('md').value || hoverCar ? 'opacity-100' : 'opacity-0 pointer-events-none'"/>
                             </div>
-                            <div class="lg:w-[30%] 2xl:w-[30%] h-fit">
-                                <h4 class="!m-0 sm:!mb-1 !text-base sm:!text-base lg:!text-lg xl:!text-xl !text-white">Uni Events</h4>
-                                <p class="text-xs sm:text-sm lg:text-base xl:text-lg">Stay updated with the latest academic talks, workshops, and social gatherings across Sri Lankan universities. Whether you're here to network, learn, or have fun, there’s something for everyone!</p>
-                                <RouterLink to="/about" class="w-fit h-fit px-3 py-2 sm:px-3.25 sm:py-2.25 lg:px-3.5 lg:py-2.5 text-[#fff] border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-[#fff] rounded-lg md:rounded-xl flex justify-center items-center hover:bg-[#fff] text-xs sm:text-sm lg:text-base xl:text-lg hover:!text-black md:font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">Load More</RouterLink>
+                            <div class="hidden md:block md:w-1/2 lg:w-[44%] xl:w-[40%] 2xl:w-[30%] h-fit">
+                                <h4 class="!m-0 md:!mb-0.25 md:!text-3xl lg:text-4xl xl:!text-5xl !text-white">Uni Events</h4>
+                                <p class="!m-0 md:text-base lg:text-lg xl:text-xl">Stay updated with the latest academic talks, workshops, and social gatherings across Sri Lankan universities. Whether you're here to network, learn, or have fun, there’s something for everyone!</p>
+                                <RouterLink to="/about" class="w-fit h-fit md:px-2 md:py-1.75 lg:px-2.5 lg:py-2 md:mt-2.5 lg:mt-5 xl:mt-6 text-white border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-white md:rounded-md flex justify-center items-center hover:bg-white text-xs md:text-base lg:text-lg xl:text-xl 2l:text-xl hover:!text-black" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">Load More</RouterLink>
                             </div>
                         </div>
-                        <I_VRight v-if="breakpoints.smaller('lg').value" class="btn-next self-center size-8"/>
                     </div>
                 </div>
             </Swiper>
             <Skeleton v-else :pt="{ root: { class: ['!w-[85%] lg:!w-[92%] aspect-video lg:aspect-auto !h-3/4 !rounded-xl xl:!rounded-4xl'], style: 'background-color: rgba(255,255,255, 0.18)'}}"></Skeleton>
-            <ul class="phone:w-[75%] lg:w-fit h-fit grid grid-cols-2 gap-4 phone:flex phone:justify-around phone:gap-0 xl:gap-20 text-white">
+            <ul class="phone:w-[75%] sm:w-fit h-fit grid grid-cols-2 gap-2.5 phone:flex phone:justify-around phone:gap-4 sm:gap-6 md:gap-8 lg:gap-10 xl:gap-20 text-white">
                 <li v-for="(item, index) in catHero" :key="index" class="flex flex-col items-center gap-1 xl:gap-2">
                     <div class="bg-white inline-flex justify-center items-center rounded-full w-fit">
-                        <component :is="item.icon" class="size-7 phone:size-8 xl:size-10 2xl:size-12 m-2.75 phone:m-2.5 xl:m-5"></component>
+                        <component :is="item.icon" class="size-7 xs:size-8 phone:size-9 sm:size-10 lg:size-13 xl:size-10 2xl:size-12 m-2.75 sm:m-3.5 lg:m-4 xl:m-5"></component>
                     </div>
-                    <span class="block text-center text-sm xl:text-xl font-medium">{{ item.name }}</span>
+                    <span class="block text-center text-sm xs:text-base phone:text-lg sm:text-xl lg:text-2xl xl:text-3xl font-medium">{{ item.name }}</span>
                 </li>
             </ul>
         </div>
@@ -255,7 +253,7 @@ const metaDataReviewLoading = {
             </CustomCardWithSkeletonComponent>
             <RouterLink to="/event" class="relative left-1/2 -translate-x-1/2 w-fit h-fit mt-5 lg:mt-10 px-3 py-2 sm:px-3.25 sm:py-2.25 lg:px-3.5 lg:py-2.5 text-[#3D37F1] border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-[#3D37F1] rounded-lg md:rounded-xl flex justify-center items-center hover:bg-[#3D37F1] text-sm sm:text-base lg:text-lg xl:text-lg hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">See All Events</RouterLink>
         </div>
-        <div class="h-16 xs:h-16.25 phone:h-21 sm:h-25 md:h-35 lg:h-41 xl:h-51 2xl:h-58 mt-17 xs:mt-20 phone:mt-25 sm:mt-30 md:mt-37 lg:mt-42 xl:mt-50 2xl:mt-60 bg-purple-500">
+        <div class="h-16 xs:h-16.25 phone:h-21 sm:h-25 md:h-35 lg:h-41 xl:h-51 2xl:h-58 mt-17 xs:mt-20 phone:mt-25 sm:mt-30 md:mt-37 lg:mt-42 xl:mt-47 2xl:mt-55 bg-purple-500">
             <div class="w-[94%] xs:w-[86%] sm:w-[80%] md:w-[83%] lg:w-[80%] 2xl:w-[70%] h-full relative left-1/2 -translate-x-1/2 flex justify-between items-end overflow-y-visible">
                 <img src="@/assets/images/image-3.png" alt="" class="h-30 xs:h-32 phone:h-43 sm:h-52 md:h-70 lg:h-80 xl:h-97 2xl:h-110">
                 <div class="w-fit lg:max-w-[26rem] xl:max-w-[33rem] h-fit self-center flex flex-col items-center text-white text-center lg:text-start">
