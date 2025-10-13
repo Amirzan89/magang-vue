@@ -62,9 +62,6 @@ const activeIndex = ref(0)
 const onSlideChange = (swiper: any) => {
     activeIndex.value = swiper.realIndex
 }
-const onHoverCar = (value: boolean) => {
-    hoverCar.value = value
-}
 const catHero = reactive([
     {
         'name': 'Music Events',

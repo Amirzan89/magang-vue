@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, useSlots, computed, type Component, watch, onBeforeMount, onMounted } from 'vue'
+import { ref, shallowRef, useSlots, computed, type Component, watch, onBeforeMount, onMounted, markRaw } from 'vue'
 import { breakpoints } from '@/composables/useScreenSize'
 const slots = useSlots()
 const props = defineProps<{
@@ -7,6 +7,7 @@ const props = defineProps<{
     inpVar?: Record<string, any>
     metaData: {
         wrapper?: (inpData: any) => Component,
+        customTWGrand?: string,
         customTWTransition?: string,
         customCSSTransition?: string,
         snapshots: Partial<Record<keyof typeof breakpoints | 'base', number>>
@@ -23,9 +24,9 @@ const props = defineProps<{
 const emit = defineEmits(['lazy-data'])
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 const wrapperCache = new Map()
-const skeletonRefs: any = ref([])
-const cardRefs: any = ref([])
-const queue: number[] = []
+const skeletonRefs: any = shallowRef<HTMLElement[]>([])
+const cardRefs: any = shallowRef<HTMLElement[]>([])
+const queue = markRaw([] as number[])
 const active = new Set<number>()
 const parallelLimit = ref(props.paralelRender ?? 1)
 const first = ref(0)
@@ -97,10 +98,12 @@ const runAnimation = async (index: number) => {
     cardRefs.value[index]?.classList.remove("opacity-0")
     await delay(100)
     active.delete(index)
+    const pos = queue.indexOf(index)
+    if(pos !== -1) queue.splice(pos, 1)
     processQueue()
 }
 const processQueue = () => {
-    if (queue.length === 0) return
+    if(queue.length === 0) return
     while(active.size < parallelLimit.value && queue.length > 0){
         if(counterSkeletonTest >= maxRenderItemTest){
             break
@@ -111,15 +114,40 @@ const processQueue = () => {
     }
 }
 const handleToggleSkeleton = (index: number) => {
-    queue.push(index)
+    const isInCurrentPage = (index - 1) >= first.value && (index - 1) < first.value + rows.value
+    if((index + 1) >= props.inpData?.length!){
+        console.log('beforee shift queee end', queue)
+    }
+    if(isInCurrentPage){
+        queue.unshift(index)
+    }else{
+        queue.push(index)
+    }
+    if((index + 1) == props.inpData?.length!){
+        console.log('afterrr shiftt queee end', queue)
+    }
     processQueue()
 }
 const handlePage = (e: any) => {
     first.value = e.first
     rows.value = e.rows
+    const startIndex = e.first
+    const endIndex = e.first + e.rows
+    queue.sort((a, b) => {
+        const aIn = (a - 1) >= startIndex && (a - 1) < endIndex
+        const bIn = (b - 1) >= startIndex && (b - 1) < endIndex
+        return (bIn ? 1 : 0) - (aIn ? 1 : 0)
+    })
+    active.forEach(idx => {
+        if((idx - 1) < startIndex || (idx - 1) >= endIndex){
+            active.delete(idx)
+        }
+    })
+    // processQueue()
     if(props.metaData.pagination?.lazyLoading && (((e.page + 1) + (props.metaData.pagination.preRenderPage ?? 0)) >= e.pageCount)){
         emit('lazy-data', e)
     }
+    // processQueue()
 }
 watch([() => props.inpData, colCount], () => {
     if(!props.metaData.pagination) return
@@ -128,6 +156,21 @@ watch([() => props.inpData, colCount], () => {
     prevRows.value = rows.value
     first.value = Math.floor(first.value / rows.value) * newRows
     rows.value = newRows
+    console.log('beforee screen queee', queue)
+    const startIndex = first.value
+    const endIndex = first.value + rows.value
+    active.forEach(id => {
+        if ((id - 1) < startIndex || (id - 1) >= endIndex) {
+            active.delete(id)
+        }
+    })
+    queue.sort((a, b) => {
+        const aIn = (a - 1) >= startIndex && (a - 1) < endIndex
+        const bIn = (b - 1) >= startIndex && (b - 1) < endIndex
+        return (bIn ? 1 : 0) - (aIn ? 1 : 0)
+    })
+    processQueue()
+    console.log('afterrr screen queee', queue)
     if(props.metaData.pagination?.lazyLoading && (first.value + rows.value >= (props.inpData?.length ?? 0))){
         emit('lazy-data', null)
     }
@@ -140,16 +183,18 @@ onBeforeMount(() => {
 })
 </script>
 <template>
-    <div>
+    <div v-if="!props.isLoading" :class="metaData.customTWGrand">
         <div :class="metaData.customTWTransition" :style="metaData.customCSSTransition">
-            <component v-if="!props.isLoading && hasData" v-for="indexPar in (props.inpData!.length + (slots['placeholder-card'] ? 1 : 0))" :key="props.metaData.pagination?.item_id ? props.inpData?.[indexPar - 1]?.[props.metaData.pagination.item_id] : `card-${indexPar}`" v-show="(indexPar - 1) >= first && (indexPar - 1) < first + rows" :is="getWrapper(props.inpData?.[indexPar - 1])">
+            <component v-if="hasData" v-for="indexPar in (props.inpData!.length + (slots['placeholder-card'] ? 1 : 0))" :key="props.metaData.pagination?.item_id ? props.inpData?.[indexPar - 1]?.[props.metaData.pagination.item_id] : `card-${indexPar}`" v-show="(indexPar - 1) >= first && (indexPar - 1) < first + rows" :is="getWrapper(props.inpData?.[indexPar - 1])">
                 <slot :name="slotSkeleton(indexPar)" :index="indexPar" :skeletonRefs="skeletonRefs"/>
-                <slot v-if="props.inpData && (indexPar < props.inpData.length)" name="card" :index="indexPar" :inpData="props.inpData[indexPar - 1]" :toggleSkeleton="handleToggleSkeleton" :cardRefs="cardRefs"/>
+                <slot v-if="props.inpData && (indexPar < props.inpData.length)" name="card" :index="indexPar" :inpData="props.inpData[indexPar - 1]" :toggleSkeleton="(i: number) => handleToggleSkeleton(i)" :cardRefs="cardRefs"/>
                 <slot v-else name="placeholder-card"/>
             </component>
-            <slot v-else v-for="indexPar in loadingItems" :key="`elseCard-${indexPar}`"/>
         </div>
-        <Paginator v-if="!props.isLoading && metaData.pagination && pagedData && pagedData.length > 0" class="mt-6 flex justify-center" :first="first" :rows="rows" :totalRecords="total" @page="handlePage"/>
+        <Paginator v-if="metaData.pagination && pagedData && pagedData.length > 0" class="mt-6 flex justify-center" :first="first" :rows="rows" :totalRecords="total" @page="handlePage"/>
+    </div>
+    <div v-else :class="metaData.customTWTransition" :style="metaData.customCSSTransition">
+        <slot v-for="indexPar in loadingItems" :key="`loadingCard-${indexPar}`"/>
     </div>
 </template>
 <style scoped>

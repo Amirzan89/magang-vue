@@ -20,6 +20,8 @@ const local = reactive({
     reviews: null as any,
     isLoading: false,
     isFirstLoad: true,
+    next_cursor: null as string | null,
+    has_more: false,
 })
 const itemsCategoryFilter = ref<{ label: string, value: string }[]>([])
 const itemsPaysFilter = ref([
@@ -80,6 +82,7 @@ const teleportTargetFn = async() => {
 }
 let categoryHydrationController: AbortController | null = null
 let abortFormController: AbortController | null = null
+let abortHydrationController: AbortController | null = null
 let debounceTimers: Partial<Record<keyof WatchedInput, ReturnType<typeof setTimeout>>> = {}
 watch(width, () => {
     if(!isMobile.value && isDialogOpen.value){
@@ -239,11 +242,11 @@ const APIComposables = async(path: string, inpSignal: AbortSignal) => {
 }
 onBeforeMount(async() => {
     categoryHydrationController = new AbortController()
-    const res = await APIComposables('/event-categories', categoryHydrationController.signal)
-    if(res.status == 'error'){
+    const resCategories = await APIComposables('/event-categories', categoryHydrationController.signal)
+    if(resCategories.status == 'error'){
         return console.log('error')
     }
-    res.data.forEach((item: any, i: number) => {
+    resCategories.data.forEach((item: any, i: number) => {
         if((item['event_group_name'] && item['event_group']) && ((item['event_group_name'] != '') && (item['event_group'] != ''))){
             itemsCategoryFilter.value = [...itemsCategoryFilter.value, { label: item['event_group_name'], value: item['event_group'] }]
             filterRules.category = [...filterRules.category, item['event_group']]
@@ -256,6 +259,12 @@ onBeforeMount(async() => {
     // }
     const sanitized = sanitizeAllQuery(route.query)
     const newQuery = queryParamHandler(sanitized)
+    const{ id_page, limit } = route.query
+    const isLimitValid = limit && !isNaN(Number(limit)) && Number(limit) > 0 && Number(limit) <= 30
+    const isIdPageValid = id_page ? typeof id_page === 'string' && id_page.length <= 100 : true
+    if(!isIdPageValid || !isLimitValid){
+        newQuery.limit = 15
+    }
     router.replace({ path: '/search', query: newQuery }).catch(() => {})
     // if(Object.keys(newQuery).length > 0){
     //     router.replace({ path: '/search', query: newQuery }).catch(() => {})
@@ -274,40 +283,58 @@ onBeforeMount(async() => {
             category: sanitized.category ? [...sanitized.category] : []
         })
     }
-    await formSearchFilter()
+    abortHydrationController = new AbortController()
+    const res = await APIComposables('/search', abortHydrationController.signal)
+    if(res.status == 'error'){
+        return console.log('error', res.message)
+    }
+    console.log('enttokk dataa ', res.data.data)
+    local.fetchData = res.data.data
+    local.next_cursor = res.data.next_cursor
+    local.has_more = res.data.has_more
     local.isFirstLoad = false
     await nextTick()
 })
 const formSearchFilter = async() => {
     if(abortFormController) abortFormController.abort()
-    if(!local.isFirstLoad){
-        let isUpdated = false
-        const isEqual = (a: unknown, b: unknown): boolean => {
-            if(Array.isArray(a) && Array.isArray(b)){
-                if(a.length !== b.length) return false
-                return a.every((val, idx) => val === b[idx])
-            }
-            return a === b
+    let isUpdated = false
+    const isEqual = (a: unknown, b: unknown): boolean => {
+        if(Array.isArray(a) && Array.isArray(b)){
+            if(a.length !== b.length) return false
+            return a.every((val, idx) => val === b[idx])
         }
-        for(const key of Object.keys(oldInput) as (keyof typeof oldInput)[]){
-            if(!isEqual(oldInput[key], currentInput[key])){
-                isUpdated = true
-                break
-            }
-        }
-        if(!isUpdated) return
+        return a === b
     }
+    for(const key of Object.keys(oldInput) as (keyof typeof oldInput)[]){
+        if(!isEqual(oldInput[key], currentInput[key])){
+            isUpdated = true
+            break
+        }
+    }
+    if(!isUpdated) return
     abortFormController = new AbortController()
-    if(!local.isFirstLoad){
-        router.push({ path: '/search', query: queryParamHandler(currentInput) })
-    }
+    router.push({ path: '/search', query: queryParamHandler(currentInput) })
     const res = await APIComposables('/search', abortFormController.signal)
     keyword.value = currentInput.search
     if(res.status == 'error'){
         return console.log('error', res.message)
     }
-    local.fetchData = res.data
+    local.fetchData = res.data.data
     oldInput.search = currentInput.search
+}
+const lazyDataAll = async() => {
+    if(local.has_more){
+        await router.replace({ path:'/search', query: { ...route.query, 'next_page': local.next_cursor,'limit': 15 }})
+        abortHydrationController = new AbortController()
+        const res = await APIComposables(route.path, abortHydrationController.signal)
+        if(res.status == 'error'){
+            return console.log('error lazy')
+        }
+        console.log('lazyy res',res.data.data)
+        local.fetchData.push(...res.data.data)
+        local.next_cursor = res.data.next_cursor
+        local.has_more = res.data.has_more
+    }
 }
 const metaDataSearch = {
     wrapper: (inpData: any) => defineComponent({
@@ -320,14 +347,15 @@ const metaDataSearch = {
             }
         }
     }),
-    customTWTransition: 'flex-1 grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5',
+    customTWGrand: 'flex-1',
+    customTWTransition: 'grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5',
     pagination: {
         lazyLoading: true,
         preRenderPage: 1,
         item_id: 'event_id',
     },
     snapshots: {
-        base: 2,
+        base: 3,
         phone: 2,
         xl: 3,
     },
@@ -415,13 +443,7 @@ const metaDataLoading = {
                             </Card>
                         </template>
                     </CustomCardWithSkeletonComponent>
-                    <div v-if="local.fetchData.length == 0 && !local.isLoading" class="flex-1">
-                        <div class="w-[60%] flex justify-between items-center mx-auto">
-                            <img src="@/assets/images/notfound.png" alt="" class="w-[40%] object-cover" />
-                            <h3 class="text-5xl text-red-500">Event Tidak Ditemukan</h3>
-                        </div>
-                    </div>
-                    <CustomCardWithSkeletonComponent v-show="local.isLoading" :metaData="metaDataLoading" :paralelRender="Infinity" :isLoading="true">
+                    <CustomCardWithSkeletonComponent v-else :metaData="metaDataLoading" :paralelRender="Infinity" :isLoading="true">
                         <div class="skeleton-wrapper flex flex-col items-center">
                             <Skeleton :pt="{ root: { class: ['!w-[103%] sm:!w-[102.5%] !h-[123px] phone:!h-[172px] lg:!h-[200px] !rounded-lg relative -left-[0.25%] -top-[1%]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                             <div class="w-full p-3.75 lg:p-4.75 xl:px-6.75 xl:py-4.75 mx-auto flex flex-col">
@@ -431,6 +453,12 @@ const metaDataLoading = {
                             </div>
                         </div>
                     </CustomCardWithSkeletonComponent>
+                    <div v-if="local.fetchData.length == 0 && !local.isLoading" class="flex-1">
+                        <div class="w-[60%] flex justify-between items-center mx-auto">
+                            <img src="@/assets/images/notfound.png" alt="" class="w-[40%] object-cover" />
+                            <h3 class="text-5xl text-red-500">Event Tidak Ditemukan</h3>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
