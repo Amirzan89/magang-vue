@@ -7,9 +7,7 @@ import useEncryption from '@/composables/encryption'
 import { width, isMobile, isDesktop } from '@/composables/useScreenSize'
 import { getImgURL } from '@/utils/global'
 import CustomCardWithSkeletonComponent from '@/components/CustomCardWithSkeleton.vue'
-import I_Location from '@/assets/icons/card_events/location.svg?component'
-import I_Bookmark from '@/assets/icons/card_events/bookmark.svg?component'
-import freeTag from '@/assets/images/free-tag.png';
+import freeTag from '@/assets/images/free-tag.png'
 import router from '@/router'
 const route = useRoute()
 const { axiosJson, fetchCsrfToken } = useAxios()
@@ -43,7 +41,9 @@ type FilterValues = {
         : never
 }
 type InputForm = FilterValues & {
-    search: string
+    search: string,
+    hydratedSR: boolean,
+    hydratedER: boolean,
 }
 type WatchedInput = Pick<InputForm, "category" | "dates" | "pay">
 const oldInput = reactive<InputForm>({
@@ -52,7 +52,9 @@ const oldInput = reactive<InputForm>({
     // university: '',
     category: [],
     pay: '' as 'pay' | 'free' | 'all',
-    dates: null,
+    dates: [new Date(), new Date()],
+    hydratedSR: false,
+    hydratedER: false,
 })
 const currentInput = reactive<InputForm>({
     search: '',
@@ -60,7 +62,9 @@ const currentInput = reactive<InputForm>({
     // university: '',
     category: [],
     pay: '' as 'pay' | 'free' | 'all',
-    dates: null,
+    dates: [new Date(), new Date()],
+    hydratedSR: false,
+    hydratedER: false,
 })
 const isDialogOpen = ref(false)
 const teleportTarget = ref(null)
@@ -86,6 +90,14 @@ watch([isDialogOpen, isDesktop], teleportTargetFn, { immediate: true })
 watch(() => ({ category: currentInput.category, dates: currentInput.dates, pay: currentInput.pay } as WatchedInput), async(newVal, oldVal) => {
     if(local.isFirstLoad) return
     const keys = Object.keys(newVal) as (keyof WatchedInput)[]
+    const isDatesChanged = JSON.stringify(newVal.dates) !== JSON.stringify(oldVal.dates)
+    if(isDatesChanged){
+        if(!currentInput.hydratedSR){
+            currentInput.hydratedSR = true
+        }else if(!currentInput.hydratedER){
+            currentInput.hydratedER = true
+        }
+    }
     for(const key of keys){
         if(JSON.stringify(newVal[key]) !== JSON.stringify(oldVal[key])){
             if(debounceTimers[key]) clearTimeout(debounceTimers[key])
@@ -126,11 +138,19 @@ const sanitizeAllQuery = (rawQuery: Record<string, unknown>): InputForm => {
     }
     const clean: any = {}
     clean.search = Array.isArray(query.search) ? query.search[0] : (query.search as string) ?? ""
+    clean.hydratedSR = "f_sr_date" in rawQuery
+    clean.hydratedER = "f_er_date" in rawQuery
     for(const key of Object.keys(filterRules) as FilterKey[]){
         if(key === "dates"){
-            const start = query.start_date ? new Date(query.start_date as string) : null
-            const end = query.end_date ? new Date(query.end_date as string) : null
-            clean.dates = end && !start ? null : [start, end]
+            let start: Date | null = query.start_date ? new Date(query.start_date as string) : null
+            let end: Date | null = query.end_date ? new Date(query.end_date as string) : null
+            if(start && !end) end = start
+            if(!start && end) start = new Date()
+            if(!start && !end){
+                start = new Date()
+                end = new Date()
+            }
+            clean.dates = [start, end]
             continue
         }
         const value = query[key]
@@ -149,8 +169,8 @@ const queryParamHandler = (inp: InputForm) => {
         find: inp.search || null,
         f_category: Array.isArray(inp.category) && inp.category.length > 0 ? inp.category : null,
         f_pay: inp.pay || null,
-        f_sr_date: inp.dates?.[0] ? formatDate(inp.dates[0]) : null,
-        f_er_date: inp.dates?.[1] ? formatDate(inp.dates[1]) : null,
+        f_sr_date: inp.hydratedSR && inp.dates?.[0] ? formatDate(inp.dates[0]) : null,
+        f_er_date: inp.hydratedER && inp.dates?.[1] ? formatDate(inp.dates[1]) : null,
     }
     const filteredParams: Record<string, any> = {}
     for(const key in queryParams){
@@ -278,7 +298,9 @@ const formSearchFilter = async() => {
         if(!isUpdated) return
     }
     abortFormController = new AbortController()
-    router.push({ path: '/search', query: queryParamHandler(currentInput) })
+    if(!local.isFirstLoad){
+        router.push({ path: '/search', query: queryParamHandler(currentInput) })
+    }
     const res = await APIComposables('/search', abortFormController.signal)
     keyword.value = currentInput.search
     if(res.status == 'error'){
@@ -298,10 +320,25 @@ const metaDataSearch = {
             }
         }
     }),
-    customTWTransition: 'flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-2 lg:gap-4',
+    customTWTransition: 'flex-1 grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5',
+    pagination: {
+        lazyLoading: true,
+        preRenderPage: 1,
+        item_id: 'event_id',
+    },
+    snapshots: {
+        base: 2,
+        phone: 2,
+        xl: 3,
+    },
 }
 const metaDataLoading = {
-    customTWTransition: 'flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 grid-rows-[repeat(auto-fit,20rem)] gap-2 lg:gap-4',
+    customTWTransition: 'flex-1 grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5',
+    snapshots: {
+        base: 3,
+        phone: 2,
+        xl: 3,
+    },
 }
 </script>
 <template>
@@ -329,13 +366,13 @@ const metaDataLoading = {
             <Select v-model:model-value="currentInput.pay" :options="itemsPaysFilter" optionLabel="name" optionValue="value" placeholder="Select event fee" class="w-full md:w-56"/>
         </FormField>
     </Teleport>
-    <section class="relative min-h-screen flex flex-col overflow-x-clip">
+    <section class="relative flex flex-col overflow-x-clip pt-[calc(4rem+10px)] sm:pt-[calc(4rem+10px)] lg:pt-[calc(4rem)]">
         <img src="@/assets/images/cele-3.png" alt="" class="absolute bottom-0 -right-[30%] w-[75%] h-[75%] -z-1 object-cover opacity-30" />
         <div class="w-[97%] mx-auto mt-7 flex flex-col">
             <div class="relative flex items-center justify-between">
-                <h2 class="w-fit text-4xl">Search Events</h2>
-                <div class="flex gap-2 lg:gap-3">
-                    <InputText id="email" type="email" class="w-50" placeholder="Cari Event" v-model="currentInput.search" @keyup.enter="formSearchFilter()"/>
+                <h2 class="w-fit hidden sm:block text-4xl">Search Events</h2>
+                <div class="flex-1 sm:flex-initial flex gap-2 lg:gap-3">
+                    <InputText id="email" type="email" class="flex-1 sm:flex-initial sm:w-55 md:w-60 lg:w-[calc(0.25rem*65)] xl:w-70" placeholder="Cari Event" v-model="currentInput.search" @keyup.enter="formSearchFilter()"/>
                     <Button @click="formSearchFilter()">Search</Button>
                     <Button v-if="isMobile" @click="isDialogOpen = true">Filters</Button>
                 </div>
@@ -348,17 +385,17 @@ const metaDataLoading = {
                     </Transition>
                     <CustomCardWithSkeletonComponent v-if="local.fetchData.length > 0 && !local.isLoading" :metaData="metaDataSearch" :inpData="local.fetchData" :paralelRender="2">
                         <template #skeleton="{ index, skeletonRefs }">
-                            <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 -top-[2%] left-0 w-full h-[102%] flex flex-col items-center transition-opacity duration-100">
-                                <Skeleton :pt="{ root: { class: ['!w-[104%] !h-[57%] lg:h-[65%] !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                                <div class="w-[97%] mt-3.5 lg:mt-1.5 mx-auto">
-                                    <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 !rounded-sm ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                                    <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 mt-1 lg:mt-1.5 !rounded-md ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                                    <Skeleton :pt="{ root: { class: ['!h-6.5 lg:h-11 mt-1.5 lg:mt-2 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                            <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 left-0 w-full h-full flex flex-col items-center transition-opacity duration-100 pointer-events-none">
+                                <Skeleton :pt="{ root: { class: ['!w-[103%] sm:!w-[102.5%] !h-[123px] phone:!h-[172px] lg:!h-[200px] !rounded-lg relative -left-[0.25%] -top-[1%]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                                <div class="w-full p-3.75 lg:p-4.75 xl:px-6.75 xl:py-4.75 mx-auto flex flex-col">
+                                    <Skeleton :pt="{ root: { class: ['!h-[13px] sm:!h-[16.75px] lg:!h-[17px] xl:!h-[18px] 2xl:!h-[20px] !rounded-[3px] sm:!rounded-[4px] lg:!rounded-[5px]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                                    <Skeleton :pt="{ root: { class: ['!h-[13px] sm:!h-[16.75px] lg:!h-[17px] xl:!h-[18px] 2xl:!h-[20px] mt-1 lg:mt-1.5 !rounded-[3px] sm:!rounded-[4px] lg:!rounded-[5px]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                                    <Skeleton :pt="{ root: { class: ['!w-[92px] xs:!w-[92px] phone:!w-[110px] sm:!w-[112px] lg:!w-[127px] xl:!w-[157px] 2xl:!w-[160px] !h-[14px] sm:!h-[15.5px] lg:!h-[18px] xl:!h-[18px] 2xl:!h-[20px] mt-1.5 sm:mt-1 lg:mt-2 !rounded-[3px] sm:!rounded-[4px] lg:!rounded-[5px]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                                 </div>
                             </div>
                         </template>
                         <template #card="{ index, inpData, toggleSkeleton, cardRefs }">
-                            <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" :pt="{ root: { class: ['rounded-md lg:rounded-[20px] overflow-hidden opacity-0 transition-opacity duration-100'], style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, body: { class: ['!gap-1 !p-4 lg:!p-5 xl:!px-7 xl:!py-5'] }}">
+                            <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" :pt="{ root: { class: ['!h-full rounded-md lg:rounded-[20px] overflow-hidden opacity-0 transition-opacity duration-100'], style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, body: { class: ['!p-4 lg:!p-5 xl:!px-7 xl:!py-5'] }}">   
                                 <template #header>
                                     <img :src="getImgURL(inpData.img)" alt="" class="w-full h-[120px] phone:h-[170px] lg:h-[197px] object-cover" :ref="((el: any) => {
                                             if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
@@ -367,17 +404,12 @@ const metaDataLoading = {
                                             inpData.imgLoad = true
                                             toggleSkeleton(index)
                                         }" @error="() => toggleSkeleton(index)"/>
-                                    <img :src="freeTag" alt="" class="absolute -top-0.5 -right-0.5 z-9 h-[17%] lg:h-[18%]">
+                                    <img :src="freeTag" alt="" class="absolute -top-0.5 -right-0.5 z-9 h-[17%] lg:h-[20%]">
                                 </template>
                                 <template #content>
                                     <div class="flex flex-col gap-0">
-                                        <RouterLink :to="'/event/' + inpData.event_id" class="text-sm sm:text-base lg:text-lg xl:text-xl font:medium lg:font-semibold">{{ inpData.event_name }}</RouterLink>
+                                        <RouterLink :to="'/event/' + inpData.event_id" class="min-h-[3em] text-sm sm:text-base lg:text-lg xl:text-xl font:medium line-clamp-2 leading-snug">{{ inpData.event_name }}</RouterLink>
                                         <span class="text-xs sm:text-sm lg:text-base xl:text-lg">{{ inpData.start_date }}</span>
-                                    </div>
-                                    <div class="mt-4 sm:mt-3 lg:mt-5 xl:mt-7 flex justify-between">
-                                        <a :href="inpData.link_lokasi" target="_blank" rel="noopener noreferrer"><I_Location class="size-5.5 phone:size-5 sm:size-5.5 lg:size-6.5 text-green-500"/></a>
-                                        <span class="text-sm sm:text-base lg:text-lg xl:text-xl">{{ inpData.nama_lokasi }}</span>
-                                        <I_Bookmark class="size-5.5 phone:size-5 sm:size-5.5 lg:size-6.5 text-green-500"/>
                                     </div>
                                 </template>
                             </Card>
@@ -390,12 +422,12 @@ const metaDataLoading = {
                         </div>
                     </div>
                     <CustomCardWithSkeletonComponent v-show="local.isLoading" :metaData="metaDataLoading" :paralelRender="Infinity" :isLoading="true">
-                        <div class="skeleton-wrapper flex-1 flex flex-col items-center">
-                            <Skeleton :pt="{ root: { class: ['flex-1 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                            <div class="w-[97%] mt-3.5 lg:mt-1.5 mx-auto">
-                                <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 !rounded-sm ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                                <Skeleton :pt="{ root: { class: ['!h-4 lg:h-6 mt-1 lg:mt-1.5 !rounded-md ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                                <Skeleton :pt="{ root: { class: ['!h-6.5 lg:h-11 mt-1.5 lg:mt-2 !rounded-lg ]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                        <div class="skeleton-wrapper flex flex-col items-center">
+                            <Skeleton :pt="{ root: { class: ['!w-[103%] sm:!w-[102.5%] !h-[123px] phone:!h-[172px] lg:!h-[200px] !rounded-lg relative -left-[0.25%] -top-[1%]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                            <div class="w-full p-3.75 lg:p-4.75 xl:px-6.75 xl:py-4.75 mx-auto flex flex-col">
+                                <Skeleton :pt="{ root: { class: ['!h-[13px] sm:!h-[16.75px] lg:!h-[17px] xl:!h-[18px] 2xl:!h-[20px] !rounded-[3px] sm:!rounded-[4px] lg:!rounded-[5px]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                                <Skeleton :pt="{ root: { class: ['!h-[13px] sm:!h-[16.75px] lg:!h-[17px] xl:!h-[18px] 2xl:!h-[20px] mt-1 lg:mt-1.5 !rounded-[3px] sm:!rounded-[4px] lg:!rounded-[5px]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                                <Skeleton :pt="{ root: { class: ['!w-[92px] xs:!w-[92px] phone:!w-[110px] sm:!w-[112px] lg:!w-[127px] xl:!w-[157px] 2xl:!w-[160px] !h-[14px] sm:!h-[15.5px] lg:!h-[18px] xl:!h-[18px] 2xl:!h-[20px] mt-1.5 sm:mt-1 lg:mt-2 !rounded-[3px] sm:!rounded-[4px] lg:!rounded-[5px]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                             </div>
                         </div>
                     </CustomCardWithSkeletonComponent>
