@@ -49,9 +49,9 @@ const isOutsideClicked = (event) => {
     <div class="layout-wrapper" :class="containerClass">
         <HeaderHome></HeaderHome>
         <div class="layout-main-container !m-0 !p-0">
-            <div class="layout-main">
+            <main class="layout-main">
                 <router-view></router-view>
-            </div>
+            </main>
             <FooterHome></FooterHome>
         </div>
         <div class="layout-mask animate-fadein"></div>

@@ -27,10 +27,11 @@ const routeItems = reactive([
 ])
 const headerRef = ref<HTMLElement | null>(null)
 const bgLayer = ref(null)
-const hBg = ['/events', '/search', '/about', '/privacy-policy']
-const hBgPrefix = ['/event', '/booking']
+const hBg = ['/search', '/about', '/privacy-policy']
+const hBgPrefix = ['/event/', '/booking']
 const dBg = ['/']
 const headerBg = computed(() => {
+    // console.log('bebeeb', hBgPrefix.some(prefix => route.path.startsWith(prefix)))
     return hBg.includes(route.path) || hBgPrefix.some(prefix => route.path.startsWith(prefix))
 })
 const waitForEvent = (eventName: string): Promise<void> => {

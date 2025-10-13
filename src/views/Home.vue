@@ -94,11 +94,10 @@ const metaDataUpcoming = {
             }
         }
     }),
-    customTWTransition: 'grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4',
+    customTWTransition: 'grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5',
     snapshots: {
         base: 3,
-        sm: 2,
-        md: 2,
+        phone: 2,
         xl: 1,
     },
 }
@@ -116,17 +115,15 @@ const metaDataPast = {
     customTWTransition: 'grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5',
     snapshots: {
         base: 3,
-        sm: 2,
-        md: 2,
+        phone: 2,
         xl: 1,
     },
 }
 const metaDataEventLoading = {
-    customTWTransition: 'flex-1 grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-2 lg:gap-4',
+    customTWTransition: 'grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5',
     snapshots: {
         base: 3,
-        sm: 2,
-        md: 2,
+        phone: 2,
         xl: 1,
     },
 }
@@ -154,14 +151,14 @@ const metaDataReviewLoading = {
     customTWTransition: 'flex-1 grid grid-cols-1 phone:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 [grid-auto-rows:8rem] phone:[grid-auto-rows:11rem] md:[grid-auto-rows:10.75rem] lg:[grid-auto-rows:12.5rem] xl:[grid-auto-rows:14rem] 2xl:[grid-auto-rows:15.5rem] gap-2 lg:gap-4',
     snapshots: {
         base: 5,
-        sm: 5,
+        sm: 3,
         md: 3,
-        xl: 1,
+        xl: 2,
     },
 }
 </script>
 <template>
-    <section class="relative h-screen pt-[calc(4rem+10px)] sm:pt-[calc(4rem+10px)] lg:pt-[calc(4rem+15px)] pb-35 sm:pb-25 lg:pb-30 flex flex-col lg:block">
+    <section class="relative h-screen pt-[calc(4rem+10px)] sm:pt-[calc(4rem+10px)] lg:pt-[calc(4rem+15px)] pb-35 sm:pb-25 lg:pb-30">
         <div class="absolute top-0 left-0 w-full h-full -z-1">
             <img src="@/assets/images/party-1.png" alt="" class="w-full h-full object-cover" />
             <div class="absolute top-0 left-0 w-full h-full opacity-90" style="background: #ED4690; background: linear-gradient(145deg,rgba(237, 70, 144, 1) 0%, rgba(85, 34, 204, 1) 100%)"/>
@@ -242,7 +239,7 @@ const metaDataReviewLoading = {
                 </template>
             </CustomCardWithSkeletonComponent>
             <CustomCardWithSkeletonComponent v-else :metaData="metaDataEventLoading" :paralelRender="Infinity" :isLoading="true">
-                <div class="skeleton-wrapper flex-1 flex flex-col items-center">
+                <div class="skeleton-wrapper flex flex-col items-center">
                     <Skeleton :pt="{ root: { class: ['!w-[103%] sm:!w-[102.5%] !h-[123px] phone:!h-[172px] lg:!h-[200px] !rounded-lg relative -left-[0.25%] -top-[1%]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                     <div class="w-full p-3.75 lg:p-4.75 xl:px-6.75 xl:py-4.75 mx-auto flex flex-col">
                         <Skeleton :pt="{ root: { class: ['!h-[13px] sm:!h-[16.75px] lg:!h-[17px] xl:!h-[18px] 2xl:!h-[20px] !rounded-[3px] sm:!rounded-[4px] lg:!rounded-[5px]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
@@ -301,7 +298,7 @@ const metaDataReviewLoading = {
                 </template>
             </CustomCardWithSkeletonComponent>
             <CustomCardWithSkeletonComponent v-else :metaData="metaDataEventLoading" :paralelRender="Infinity" :isLoading="true">
-                <div class="skeleton-wrapper flex-1 flex flex-col items-center">
+                <div class="skeleton-wrapper flex flex-col items-center">
                     <Skeleton :pt="{ root: { class: ['!w-[103%] sm:!w-[102.5%] !h-[123px] phone:!h-[172px] lg:!h-[200px] !rounded-lg relative -left-[0.25%] -top-[1%]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                     <div class="w-full p-3.75 lg:p-4.75 xl:px-6.75 xl:py-4.75 mx-auto flex flex-col">
                         <Skeleton :pt="{ root: { class: ['!h-[13px] sm:!h-[16.75px] lg:!h-[17px] xl:!h-[18px] 2xl:!h-[20px] !rounded-[3px] sm:!rounded-[4px] lg:!rounded-[5px]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
