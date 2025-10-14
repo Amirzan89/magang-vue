@@ -14,8 +14,15 @@ const { axiosJson, fetchCsrfToken } = useAxios()
 const { encryptReq, decryptRes } = useEncryption()
 const SideFilterRef = ref(null)
 const DialogContentRef = ref(null)
+interface EventData{
+    event_id: string,
+    event_name: string,
+    img: string,
+    imgLoad: boolean,
+    start_date: string,
+}
 const local = reactive({
-    fetchData: [] as any,
+    fetchData: [] as EventData[],
     past_events: null as any,
     reviews: null as any,
     isLoading: false,
@@ -289,7 +296,9 @@ onBeforeMount(async() => {
         return console.log('error', res.message)
     }
     console.log('enttokk dataa ', res.data.data)
+    console.log('before hydration ', local.fetchData)
     local.fetchData = res.data.data
+    console.log('afterr hydration ', local.fetchData)
     local.next_cursor = res.data.next_cursor
     local.has_more = res.data.has_more
     local.isFirstLoad = false
@@ -319,11 +328,18 @@ const formSearchFilter = async() => {
     if(res.status == 'error'){
         return console.log('error', res.message)
     }
+    console.log('form res',res.data)
+    console.log('old fetch data form',local.fetchData)
     local.fetchData = res.data.data
+    console.log('new fetch data form',local.fetchData)
     oldInput.search = currentInput.search
+    local.has_more = res.data.has_more
+    local.next_cursor = res.data.next_cursor
 }
-const lazyDataAll = async() => {
+const lazyDataSearch = async() => {
+    console.log('adoh', local.fetchData.length)
     if(local.has_more){
+        console.log('adoh23232', local.fetchData.length)
         await router.replace({ path:'/search', query: { ...route.query, 'next_page': local.next_cursor,'limit': 15 }})
         abortHydrationController = new AbortController()
         const res = await APIComposables(route.path, abortHydrationController.signal)
@@ -331,11 +347,16 @@ const lazyDataAll = async() => {
             return console.log('error lazy')
         }
         console.log('lazyy res',res.data.data)
+        console.log('before', local.fetchData.length)
         local.fetchData.push(...res.data.data)
+        console.log('after', local.fetchData.length)
         local.next_cursor = res.data.next_cursor
         local.has_more = res.data.has_more
     }
 }
+watch(() => local.fetchData, () => {
+    console.log('dowooo', local.fetchData.length)
+}, { deep: true })
 const metaDataSearch = {
     wrapper: (inpData: any) => defineComponent({
         setup(){
@@ -351,7 +372,7 @@ const metaDataSearch = {
     customTWTransition: 'grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5',
     pagination: {
         lazyLoading: true,
-        preRenderPage: 1,
+        preRenderPage: 0,
         item_id: 'event_id',
     },
     snapshots: {
@@ -411,7 +432,8 @@ const metaDataLoading = {
                     <Transition name="sidefilter" appear>
                         <Form v-if="isDesktop" :ref="el => SideFilterRef =  (el as ComponentPublicInstance)?.$el" class="sticky w-75 h-full rounded-xl flex flex-col gap-2 pt-3 pb-5 pl-5 pr-5" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1); top: calc(var(--paddTop) + 10px);"/>
                     </Transition>
-                    <CustomCardWithSkeletonComponent v-if="local.fetchData.length > 0 && !local.isLoading" :metaData="metaDataSearch" :inpData="local.fetchData" :paralelRender="2">
+                    <!-- <CustomCardWithSkeletonComponent v-if="local.fetchData.length > 0 && !local.isLoading" :metaData="metaDataSearch" :inpData="local.fetchData" :paralelRender="2" @lazy-data="lazyDataSearch"> -->
+                    <CustomCardWithSkeletonComponent v-if="local.fetchData" :metaData="metaDataSearch" :inpData="local.fetchData" :paralelRender="1" @lazy-data="lazyDataSearch">
                         <template #skeleton="{ index, skeletonRefs }">
                             <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 left-0 w-full h-full flex flex-col items-center transition-opacity duration-100 pointer-events-none">
                                 <Skeleton :pt="{ root: { class: ['!w-[103%] sm:!w-[102.5%] !h-[123px] phone:!h-[172px] lg:!h-[200px] !rounded-lg relative -left-[0.25%] -top-[1%]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
@@ -423,11 +445,11 @@ const metaDataLoading = {
                             </div>
                         </template>
                         <template #card="{ index, inpData, toggleSkeleton, cardRefs }">
-                            <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" :pt="{ root: { class: ['!h-full rounded-md lg:rounded-[20px] overflow-hidden opacity-0 transition-opacity duration-100'], style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, body: { class: ['!p-4 lg:!p-5 xl:!px-7 xl:!py-5'] }}">   
+                            <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" :pt="{ root: { class: ['!h-full rounded-md lg:rounded-[20px] overflow-hidden opacity-0 transition-opacity duration-100'], style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, body: { class: ['!p-4 lg:!p-5 xl:!px-7 xl:!py-5'] }}">
                                 <template #header>
                                     <img :src="getImgURL(inpData.img)" alt="" class="w-full h-[120px] phone:h-[170px] lg:h-[197px] object-cover" :ref="((el: any) => {
                                             if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
-                                        })"
+                                        })" 
                                         @load="() => {
                                             inpData.imgLoad = true
                                             toggleSkeleton(index)

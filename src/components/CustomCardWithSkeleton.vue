@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, shallowRef, useSlots, computed, type Component, watch, onBeforeMount, onMounted, markRaw } from 'vue'
+import { ref, shallowRef, useSlots, computed, type Component, watch, onBeforeMount, onMounted, markRaw, watchEffect } from 'vue'
 import { breakpoints } from '@/composables/useScreenSize'
 const slots = useSlots()
 const props = defineProps<{
@@ -71,6 +71,11 @@ const pagedData = computed(() => {
 const hasData = computed(() => {
     return props.inpData && props.inpData!.length > 0
 })
+const renderItems = computed<any | null>(() => {
+    const base = props.inpData ?? []
+    const extra = slots['placeholder-card'] ? [null] : []
+    return [...base, ...extra]
+})
 const loadingItems = computed(() => {
     return colCount.value * pSnapshots.value
 })
@@ -114,49 +119,33 @@ const processQueue = () => {
     }
 }
 const handleToggleSkeleton = (index: number) => {
-    const isInCurrentPage = (index - 1) >= first.value && (index - 1) < first.value + rows.value
-    if((index + 1) >= props.inpData?.length!){
-        console.log('beforee shift queee end', queue)
-    }
+    const isInCurrentPage = index >= first.value && index < first.value + rows.value
     if(isInCurrentPage){
         queue.unshift(index)
     }else{
         queue.push(index)
-    }
-    if((index + 1) == props.inpData?.length!){
-        console.log('afterrr shiftt queee end', queue)
     }
     processQueue()
 }
 const handlePage = (e: any) => {
     first.value = e.first
     rows.value = e.rows
-    const startIndex = e.first
-    const endIndex = e.first + e.rows
-    queue.sort((a, b) => {
-        const aIn = (a - 1) >= startIndex && (a - 1) < endIndex
-        const bIn = (b - 1) >= startIndex && (b - 1) < endIndex
-        return (bIn ? 1 : 0) - (aIn ? 1 : 0)
-    })
-    active.forEach(idx => {
-        if((idx - 1) < startIndex || (idx - 1) >= endIndex){
-            active.delete(idx)
-        }
-    })
-    // processQueue()
     if(props.metaData.pagination?.lazyLoading && (((e.page + 1) + (props.metaData.pagination.preRenderPage ?? 0)) >= e.pageCount)){
         emit('lazy-data', e)
     }
-    // processQueue()
 }
 watch([() => props.inpData, colCount], () => {
-    if(!props.metaData.pagination) return
-    const newRows = colCount.value * pSnapshots.value
-    if(newRows === rows.value || newRows === 0) return
-    prevRows.value = rows.value
-    first.value = Math.floor(first.value / rows.value) * newRows
-    rows.value = newRows
-    console.log('beforee screen queee', queue)
+    if(props.metaData.pagination){
+        const newRows = colCount.value * pSnapshots.value
+        if(newRows !== rows.value || newRows !== 0){
+            prevRows.value = rows.value
+            first.value = Math.floor(first.value / rows.value) * newRows
+            rows.value = newRows
+            if(props.metaData.pagination?.lazyLoading && (first.value + rows.value >= (props.inpData?.length ?? 0))){
+                emit('lazy-data', null)
+            }
+        }
+    }
     const startIndex = first.value
     const endIndex = first.value + rows.value
     active.forEach(id => {
@@ -170,10 +159,6 @@ watch([() => props.inpData, colCount], () => {
         return (bIn ? 1 : 0) - (aIn ? 1 : 0)
     })
     processQueue()
-    console.log('afterrr screen queee', queue)
-    if(props.metaData.pagination?.lazyLoading && (first.value + rows.value >= (props.inpData?.length ?? 0))){
-        emit('lazy-data', null)
-    }
 })
 onBeforeMount(() => {
     if(!props.inpData) return
@@ -185,9 +170,9 @@ onBeforeMount(() => {
 <template>
     <div v-if="!props.isLoading" :class="metaData.customTWGrand">
         <div :class="metaData.customTWTransition" :style="metaData.customCSSTransition">
-            <component v-if="hasData" v-for="indexPar in (props.inpData!.length + (slots['placeholder-card'] ? 1 : 0))" :key="props.metaData.pagination?.item_id ? props.inpData?.[indexPar - 1]?.[props.metaData.pagination.item_id] : `card-${indexPar}`" v-show="(indexPar - 1) >= first && (indexPar - 1) < first + rows" :is="getWrapper(props.inpData?.[indexPar - 1])">
+            <component v-if="hasData" v-for="(item, indexPar) in renderItems" :key="indexPar <= props.inpData!.length ? item?.[props.metaData.pagination?.item_id!] : `card-${indexPar}-${props.inpData?.length}`" v-show="indexPar > first && indexPar <= (first + rows)" :is="getWrapper(item)">
                 <slot :name="slotSkeleton(indexPar)" :index="indexPar" :skeletonRefs="skeletonRefs"/>
-                <slot v-if="props.inpData && (indexPar < props.inpData.length)" name="card" :index="indexPar" :inpData="props.inpData[indexPar - 1]" :toggleSkeleton="(i: number) => handleToggleSkeleton(i)" :cardRefs="cardRefs"/>
+                <slot v-if="item && (indexPar <= props.inpData!.length)" name="card" :index="indexPar" :inpData="item" :toggleSkeleton="(i: number) => handleToggleSkeleton(i)" :cardRefs="cardRefs"/>
                 <slot v-else name="placeholder-card"/>
             </component>
         </div>
