@@ -269,7 +269,7 @@ onBeforeMount(async() => {
     const{ id_page, limit } = route.query
     const isLimitValid = limit && !isNaN(Number(limit)) && Number(limit) > 0 && Number(limit) <= 30
     const isIdPageValid = id_page ? typeof id_page === 'string' && id_page.length <= 100 : true
-    if(!isIdPageValid || !isLimitValid){
+    if((!isIdPageValid || !isLimitValid) || (route.query.limit)){
         newQuery.limit = 15
     }
     router.replace({ path: '/search', query: newQuery }).catch(() => {})
@@ -296,9 +296,7 @@ onBeforeMount(async() => {
         return console.log('error', res.message)
     }
     console.log('enttokk dataa ', res.data.data)
-    console.log('before hydration ', local.fetchData)
     local.fetchData = res.data.data
-    console.log('afterr hydration ', local.fetchData)
     local.next_cursor = res.data.next_cursor
     local.has_more = res.data.has_more
     local.isFirstLoad = false
@@ -329,17 +327,13 @@ const formSearchFilter = async() => {
         return console.log('error', res.message)
     }
     console.log('form res',res.data)
-    console.log('old fetch data form',local.fetchData)
     local.fetchData = res.data.data
-    console.log('new fetch data form',local.fetchData)
     oldInput.search = currentInput.search
     local.has_more = res.data.has_more
     local.next_cursor = res.data.next_cursor
 }
 const lazyDataSearch = async() => {
-    console.log('adoh', local.fetchData.length)
     if(local.has_more){
-        console.log('adoh23232', local.fetchData.length)
         await router.replace({ path:'/search', query: { ...route.query, 'next_page': local.next_cursor,'limit': 15 }})
         abortHydrationController = new AbortController()
         const res = await APIComposables(route.path, abortHydrationController.signal)
@@ -347,16 +341,11 @@ const lazyDataSearch = async() => {
             return console.log('error lazy')
         }
         console.log('lazyy res',res.data.data)
-        console.log('before', local.fetchData.length)
         local.fetchData.push(...res.data.data)
-        console.log('after', local.fetchData.length)
         local.next_cursor = res.data.next_cursor
         local.has_more = res.data.has_more
     }
 }
-watch(() => local.fetchData, () => {
-    console.log('dowooo', local.fetchData.length)
-}, { deep: true })
 const metaDataSearch = {
     wrapper: (inpData: any) => defineComponent({
         setup(){
