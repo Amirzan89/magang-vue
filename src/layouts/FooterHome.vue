@@ -197,9 +197,9 @@ const formFooter = ({ valid, states, reset }: any) => {
                 </div>
                 <div class="md:w-[42%] xl:w-[40%] lg:mb-0">
                     <h6 class="!m-0 lg:!mb-3 !text-sm xs:!text-base sm:!text-lg md:!text-base xl:!text-xl font-semibold uppercase !text-white">Stay In The Loop</h6>
-                    <p class="!m-0 sm:!mb-4 !text-xs xs:!text-sm sm:!text-base md:!text-sm xl:!text-lg !text-white">Join our mailing list to stay in the loop with our newest for Event and concert</p>
+                    <p class="!m-1 sm:!mb-4 !text-xs xs:!text-sm sm:!text-base md:!text-sm xl:!text-lg !text-white">Join our mailing list to stay in the loop with our newest for Event and concert</p>
                     <Form :resolver="footerValidator" @submit="formFooter" v-slot="$form" class="w-full 2xs:w-[82%] xs:w-[75%] phone:w-[52%] sm:w-[45%] md:w-[75%] lg:w-[60%] xl:w-[50%] 2xl:w-[40%] h-fit">
-                        <FormField name="email" class="relative flex flex-row md:flex-col gap-0.25 sm:col-span-2 md:col-span-1">
+                        <FormField name="email" class="relative sm:col-span-2 md:col-span-1">
                             <InputText type="email" placeholder="Enter your email address" required class="!w-full"/>
                             <Button type="submit" label="Subscribe" class="!absolute top-1/2 right-[1.25%] -translate-y-1/2 h-[80%] !bg-red-500 !border-red-500"/>
                         </FormField>
