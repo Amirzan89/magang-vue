@@ -18,17 +18,17 @@ const local = reactive({
     isLoading: false,
 })
 let hydrationController: AbortController | null = null
-const APIComposables = async(path: string, inpSignal: AbortSignal, requestBody = null as any) => {
+const APIComposables = async(path: string, inpSignal: AbortSignal, headers: Record<string, any> = {}) => {
     let retryCount = 0
     local.isLoading = true
     const APIReq = async(signal: AbortSignal) => {
         try{
-            const encr = await encryptReq(requestBody)
+            const encr = await encryptReq({})
             const res = (await(await axiosJson()).post(path, {
                 uniqueid: encr.iv,
                 cipher: encr.data,
                 mac: encr.mac,
-            }, { params: { ...route.query,_: Date.now() }, signal, headers: { 'X-Merseal': sessionStorage.merseal }})).data
+            }, { params: { ...route.query,_: Date.now() }, signal, headers: { 'X-Merseal': sessionStorage.merseal, ...headers }})).data
             if(signal.aborted){
                 return { status: 'error', message: 'Request dibatalkan' }
             }
@@ -74,14 +74,20 @@ const APIComposables = async(path: string, inpSignal: AbortSignal, requestBody =
     return APIReq(inpSignal)
 }
 onBeforeMount(async() => {
-    const{ id_page, limit } = route.query
-    const isLimitValid = limit && !isNaN(Number(limit)) && Number(limit) > 0 && Number(limit) <= 30
-    const isIdPageValid = id_page ? typeof id_page === 'string' && id_page.length <= 100 : true
-    if(!isIdPageValid || !isLimitValid){
-        await router.replace({ path:'/events', query: { 'limit': 15 }})
+    const{ next_page } = route.query
+    const newQuery: Record<string,any> = {}
+    newQuery.limit = 15
+    const hyHeader: Record<string, any> = {}
+    if(next_page && typeof next_page === 'string'){
+        const nextPageNumber = parseInt(next_page.replace(/\D/g, ''), 10)
+        if(next_page.length <= 100 && !isNaN(nextPageNumber)){
+            hyHeader['X-Pagination-From'] = 'first-time'
+            newQuery.next_page = next_page
+        }
     }
+    router.replace({ path:'/events', query: newQuery })
     hydrationController = new AbortController()
-    const res = await APIComposables(route.path, hydrationController.signal)
+    const res = await APIComposables(route.path, hydrationController.signal, hyHeader)
     if(res.status == 'error'){
         return console.log('error hydration')
     }

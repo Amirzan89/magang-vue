@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form, FormField } from '@primevue/forms'
-import { ref, reactive, watch, onBeforeMount, h, useSlots, defineComponent, nextTick, Teleport, type Ref, type ComponentPublicInstance } from 'vue'
+import { ref, reactive, watch, onBeforeMount, h, useSlots, defineComponent, nextTick, Teleport, type Ref, type ComponentPublicInstance, computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import useAxios from '@/composables/api/axios'
 import useEncryption from '@/composables/encryption'
@@ -23,6 +23,7 @@ interface EventData{
 }
 const local = reactive({
     fetchData: [] as EventData[],
+    total_items: 0 as number,
     past_events: null as any,
     reviews: null as any,
     isFormLoading: false,
@@ -73,6 +74,12 @@ const currentInput = reactive<InputForm>({
 })
 const isDialogOpen = ref(false)
 const teleportTarget = ref(null)
+const displayMode = computed(() => {
+    if (local.isFirstLoad || local.isFormLoading) return 'loading'
+    if (!local.isFirstLoad && local.fetchData.length === 0) return 'empty'
+    if (local.total_items > 0) return 'success'
+    return 'initial'
+})
 const teleportTargetFn = async() => {
     await nextTick()
     if(isDesktop.value){
@@ -143,7 +150,9 @@ const sanitizeAllQuery = (rawQuery: Record<string, unknown>): InputForm => {
         end_date: rawQuery.f_er_date,
     }
     const clean: any = {}
-    clean.search = Array.isArray(query.search) ? query.search[0] : (query.search as string) ?? ""
+    if(!local.isFirstLoad){
+        clean.search = Array.isArray(query.search) ? query.search[0] : (query.search as string) ?? ""
+    }
     clean.hydratedSR = "f_sr_date" in rawQuery
     clean.hydratedER = "f_er_date" in rawQuery
     for(const key of Object.keys(filterRules) as FilterKey[]){
@@ -185,11 +194,8 @@ const queryParamHandler = (inp: InputForm) => {
     }
     return filteredParams
 }
-const APIComposables = async(path: string, inpSignal: AbortSignal, isForm = false) => {
+const APIComposables = async(path: string, inpSignal: AbortSignal, headers: Record<string, any> = {}) => {
     let retryCount = 0
-    if(isForm){
-        local.isFormLoading = true
-    }
     const APIReq = async(signal: AbortSignal) => {
         try{
             const encr = await encryptReq({})
@@ -197,7 +203,7 @@ const APIComposables = async(path: string, inpSignal: AbortSignal, isForm = fals
                 uniqueid: encr.iv,
                 cipher: encr.data,
                 mac: encr.mac,
-            }, { params: { ...route.query, _: Date.now() }, signal, headers: { 'X-Merseal': sessionStorage.merseal }})).data
+            }, { params: { ...(path != '/event-categories' ? route.query :  {}), _: Date.now() }, signal, headers: { 'X-Merseal': sessionStorage.merseal, ...headers }})).data
             if(signal.aborted){
                 return { status: 'error', message: 'Request dibatalkan' }
             }
@@ -237,9 +243,6 @@ const APIComposables = async(path: string, inpSignal: AbortSignal, isForm = fals
             // return toast
             return { status:'error', message: err }
         }finally{
-            if(isForm){
-                local.isFormLoading = false
-            }
             if(path === '/search'){
                 await teleportTargetFn()
             }
@@ -248,6 +251,12 @@ const APIComposables = async(path: string, inpSignal: AbortSignal, isForm = fals
     return APIReq(inpSignal)
 }
 onBeforeMount(async() => {
+    const newQuery: Record<string, any> = {}
+    if(route.query.find){
+        newQuery.find = Array.isArray(route.query.find) ? route.query.find[0] : (route.query.find as string)
+        oldInput.search = newQuery.find
+        currentInput.search = newQuery.find
+    }
     categoryHydrationController = new AbortController()
     const resCategories = await APIComposables('/event-categories', categoryHydrationController.signal)
     if(resCategories.status == 'error'){
@@ -265,15 +274,18 @@ onBeforeMount(async() => {
     //     return
     // }
     const sanitized = sanitizeAllQuery(route.query)
-    const newQuery = queryParamHandler(sanitized)
-    const{ id_page, limit } = route.query
-    const isLimitValid = limit && !isNaN(Number(limit)) && Number(limit) > 0 && Number(limit) <= 30
-    if(isLimitValid && route.query.find && route.query.find != ''){
+    Object.assign(newQuery, { ...queryParamHandler(sanitized)} )
+    const{ next_page } = route.query
+    if(route.query.find && route.query.find != ''){
         newQuery.limit = 15
     }
-    const isIdPageValid = id_page ? typeof id_page === 'string' && id_page.length <= 100 : false
-    if(isIdPageValid){
-        newQuery.id_page = route.query.id_page
+    const hyHeader: Record<string, any> = {}
+    if(next_page && typeof next_page === 'string'){
+        const nextPageNumber = parseInt(next_page.replace(/\D/g, ''), 10)
+        if(next_page.length <= 100 && !isNaN(nextPageNumber)){
+            hyHeader['X-Pagination-From'] = 'first-time'
+            newQuery.next_page = next_page
+        }
     }
     router.replace({ path: '/search', query: newQuery }).catch(() => {})
     // if(Object.keys(newQuery).length > 0){
@@ -294,12 +306,13 @@ onBeforeMount(async() => {
         })
     }
     abortHydrationController = new AbortController()
-    const res = await APIComposables('/search', abortHydrationController.signal)
+    const res = await APIComposables('/search', abortHydrationController.signal, hyHeader)
     if(res.status == 'error'){
         return console.log('error', res.message)
     }
-    console.log('enttokk dataa ', res.data.data)
+    console.log('enttokk dataa ', res.data)
     local.fetchData = res.data.data
+    local.total_items = res.data.total_items
     local.next_cursor = res.data.next_cursor
     local.has_more = res.data.has_more
     local.isFirstLoad = false
@@ -322,20 +335,24 @@ const formSearchFilter = async() => {
         }
     }
     if(!isUpdated) return
+    local.total_items = 0
     abortFormController = new AbortController()
     const newQuery = queryParamHandler(currentInput)
     if(currentInput.search != ''){
         newQuery.limit = 15
     }
     router.push({ path: '/search', query: newQuery })
-    const res = await APIComposables('/search', abortFormController.signal, true)
+    local.isFormLoading = true
+    oldInput.search = currentInput.search
+    const res = await APIComposables('/search', abortFormController.signal)
+    local.isFormLoading = false
     keyword.value = currentInput.search
     if(res.status == 'error'){
         return console.log('error', res.message)
     }
     console.log('form res',res.data)
     local.fetchData = res.data.data
-    oldInput.search = currentInput.search
+    local.total_items = res.data.total_items
     local.has_more = res.data.has_more
     local.next_cursor = res.data.next_cursor
 }
@@ -408,9 +425,9 @@ const metaDataLoading = {
             <Select v-model:model-value="currentInput.pay" :options="itemsPaysFilter" optionLabel="name" optionValue="value" placeholder="Select event fee" class="w-full md:w-56"/>
         </FormField>
     </Teleport>
-    <section class="relative pt-[4rem] sm:pt-[4rem] lg:pt-[4rem] flex flex-col overflow-x-clip overflow-y-clip">
-        <img src="@/assets/images/cele-3.png" alt="" class="absolute bottom-0 -right-[35%] md:-right-[30%] h-[75%] -z-1 object-contain opacity-30 scale-160" />
-        <div class="w-[93%] md:w-[97%] mx-auto mt-3 md:mt-7 flex flex-col">
+    <section class="relative pt-[4rem] sm:pt-[4rem] lg:pt-[4rem] flex flex-col overflow-x-clip">
+        <img src="@/assets/images/cele-3.png" alt="" class="absolute bottom-0 -right-[35%] md:-right-[30%] h-[75%] -z-1 object-contain opacity-30 scale-300 sm:scale-160" />
+        <div class="w-[93%] md:w-[97%] mx-auto mt-1 md:mt-3 flex flex-col">
             <div class="relative flex items-center justify-between">
                 <h2 class="!m-0 w-fit hidden sm:block text-4xl">Search Events</h2>
                 <div class="flex-1 sm:flex-initial flex gap-2 lg:gap-3">
@@ -419,13 +436,20 @@ const metaDataLoading = {
                     <Button v-if="isMobile" class="!px-1.75 rounded-md" @click="isDialogOpen = true">Filters</Button>
                 </div>
             </div>
-            <div>
-                <p>Menampilkan Event "{{ oldInput.search }}" menemukan {{ local.fetchData.length }}</p>
+            <div class="mt-3">
+                <p v-if="(displayMode == 'initial' || displayMode == 'loading' || displayMode == 'success') && oldInput.search != ''">
+                    <template v-if="displayMode == 'initial' || displayMode == 'loading'">
+                        Sedang mencari event "{{ oldInput.search }}"...
+                    </template>
+                    <template v-else-if="displayMode == 'success'">
+                        Menampilkan Event "{{ oldInput.search }}" menemukan {{ local.total_items }}
+                    </template>
+                </p>
                 <div class="flex gap-3">
                     <Transition name="sidefilter" appear>
-                        <Form v-if="isDesktop" :ref="el => SideFilterRef =  (el as ComponentPublicInstance)?.$el" class="sticky h-fit rounded-xl flex flex-col gap-2 pt-3 pb-5 pl-5 pr-5" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1); top: calc(var(--paddTop) + 10px);"/>
+                        <Form v-if="isDesktop" v-show="displayMode == 'success'" :ref="el => SideFilterRef =  (el as ComponentPublicInstance)?.$el" class="sticky h-fit rounded-xl flex flex-col gap-2 pt-3 pb-5 pl-5 pr-5" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1); top: calc(var(--paddTop) + 10px);"/>
                     </Transition>
-                    <CustomCardWithSkeletonComponent v-show="local.fetchData.length > 0 && !local.isFormLoading" :metaData="metaDataSearch" :inpData="local.fetchData" :paralelRender="2" @lazy-data="lazyDataSearch">
+                    <CustomCardWithSkeletonComponent v-show="displayMode == 'success'" :metaData="metaDataSearch" :inpData="local.fetchData" :paralelRender="2" @lazy-data="lazyDataSearch">
                         <template #skeleton="{ index, skeletonRefs }">
                             <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 left-0 w-full h-full flex flex-col items-center transition-opacity duration-100 pointer-events-none">
                                 <Skeleton :pt="{ root: { class: ['!w-[103%] sm:!w-[102.5%] !h-[123px] phone:!h-[172px] lg:!h-[200px] !rounded-lg relative -left-[0.25%] -top-[1%]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
@@ -467,9 +491,9 @@ const metaDataLoading = {
                             </div>
                         </div>
                     </CustomCardWithSkeletonComponent>
-                    <div v-show="!local.isFirstLoad && (local.fetchData.length == 0 && !local.isFormLoading)" class="flex-1 flex flex-col">
+                    <div v-show="displayMode == 'empty'" class="flex-1 flex flex-col">
                         <div class="lg:w-[60%] flex flex-col md:flex-row justify-between items-center mx-auto my-auto">
-                            <img src="@/assets/images/notfound.png" alt="" class="w-[72%] lg:w-[40%] object-cover" />
+                            <img src="@/assets/images/notfound.png" alt="" class="w-[70%] lg:w-[40%] object-cover" />
                             <h3 class="!text-2xl xs:!text-xl phone:!text-2xl sm:!text-3xl md:!text-4xl lg:text-5xl xl:!text-6xl !text-center !text-red-500">Event Tidak Ditemukan</h3>
                         </div>
                     </div>
@@ -485,16 +509,20 @@ const metaDataLoading = {
     </Dialog>
 </template>
 <style scoped>
-.sidefilter-enter-active,
-.sidefilter-leave-active{
+.sidefilter-enter-active {
     transition: transform 0.3s ease;
 }
-.sidefilter-enter-from,
-.sidefilter-leave-to{
+.sidefilter-enter-from {
     transform: translateX(-100%);
 }
-.sidefilter-enter-to,
-.sidefilter-leave-from{
+.sidefilter-enter-to {
+    transform: translateX(0);
+}
+.sidefilter-leave-active {
+    transition: none !important;
+}
+.sidefilter-leave-from,
+.sidefilter-leave-to {
     transform: translateX(0);
 }
 </style>
