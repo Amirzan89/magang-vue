@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { gsap } from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
-import { ref, reactive, onMounted, computed, watch } from 'vue'
+import { ref, reactive, onMounted, computed, watch, nextTick } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import { eventBus } from '@/eventBus'
 gsap.registerPlugin(ScrollTrigger)
@@ -31,7 +31,6 @@ const hBg = ['/search', '/about', '/privacy-policy']
 const hBgPrefix = ['/event/', '/booking']
 const dBg = ['/']
 const headerBg = computed(() => {
-    // console.log('bebeeb', hBgPrefix.some(prefix => route.path.startsWith(prefix)))
     return hBg.includes(route.path) || hBgPrefix.some(prefix => route.path.startsWith(prefix))
 })
 const waitForEvent = (eventName: string): Promise<void> => {
@@ -48,11 +47,14 @@ const handleHeaderAnim = async() => {
     if(dBg.includes(route.path)){
         await waitForEvent('tHeader')
     }
+    await nextTick()
+    const triggerEl = document.querySelector('.header-trigger') ||document.querySelector('section:first-of-type div:first-of-type') ||  document.querySelector('section:first-of-type')
+    if(!triggerEl) return
     gsap.fromTo(bgLayer.value,{ opacity: 0, y: -50 }, {
         opacity: 1,
         y: 0,
         scrollTrigger: {
-            trigger: 'section:first-of-type',
+            trigger: triggerEl,
             start: "bottom-=40 top+=80",
             end: "bottom+=40 top+=80",
             scrub: true,
@@ -65,16 +67,17 @@ const handleHeaderAnim = async() => {
 }
 onMounted(async() => {
     if(!headerBg.value) gsap.set(bgLayer.value, { opacity: 0, y: -50 })
-    handleHeaderAnim()
+    await handleHeaderAnim()
 })
-watch(() => route.path, () => {
+watch(() => route.path, async() => {
+    ScrollTrigger.getAll().forEach(t => t.kill())
     gsap.killTweensOf(bgLayer.value)
     if(headerBg.value){
         gsap.set(bgLayer.value, { clearProps: "all" })
     }else{
         gsap.set(bgLayer.value, { opacity: 0, y: -50 })
     }
-    handleHeaderAnim()
+    await handleHeaderAnim()
 })
 </script>
 <template>
