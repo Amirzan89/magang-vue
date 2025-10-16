@@ -15,5 +15,12 @@ const router = createRouter({
         },
         { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound, meta: { layout: 'empty' }}
     ],
+    scrollBehavior(to, from, savedPosition){
+        if(savedPosition){
+            return  { left: 0, top: 0, behavior: 'instant' }
+        }else{
+            return { left: 0, top: 0, behavior: 'instant' }
+        }
+    }
 })
 export default router
