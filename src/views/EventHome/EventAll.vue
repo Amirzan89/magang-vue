@@ -115,23 +115,25 @@ const metaDataAll = {
             }
         }
     }),
-    customTWTransition: 'mt-1.5 phone:mt-2.5 sm:mt-4 lg:mt-5 grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5',
+    customTWGrand: 'mt-3 phone:mt-4 sm:mt-5 lg:mt-6',
+    customTWTransition: 'grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5',
     pagination: {
+        customTWPaginator: '!mt-3 !phone:mt-4 sm:!mt-5 lg:!mt-6',
         lazyLoading: true,
         preRenderPage: 1,
         item_id: 'event_id',
     },
     snapshots: {
-        base: 2,
-        phone: 2,
+        base: 5,
+        md: 4,
         xl: 3,
     },
 }
 const metaDataEventLoading = {
-    customTWTransition: 'mt-1.5 phone:mt-2.5 sm:mt-4 lg:mt-5 grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5',
+    customTWTransition: 'mt-3 phone:mt-4 sm:mt-5 lg:mt-6 grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5',
     snapshots: {
-        base: 3,
-        phone: 2,
+        base: 5,
+        md: 4,
         xl: 3,
     },
 }
@@ -151,7 +153,7 @@ const lazyDataAll = async() => {
 }
 </script>
 <template>
-    <section class="relative pb-35 sm:pb-25 lg:pb-30 flex flex-col gap-3 sm:gap-5 lg:gap-7">
+    <section class="relative pb-5 sm:pb-7 md:pb-10 lg:pb-12 flex flex-col gap-3 sm:gap-5 lg:gap-7">
         <div class="w-full h-40 phone:h-50 sm:h-60 md:h-70 lg:h-80 xl:h-90 2xl:h-100 relative flex justify-center items-center">
             <h2 class="!m-0 !text-lg xs:!text-xl phone:!text-2xl sm:!text-3xl md:!text-4xl lg:text-5xl xl:!text-6xl !text-white">All Events</h2>
             <div class="absolute top-0 left-0 w-full h-full -z-1">
