@@ -158,8 +158,10 @@ watch([() => props.inpData, totalRows], () => {
     <div v-if="!props.isLoading" :class="metaData.customTWGrand">
         <div :class="metaData.customTWTransition" :style="metaData.customCSSTransition">
             <component v-if="hasData" v-for="(item, indexPar) in renderItems" :key="indexPar <= props.inpData!.length ? item?.[props.metaData.pagination?.item_id!] : `card-${indexPar}-${props.inpData?.length}`" v-show="indexPar >= first && indexPar < (first + rows)" :is="getWrapper(item)">
-                <slot name="skeleton" :index="indexPar" :skeletonRefs="skeletonRefs"/>
-                <slot v-if="item && (indexPar < props.inpData!.length)" name="card" :index="indexPar" :inpData="item" :toggleSkeleton="(i: number) => handleToggleSkeleton(i)" :cardRefs="cardRefs"/>
+                <template v-if="item && (indexPar < props.inpData!.length)">
+                    <slot name="skeleton" :index="indexPar" :skeletonRefs="skeletonRefs"/>
+                    <slot name="card" :index="indexPar" :inpData="item" :toggleSkeleton="(i: number) => handleToggleSkeleton(i)" :cardRefs="cardRefs"/>
+                </template>
                 <slot v-else name="placeholder-card"/>
             </component>
         </div>
