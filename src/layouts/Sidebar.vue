@@ -8,6 +8,7 @@ const isActiveMenu = ref(false)
 const itemKey = ref<any>([])
 const model = ref<{label: string, icon: string, to: string, key: string, visible?: boolean}[]>([
     { label: 'Dashboard', icon: 'pi pi-fw pi-home', key: 'DashboardPage', to: '/dashboard' },
+    { label: 'Event Booked', icon: 'pi pi-fw pi-home', key: 'EventBookedPage', to: '/event-booked' },
 ])
 onBeforeMount(() => {
     model.value.forEach((element) => {

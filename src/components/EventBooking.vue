@@ -41,7 +41,7 @@ const formBooking = ({ valid, states, reset }: any) => {
                 nama: states.nama.value,
                 gender: states.gender.value,
                 mobileno: states.mobileno.value,
-                event_group: props.detail_event.event_id,
+                event_group: props.detail_event.event_group,
                 event_id: props.detail_event.event_id,
                 qty: states.qty.value,
                 email: states.email.value,
