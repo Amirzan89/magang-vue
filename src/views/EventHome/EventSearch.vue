@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { Form, FormField } from '@primevue/forms'
-import { ref, reactive, watch, onBeforeMount, h, useSlots, defineComponent, nextTick, Teleport, type Ref, type ComponentPublicInstance, computed } from 'vue'
+import { ref, reactive, watch, onBeforeMount, h, useSlots, defineComponent, nextTick, Teleport, type Ref, type ComponentPublicInstance, computed, toRaw } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import useAxios from '@/composables/api/axios'
 import useEncryption from '@/composables/encryption'
-import { width, isMobile, isDesktop } from '@/composables/useScreenSize'
+import { width, isMobile, isTablet, isDesktop } from '@/composables/useScreenSize'
 import { getImgURL } from '@/utils/global'
 import CustomCardWithSkeletonComponent from '@/components/CustomCardWithSkeleton.vue'
 import freeTag from '@/assets/images/free-tag.png'
@@ -30,6 +30,8 @@ const local = reactive({
     isFirstLoad: true,
     next_cursor: null as string | null,
     has_more: false,
+    hydratedSR: false as boolean,
+    hydratedER: false as boolean,
 })
 const itemsCategoryFilter = ref<{ label: string, value: string }[]>([])
 const itemsPaysFilter = ref([
@@ -52,8 +54,6 @@ type FilterValues = {
 }
 type InputForm = FilterValues & {
     search: string,
-    hydratedSR: boolean,
-    hydratedER: boolean,
 }
 type WatchedInput = Pick<InputForm, "category" | "dates" | "pay">
 const oldInput = reactive<InputForm>({
@@ -61,41 +61,38 @@ const oldInput = reactive<InputForm>({
     category: [],
     pay: '' as 'pay' | 'free' | 'all',
     dates: [new Date(), new Date()],
-    hydratedSR: false,
-    hydratedER: false,
 })
 const currentInput = reactive<InputForm>({
     search: '',
     category: [],
     pay: '' as 'pay' | 'free' | 'all',
     dates: [new Date(), new Date()],
-    hydratedSR: false,
-    hydratedER: false,
 })
 const isDialogOpen = ref(false)
 const teleportTarget = ref(null)
 const displayMode = computed(() => {
-    if (local.isFirstLoad || local.isFormLoading) return 'loading'
-    if (!local.isFirstLoad && local.fetchData.length === 0) return 'empty'
-    if (local.total_items > 0) return 'success'
+    if(local.isFirstLoad || local.isFormLoading) return 'loading'
+    if(!local.isFirstLoad && local.fetchData.length === 0){
+        isDialogOpen.value = false
+        return 'empty'
+    } 
+    if(local.total_items > 0) return 'success'
     return 'initial'
 })
 const teleportTargetFn = async() => {
     await nextTick()
     if(isDesktop.value){
         teleportTarget.value = SideFilterRef.value
-    }else if(isMobile.value && isDialogOpen.value){
+    }else if((isMobile.value || isTablet.value) && isDialogOpen.value){
         teleportTarget.value = DialogContentRef.value
-    }else{
-        teleportTarget.value = null
     }
 }
 let categoryHydrationController: AbortController | null = null
 let abortFormController: AbortController | null = null
 let abortHydrationController: AbortController | null = null
 let debounceTimers: Partial<Record<keyof WatchedInput, ReturnType<typeof setTimeout>>> = {}
-watch(width, () => {
-    if(!isMobile.value && isDialogOpen.value){
+watch(isDesktop, () => {
+    if(isDesktop.value && isDialogOpen.value){
         isDialogOpen.value = false
     }
 })
@@ -105,10 +102,10 @@ watch(() => ({ category: currentInput.category, dates: currentInput.dates, pay: 
     const keys = Object.keys(newVal) as (keyof WatchedInput)[]
     const isDatesChanged = JSON.stringify(newVal.dates) !== JSON.stringify(oldVal.dates)
     if(isDatesChanged){
-        if(!currentInput.hydratedSR){
-            currentInput.hydratedSR = true
-        }else if(!currentInput.hydratedER){
-            currentInput.hydratedER = true
+        if(!local.hydratedSR){
+            local.hydratedSR = true
+        }else if(!local.hydratedER){
+            local.hydratedER = true
         }
     }
     for(const key of keys){
@@ -153,8 +150,8 @@ const sanitizeAllQuery = (rawQuery: Record<string, unknown>): InputForm => {
     if(!local.isFirstLoad){
         clean.search = Array.isArray(query.search) ? query.search[0] : (query.search as string) ?? ""
     }
-    clean.hydratedSR = "f_sr_date" in rawQuery
-    clean.hydratedER = "f_er_date" in rawQuery
+    local.hydratedSR = "f_sr_date" in rawQuery
+    local.hydratedER = "f_er_date" in rawQuery
     for(const key of Object.keys(filterRules) as FilterKey[]){
         if(key === "dates"){
             let start: Date | null = query.start_date ? new Date(query.start_date as string) : null
@@ -184,8 +181,8 @@ const queryParamHandler = (inp: InputForm) => {
         find: inp.search || null,
         f_category: Array.isArray(inp.category) && inp.category.length > 0 ? inp.category : null,
         f_pay: inp.pay || null,
-        f_sr_date: inp.hydratedSR && inp.dates?.[0] ? formatDate(inp.dates[0]) : null,
-        f_er_date: inp.hydratedER && inp.dates?.[1] ? formatDate(inp.dates[1]) : null,
+        f_sr_date: local.hydratedSR && inp.dates?.[0] ? formatDate(inp.dates[0]) : null,
+        f_er_date: local.hydratedER && inp.dates?.[1] ? formatDate(inp.dates[1]) : null,
     }
     const filteredParams: Record<string, any> = {}
     for(const key in queryParams){
@@ -315,25 +312,36 @@ onBeforeMount(async() => {
     local.total_items = res.data.total_items
     local.next_cursor = res.data.next_cursor
     local.has_more = res.data.has_more
-    local.isFirstLoad = false
     await nextTick()
+    local.isFirstLoad = false
 })
 const formSearchFilter = async() => {
     if(abortFormController) abortFormController.abort()
     let isUpdated = false
     const isEqual = (a: unknown, b: unknown): boolean => {
-        if(Array.isArray(a) && Array.isArray(b)){
-            if(a.length !== b.length) return false
-            return a.every((val, idx) => val === b[idx])
+        const rawA = toRaw(a)
+        const rawB = toRaw(b)
+        console.log('isii a',rawA)
+        console.log('isii b',rawB)
+        if(Array.isArray(rawA) && Array.isArray(rawB)){
+            if(rawA.length !== rawB.length) return false
+            if (rawA.every(v => v instanceof Date) && rawB.every(v => v instanceof Date)) {
+                return rawA.every((v, i) => v.getTime() === rawB[i].getTime())
+            }
+            return rawA.every((val, idx) => val === rawB[idx])
         }
-        return a === b
+        console.log('')
+        return rawA === rawB
     }
     for(const key of Object.keys(oldInput) as (keyof typeof oldInput)[]){
+        console.log('key',key)
         if(!isEqual(oldInput[key], currentInput[key])){
+            console.log('nemuuuu updatee ', key)
             isUpdated = true
             break
         }
     }
+    console.log('resultt ', isUpdated)
     if(!isUpdated) return
     local.total_items = 0
     abortFormController = new AbortController()
@@ -380,64 +388,62 @@ const metaDataSearch = {
             }
         }
     }),
-    customTWGrand: 'flex-1 mb-7 sm:mb-5 md:mb-7 lg:mb-10',
-    customTWTransition: 'grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5',
+    customTWGrand: 'flex-1',
+    customTWTransition: 'grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5',
     pagination: {
-        customTWPaginator: '!mt-3 sm:!mt-5 lg:!mt-7',
+        customTWPaginator: '!mt-3 !sm:mt-4 lg:!mt-5',
         lazyLoading: true,
         preRenderPage: 1,
         item_id: 'event_id',
     },
     snapshots: {
         base: 5,
-        phone: 4,
-        md: 5,
+        md: 4,
         xl: 3,
     },
 }
 const metaDataLoading = {
-    customTWTransition: 'flex-1 mb-10 grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5',
+    customTWTransition: 'flex-1 grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5',
     snapshots: {
-        base: 5,
-        phone: 4,
-        md: 5,
+        base: 5,    
+        md: 4,
         xl: 3,
     },
 }
 </script>
 <template>
     <Teleport v-if="teleportTarget" :to="teleportTarget" defer>
-        <FormField class="flex flex-col">
+        <FormField class="flex flex-col" :class="{ 'pointer-events-none': local.isFirstLoad }">
             <label>Pilih Kategori</label>
             <CheckboxGroup name="ingredient" class="flex flex-col gap-4" v-model:model-value="currentInput.category">
                 <div v-for="(item, index) in itemsCategoryFilter" :key="item.value" class="flex items-center gap-2">
-                    <Checkbox :inputId="'cat' + index" :value="item.value" />
+                    <Checkbox :inputId="'cat' + index" :value="item.value"/>
                     <label :for="'cat' + index">{{ item.label }}</label>
                 </div>
             </CheckboxGroup>
         </FormField>
-        <FormField class="flex flex-col">
-            <label>Pilih Rentang Tanggal</label>
+        <FormField class="flex flex-col" :class="{ 'pointer-events-none': local.isFirstLoad }">
+            <label class="ml-1">Pilih Rentang Tanggal</label>
             <DatePicker v-model="currentInput.dates" selectionMode="range" dateFormat="dd/mm/yy"/>
         </FormField>
-        <FormField class="flex flex-col">
-            <label>free ?</label>
-            <Select v-model:model-value="currentInput.pay" :options="itemsPaysFilter" optionLabel="name" optionValue="value" placeholder="Select event fee" class="w-full md:w-56"/>
+        <FormField class="flex flex-col" :class="{ 'pointer-events-none': local.isFirstLoad }">
+            <label class="ml-1">Free ?</label>
+            <Select v-model:model-value="currentInput.pay" :options="itemsPaysFilter" optionLabel="name" optionValue="value" placeholder="Select event fee" class="w-full"/>
         </FormField>
     </Teleport>
-    <section class="relative pt-[4rem] sm:pt-[4rem] lg:pt-[4rem] flex flex-col overflow-x-clip">
-        <img src="@/assets/images/cele-3.png" alt="" class="absolute bottom-0 -right-[35%] md:-right-[30%] h-[75%] -z-1 object-contain opacity-30 scale-300 sm:scale-160" />
-        <div class="w-[93%] md:w-[97%] mx-auto mt-1 md:mt-3 flex flex-col">
-            <div class="relative flex items-center justify-between">
-                <h2 class="!m-0 w-fit hidden sm:block text-4xl">Search Events</h2>
-                <div class="flex-1 sm:flex-initial flex gap-2 lg:gap-3">
-                    <InputText id="email" type="email" class="flex-1 sm:flex-initial sm:w-55 md:w-60 lg:w-[calc(0.25rem*65)] xl:w-70" placeholder="Cari Event" v-model="currentInput.search" @keyup.enter="formSearchFilter()"/>
-                    <Button class="!px-1.75 rounded-md" @click="formSearchFilter()">Search</Button>
-                    <Button v-if="isMobile" class="!px-1.75 rounded-md" @click="isDialogOpen = true">Filters</Button>
+    <img src="@/assets/images/cele-3.png" alt="" class="absolute bottom-0 -right-9 sm:-right-12 md:-right-26 lg:-right-28 xl:-right-30 2xl:-right-32 h-57 xs:h-62 phone:h-65 sm:h-67 md:h-130 lg:h-132 xl:h-137 2xl:h-145 -z-1 object-contain opacity-30 scale-300 sm:scale-270 md:scale-250"/>
+    <section class="relative pt-[calc(4rem+10px)] sm:pt-[calc(4rem+9px)] md:pt-[calc(4rem+11px)] lg:pt-[calc(4rem+14px)] pb-5 sm:pb-7 md:pb-10 lg:pb-12 flex flex-col">
+        <div class="w-[93%] phone:w-[96%] md:w-[97%] xl:w-[98%] mx-auto flex flex-col">
+            <div class="relative">
+                <div class="flex items-center justify-end sm:justify-between">
+                    <h2 class="!m-0 w-fit hidden sm:block text-4xl">Search Events</h2>
+                    <div class="flex-1 phone:flex-initial flex gap-2 lg:gap-3">
+                        <InputText id="email" type="email" class="flex-1 sm:flex-initial sm:w-55 md:w-60 lg:w-[calc(0.25rem*65)] xl:w-70" :class="{ 'pointer-events-none': local.isFirstLoad }" placeholder="Cari Event" v-model="currentInput.search" @keyup.enter="formSearchFilter()"/>
+                        <Button class="!px-1.75 rounded-md" @click="formSearchFilter()">Search</Button>
+                        <Button v-if="isMobile || isTablet" class="!px-1.75 rounded-md" :class="{ 'pointer-events-none': (displayMode != 'loading' && oldInput.search == '') || displayMode == 'empty' }" @click="isDialogOpen = true">Filters</Button>
+                    </div>
                 </div>
-            </div>
-            <div class="mt-3">
-                <p v-if="(displayMode == 'initial' || displayMode == 'loading' || displayMode == 'success') && oldInput.search != ''">
+                <p class="!m-0" v-if="(displayMode == 'initial' || displayMode == 'loading' || displayMode == 'success') && oldInput.search != ''">
                     <template v-if="displayMode == 'initial' || displayMode == 'loading'">
                         Sedang mencari event "{{ oldInput.search }}"...
                     </template>
@@ -445,44 +451,14 @@ const metaDataLoading = {
                         Menampilkan Event "{{ oldInput.search }}" menemukan {{ local.total_items }}
                     </template>
                 </p>
-                <div class="flex gap-3">
-                    <Transition name="sidefilter" appear>
-                        <Form v-if="isDesktop" v-show="displayMode == 'success'" :ref="el => SideFilterRef =  (el as ComponentPublicInstance)?.$el" class="sticky h-fit rounded-xl flex flex-col gap-2 pt-3 pb-5 pl-5 pr-5" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1); top: calc(var(--paddTop) + 10px);"/>
-                    </Transition>
-                    <CustomCardWithSkeletonComponent v-show="displayMode == 'success'" :metaData="metaDataSearch" :inpData="local.fetchData" :paralelRender="2" @lazy-data="lazyDataSearch">
-                        <template #skeleton="{ index, skeletonRefs }">
-                            <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 left-0 w-full h-full flex flex-col items-center transition-opacity duration-100 pointer-events-none">
-                                <Skeleton :pt="{ root: { class: ['!w-[103%] sm:!w-[102.5%] !h-[123px] phone:!h-[172px] lg:!h-[200px] !rounded-lg relative -left-[0.25%] -top-[1%]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                                <div class="w-full p-3.75 lg:p-4.75 xl:px-6.75 xl:py-4.75 mx-auto flex flex-col">
-                                    <Skeleton :pt="{ root: { class: ['!h-[13px] sm:!h-[16.75px] lg:!h-[17px] xl:!h-[18px] 2xl:!h-[20px] !rounded-[3px] sm:!rounded-[4px] lg:!rounded-[5px]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                                    <Skeleton :pt="{ root: { class: ['!h-[13px] sm:!h-[16.75px] lg:!h-[17px] xl:!h-[18px] 2xl:!h-[20px] mt-1 lg:mt-1.5 !rounded-[3px] sm:!rounded-[4px] lg:!rounded-[5px]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                                    <Skeleton :pt="{ root: { class: ['!w-[92px] xs:!w-[92px] phone:!w-[110px] sm:!w-[112px] lg:!w-[127px] xl:!w-[157px] 2xl:!w-[160px] !h-[14px] sm:!h-[15.5px] lg:!h-[18px] xl:!h-[18px] 2xl:!h-[20px] mt-1.5 sm:mt-1 lg:mt-2 !rounded-[3px] sm:!rounded-[4px] lg:!rounded-[5px]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
-                                </div>
-                            </div>
-                        </template>
-                        <template #card="{ index, inpData, toggleSkeleton, cardRefs }">
-                            <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" :pt="{ root: { class: ['!h-full rounded-md lg:rounded-[20px] overflow-hidden opacity-0 transition-opacity duration-100'], style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, body: { class: ['!p-4 lg:!p-5 xl:!px-7 xl:!py-5'] }}">
-                                <template #header>
-                                    <img :src="getImgURL(inpData.img)" alt="" class="w-full h-[120px] phone:h-[170px] lg:h-[197px] object-cover" :ref="((el: any) => {
-                                            if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
-                                        })" 
-                                        @load="() => {
-                                            inpData.imgLoad = true
-                                            toggleSkeleton(index)
-                                        }" @error="() => toggleSkeleton(index)"/>
-                                    <img :src="freeTag" alt="" class="absolute -top-0.5 -right-0.5 z-9 h-[17%] lg:h-[20%]">
-                                </template>
-                                <template #content>
-                                    <div class="flex flex-col gap-0">
-                                        <RouterLink :to="'/event/' + inpData.event_id" class="min-h-[3em] text-sm sm:text-base lg:text-lg xl:text-xl font:medium line-clamp-2 leading-snug">{{ inpData.event_name }}</RouterLink>
-                                        <span class="text-xs sm:text-sm lg:text-base xl:text-lg">{{ inpData.start_date }}</span>
-                                    </div>
-                                </template>
-                            </Card>
-                        </template>
-                    </CustomCardWithSkeletonComponent>
-                    <CustomCardWithSkeletonComponent v-show="local.isFormLoading || local.isFirstLoad" :metaData="metaDataLoading" :paralelRender="Infinity" :isLoading="true">
-                        <div class="skeleton-wrapper flex flex-col items-center">
+            </div>
+            <div class="flex gap-3 mt-1 lg:mt-2 xl:mt-3">
+                <Transition name="sidefilter" appear>
+                    <Form v-if="isDesktop" v-show="displayMode == 'initial' || displayMode == 'loading' || displayMode == 'success'" :ref="el => SideFilterRef =  (el as ComponentPublicInstance)?.$el" class="sticky w-70 h-fit rounded-xl flex flex-col gap-2 pt-3 pb-5 pl-5 pr-5" style="background-color: #fff; box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1); top: calc(var(--paddTop) + 10px);"/>
+                </Transition>
+                <CustomCardWithSkeletonComponent v-show="displayMode == 'success'" :metaData="metaDataSearch" :inpData="local.fetchData" :paralelRender="4" @lazy-data="lazyDataSearch">
+                    <template #skeleton="{ index, skeletonRefs }">
+                        <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 left-0 w-full h-full flex flex-col items-center transition-opacity duration-100 pointer-events-none">
                             <Skeleton :pt="{ root: { class: ['!w-[103%] sm:!w-[102.5%] !h-[123px] phone:!h-[172px] lg:!h-[200px] !rounded-lg relative -left-[0.25%] -top-[1%]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                             <div class="w-full p-3.75 lg:p-4.75 xl:px-6.75 xl:py-4.75 mx-auto flex flex-col">
                                 <Skeleton :pt="{ root: { class: ['!h-[13px] sm:!h-[16.75px] lg:!h-[17px] xl:!h-[18px] 2xl:!h-[20px] !rounded-[3px] sm:!rounded-[4px] lg:!rounded-[5px]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
@@ -490,18 +466,48 @@ const metaDataLoading = {
                                 <Skeleton :pt="{ root: { class: ['!w-[92px] xs:!w-[92px] phone:!w-[110px] sm:!w-[112px] lg:!w-[127px] xl:!w-[157px] 2xl:!w-[160px] !h-[14px] sm:!h-[15.5px] lg:!h-[18px] xl:!h-[18px] 2xl:!h-[20px] mt-1.5 sm:mt-1 lg:mt-2 !rounded-[3px] sm:!rounded-[4px] lg:!rounded-[5px]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                             </div>
                         </div>
-                    </CustomCardWithSkeletonComponent>
-                    <div v-show="displayMode == 'empty'" class="flex-1 flex flex-col">
-                        <div class="lg:w-[60%] flex flex-col md:flex-row justify-between items-center mx-auto my-auto">
-                            <img src="@/assets/images/notfound.png" alt="" class="w-[70%] lg:w-[40%] object-cover" />
-                            <h3 class="!text-2xl xs:!text-xl phone:!text-2xl sm:!text-3xl md:!text-4xl lg:text-5xl xl:!text-6xl !text-center !text-red-500">Event Tidak Ditemukan</h3>
+                    </template>
+                    <template #card="{ index, inpData, toggleSkeleton, cardRefs }">
+                        <Card :ref="el => cardRefs[index] =  (el as ComponentPublicInstance)?.$el" :pt="{ root: { class: ['!h-full rounded-md lg:rounded-[20px] overflow-hidden opacity-0 transition-opacity duration-100'], style: 'box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);' }, body: { class: ['!p-4 lg:!p-5 xl:!px-7 xl:!py-5'] }}">
+                            <template #header>
+                                <img :src="getImgURL(inpData.img)" alt="" class="w-full h-[120px] phone:h-[170px] lg:h-[197px] object-cover" :ref="((el: any) => {
+                                        if(el?.complete && el.naturalWidth !== 0 && !inpData.imgLoad) toggleSkeleton(index)
+                                    })" 
+                                    @load="() => {
+                                        inpData.imgLoad = true
+                                        toggleSkeleton(index)
+                                    }" @error="() => toggleSkeleton(index)"/>
+                                <img :src="freeTag" alt="" class="absolute -top-0.5 -right-0.5 z-9 h-[17%] lg:h-[20%]">
+                            </template>
+                            <template #content>
+                                <div class="flex flex-col gap-0">
+                                    <RouterLink :to="'/event/' + inpData.event_id" class="min-h-[3em] text-sm sm:text-base lg:text-lg xl:text-xl font:medium line-clamp-2 leading-snug">{{ inpData.event_name }}</RouterLink>
+                                    <span class="text-xs sm:text-sm lg:text-base xl:text-lg">{{ inpData.start_date }}</span>
+                                </div>
+                            </template>
+                        </Card>
+                    </template>
+                </CustomCardWithSkeletonComponent>
+                <CustomCardWithSkeletonComponent v-show="local.isFormLoading || local.isFirstLoad" :metaData="metaDataLoading" :paralelRender="Infinity" :isLoading="true">
+                    <div class="skeleton-wrapper flex flex-col items-center">
+                        <Skeleton :pt="{ root: { class: ['!w-[103%] sm:!w-[102.5%] !h-[123px] phone:!h-[172px] lg:!h-[200px] !rounded-lg relative -left-[0.25%] -top-[1%]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                        <div class="w-full p-3.75 lg:p-4.75 xl:px-6.75 xl:py-4.75 mx-auto flex flex-col">
+                            <Skeleton :pt="{ root: { class: ['!h-[13px] sm:!h-[16.75px] lg:!h-[17px] xl:!h-[18px] 2xl:!h-[20px] !rounded-[3px] sm:!rounded-[4px] lg:!rounded-[5px]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                            <Skeleton :pt="{ root: { class: ['!h-[13px] sm:!h-[16.75px] lg:!h-[17px] xl:!h-[18px] 2xl:!h-[20px] mt-1 lg:mt-1.5 !rounded-[3px] sm:!rounded-[4px] lg:!rounded-[5px]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
+                            <Skeleton :pt="{ root: { class: ['!w-[92px] xs:!w-[92px] phone:!w-[110px] sm:!w-[112px] lg:!w-[127px] xl:!w-[157px] 2xl:!w-[160px] !h-[14px] sm:!h-[15.5px] lg:!h-[18px] xl:!h-[18px] 2xl:!h-[20px] mt-1.5 sm:mt-1 lg:mt-2 !rounded-[3px] sm:!rounded-[4px] lg:!rounded-[5px]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                         </div>
+                    </div>
+                </CustomCardWithSkeletonComponent>
+                <div v-show="displayMode == 'empty'" class="flex-1 flex flex-col">
+                    <div class="lg:w-[75%] xl:w-[65%] 2xlw-[60%] flex flex-col lg:flex-row justify-between items-center mx-auto my-auto gap-2.5 sm:gap-3 md:gap-5 lg:gap-0">
+                        <img src="@/assets/images/notfound.png" alt="" class="w-[67%] xs:w-[57%] sm:w-[65%] md:w-[77%] lg:w-[65%] xl:w-[58%] 2xl:w-[55%] object-cover"/>
+                        <h3 class="!m-0 !text-xl phone:!text-2xl sm:!text-3xl md:!text-4xl lg:!text-5xl 2xl:!text-6xl !text-center !text-red-500">Event Tidak Ditemukan</h3>
                     </div>
                 </div>
             </div>
         </div>
     </section>
-    <Dialog v-model:visible="isDialogOpen" modal dismissableMask pt:mask:class="backdrop-blur-sm">
+    <Dialog v-model:visible="isDialogOpen" class="w-[70%] xs:w-[230px] phone:w-[300px]" header="Filter Details" pt:mask:class="backdrop-blur-sm" modal dismissableMask>
         <Form :ref="el => DialogContentRef =  (el as ComponentPublicInstance)?.$el" class="flex flex-col gap-3"/>
         <template #footer>
             <Button label="Close" icon="pi pi-times" text @click="isDialogOpen = false" />
