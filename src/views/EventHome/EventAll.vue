@@ -161,12 +161,13 @@ const lazyDataAll = async() => {
                 <div class="absolute top-0 left-0 w-full h-full opacity-90" style="background: #ED4690; background: linear-gradient(145deg,rgba(237, 70, 144, 1) 0%, rgba(85, 34, 204, 1) 100%)"/>
             </div>
         </div>
-        <div class="w-[90%] phone:w-[95%] lg:w-[97%] mx-auto">
+        <div class="relative w-[90%] phone:w-[95%] lg:w-[97%] mx-auto">
+            <img src="@/assets/images/cele-3.png" alt="" class="absolute bottom-0 md:-bottom-5 -right-13 sm:-right-23 md:-right-32 lg:-right-35 xl:-right-35 2xl:-right-37 h-57 xs:h-62 phone:h-65 sm:h-90 md:h-130 lg:h-132 xl:h-137 2xl:h-145 -z-1 object-contain opacity-30 scale-300 sm:scale-270 md:scale-250"/>
             <div class="w-full xs:w-fit ml-auto flex gap-2">
                 <InputText id="email" type="email" class="flex-1 sm:flex-initial sm:w-55 md:w-60 lg:w-[calc(0.25rem*65)] xl:w-70 h-10 !px-1 !py-0 lg:px-3 lg:py-2 !text-sm sm:text-base lg:text-lg xl:text-xl" placeholder="Cari Event" v-model="local.inpSearch" @keyup.enter="redirectToSearchPage()"/>
                 <Button class="w-16 h-10 !p-0 lg:px-3 lg:py-2 !text-sm sm:text-base lg:text-lg xl:text-xl" @click="redirectToSearchPage()">Search</Button>
             </div>
-            <CustomCardWithSkeletonComponent v-if="local.fetchData" :metaData="metaDataAll" :inpData="local.fetchData" :paralelRender="2" @lazy-data="lazyDataAll">
+            <CustomCardWithSkeletonComponent v-if="false" :metaData="metaDataAll" :inpData="local.fetchData" :paralelRender="2" @lazy-data="lazyDataAll">
                 <template #skeleton="{ index, skeletonRefs }">
                     <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 left-0 w-full h-full flex flex-col items-center transition-opacity duration-100 pointer-events-none">
                         <Skeleton :pt="{ root: { class: ['!w-[103%] sm:!w-[102.5%] !h-[123px] phone:!h-[172px] lg:!h-[200px] !rounded-lg relative -left-[0.25%] -top-[1%]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>

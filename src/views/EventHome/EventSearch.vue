@@ -431,7 +431,7 @@ const metaDataLoading = {
             <Select v-model:model-value="currentInput.pay" :options="itemsPaysFilter" optionLabel="name" optionValue="value" placeholder="Select event fee" class="w-full"/>
         </FormField>
     </Teleport>
-    <img src="@/assets/images/cele-3.png" alt="" class="absolute bottom-0 -right-9 sm:-right-12 md:-right-26 lg:-right-28 xl:-right-30 2xl:-right-32 h-57 xs:h-62 phone:h-65 sm:h-67 md:h-130 lg:h-132 xl:h-137 2xl:h-145 -z-1 object-contain opacity-30 scale-300 sm:scale-270 md:scale-250"/>
+    <img src="@/assets/images/cele-3.png" alt="" class="absolute bottom-0 md:-bottom-5 -right-13 sm:-right-23 md:-right-32 lg:-right-35 xl:-right-35 2xl:-right-37 h-57 xs:h-62 phone:h-65 sm:h-90 md:h-130 lg:h-132 xl:h-137 2xl:h-145 -z-1 object-contain opacity-30 scale-300 sm:scale-270 md:scale-250"/>
     <section class="relative pt-[calc(4rem+10px)] sm:pt-[calc(4rem+9px)] md:pt-[calc(4rem+11px)] lg:pt-[calc(4rem+14px)] pb-5 sm:pb-7 md:pb-10 lg:pb-12 flex flex-col">
         <div class="w-[93%] phone:w-[96%] md:w-[97%] xl:w-[98%] mx-auto flex flex-col">
             <div class="relative">
