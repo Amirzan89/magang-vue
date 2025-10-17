@@ -27,11 +27,10 @@ const routeItems = reactive([
 ])
 const headerRef = ref<HTMLElement | null>(null)
 const bgLayer = ref(null)
-const hBg = ['/search', '/about', '/privacy-policy']
-const hBgPrefix = ['/event/', '/booking']
-const dBg = ['/']
+const hBg = ['EventSearchPage', 'EventDetailPage', 'EventBookingPage', 'NotFound']
 const headerBg = computed(() => {
-    return hBg.includes(route.path) || hBgPrefix.some(prefix => route.path.startsWith(prefix))
+    const name = typeof route.name === 'string' ? route.name : ''
+    return hBg.includes(name) ?? true
 })
 const waitForEvent = (eventName: string): Promise<void> => {
     return new Promise(resolve => {
@@ -44,9 +43,7 @@ const waitForEvent = (eventName: string): Promise<void> => {
 }
 const handleHeaderAnim = async() => {
     if(headerBg.value) return
-    if(dBg.includes(route.path)){
-        await waitForEvent('tHeader')
-    }
+    await waitForEvent('tHeader')
     await nextTick()
     const triggerEl = document.querySelector('.header-trigger') ||document.querySelector('section:first-of-type div:first-of-type') ||  document.querySelector('section:first-of-type')
     if(!triggerEl) return
@@ -69,7 +66,7 @@ onMounted(async() => {
     if(!headerBg.value) gsap.set(bgLayer.value, { opacity: 0, y: -50 })
     await handleHeaderAnim()
 })
-watch(() => route.path, async() => {
+watch(() => route.name, async() => {
     ScrollTrigger.getAll().forEach(t => t.kill())
     gsap.killTweensOf(bgLayer.value)
     if(headerBg.value){
@@ -81,7 +78,7 @@ watch(() => route.path, async() => {
 })
 </script>
 <template>
-    <header ref="headerRef" :class="['relative h-full layout-topbar top-0 start-0 !bg-transparent', headerBg ? 'sticky' : 'fixed']">
+    <header ref="headerRef" class="layout-topbar !bg-transparent" :class="[headerBg ? '!sticky' : '!fixed']">
         <div ref="bgLayer" class="absolute top-0 left-0 w-full h-full -z-1">
             <img src="@/assets/images/header.png" alt="" class="w-full h-full object-cover" />
             <div class="absolute top-0 left-0 w-full h-full opacity-90 bg-red-500" style="background: #ED4690; background: linear-gradient(145deg,rgba(237, 70, 144, 1) 0%, rgba(85, 34, 204, 1) 100%)"></div>

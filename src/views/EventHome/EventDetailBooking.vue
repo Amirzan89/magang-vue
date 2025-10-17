@@ -28,7 +28,7 @@ const local = reactive({
 const thumbsSwiper = ref<SwiperType | null>(null)
 const mainSwiper = ref<SwiperType | null>(null);
 const onMainSwiper = (swiper: SwiperType) => {
-    mainSwiper.value = swiper;
+    mainSwiper.value = swiper
     swiper.on("slideChange", () => {
         if(thumbsSwiper.value){
             thumbsSwiper.value.slideTo(swiper.realIndex);
@@ -63,7 +63,7 @@ onBeforeMount(async() =>{
 })
 </script>
 <template>
-    <section class="w-[90%] lg:w-[95%] mt-3 lg:mt-10 mx-auto flex flex-col md:flex-row gap-5">
+    <section class="w-[90%] lg:w-[95%] mt-1 sm:mt-3 lg:mt-5 mx-auto flex flex-col md:flex-row gap-5">
         <div class="relative md:w-[50%] lg:w-[45%] xl:w-[45%]">
             <div v-if="local.detail_event && local.detail_event.img && local.detail_event.img.length > 0">
                 <Swiper :modules="[Navigation, Thumbs, Autoplay]" :thumbs="{ swiper: thumbsSwiper }" :space-between="10" :navigation="{ nextEl: '.btn-next', prevEl: '.btn-prev' }" :loop="true" :autoplay="{ delay: 30000, disableOnInteraction: false }" @swiper="onMainSwiper" class="relative  h-[200px] phone:!h-[250px] sm:!h-[300px] md:!h-[350px] lg:!h-[400px] xl:h-[450px] mb-3 group" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">

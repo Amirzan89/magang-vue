@@ -6,6 +6,7 @@ import useAxios from '@/composables/api/axios'
 import useEncryption from '@/composables/encryption'
 import CustomCardWithSkeletonComponent from '@/components/CustomCardWithSkeleton.vue'
 import freeTag from '@/assets/images/free-tag.png'
+import { eventBus } from '@/eventBus'
 const router = useRouter()
 const route = useRoute()
 const { axiosJson, fetchCsrfToken } = useAxios()
@@ -95,6 +96,7 @@ onBeforeMount(async() => {
     local.fetchData = res.data.data
     local.next_cursor = res.data.next_cursor
     local.has_more = res.data.has_more
+    eventBus.emit('tHeader')
 })
 const redirectToSearchPage = async() => {
     router.push({
@@ -167,7 +169,7 @@ const lazyDataAll = async() => {
                 <InputText id="email" type="email" class="flex-1 sm:flex-initial sm:w-55 md:w-60 lg:w-[calc(0.25rem*65)] xl:w-70 h-10 !px-1 !py-0 lg:px-3 lg:py-2 !text-sm sm:text-base lg:text-lg xl:text-xl" placeholder="Cari Event" v-model="local.inpSearch" @keyup.enter="redirectToSearchPage()"/>
                 <Button class="w-16 h-10 !p-0 lg:px-3 lg:py-2 !text-sm sm:text-base lg:text-lg xl:text-xl" @click="redirectToSearchPage()">Search</Button>
             </div>
-            <CustomCardWithSkeletonComponent v-if="false" :metaData="metaDataAll" :inpData="local.fetchData" :paralelRender="2" @lazy-data="lazyDataAll">
+            <CustomCardWithSkeletonComponent v-if="local.fetchData" :metaData="metaDataAll" :inpData="local.fetchData" :paralelRender="2" @lazy-data="lazyDataAll">
                 <template #skeleton="{ index, skeletonRefs }">
                     <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 left-0 w-full h-full flex flex-col items-center transition-opacity duration-100 pointer-events-none">
                         <Skeleton :pt="{ root: { class: ['!w-[103%] sm:!w-[102.5%] !h-[123px] phone:!h-[172px] lg:!h-[200px] !rounded-lg relative -left-[0.25%] -top-[1%]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
