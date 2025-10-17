@@ -3,15 +3,19 @@ import { FilterMatchMode, FilterOperator } from '@primevue/core/api'
 import { onBeforeMount, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useFetchDataStore } from '@/stores/FetchData'
+import { formatTgl } from '@/utils/global'
+type DialogInp = { label: string; format?: (val: any) => string }
 interface EventBooked {
     id: string
     registrationno: string
-    registrationname: string
+    registrationname: string,
+    gender: 'M' | 'F',
     email: string
     mobileno: string
     eventid: string
     registrationdate: string
     paymentamount: string
+    paymentdate: string
     registrationstatus: string
     paymenttype: string
     notes: string
@@ -22,20 +26,10 @@ const local = reactive({
 })
 const filters = ref<any>(null)
 const loadingDT = ref(true)
-const ebDialog = ref<EventBooked | null>(null)
+const ebDialog = ref<Partial<EventBooked> | null>(null)
 const eventBookedStateDialog = ref(false)
 const currentFirst = ref(0)
 const rows = ref(10)
-const statusOptions = [
-    { label: 'Open', value: 'O' },
-    { label: 'Closed', value: 'C' },
-    { label: 'Pending', value: 'P' }
-]
-const paymentTypeOptions = [
-    { label: 'Cash', value: 'C' },
-    { label: 'Transfer', value: 'T' },
-    { label: 'QRIS', value: 'Q' }
-]
 const onPage = (event: { first: number; rows: number }) => {
     currentFirst.value = event.first
     rows.value = event.rows
@@ -45,19 +39,14 @@ const initialFilters = () => {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
         registrationname: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
         email: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] },
-        eventid: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
-        registrationstatus: { operator: FilterOperator.OR, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] },
-        paymenttype: { operator: FilterOperator.OR, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] },
-        paymentamount: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] },
-        registrationdate: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] }
+        registrationdate: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
+        eventgroup: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
     }
 }
 initialFilters()
 const clearFilters = () => {
     initialFilters()
 }
-const formatDate = (val: string) => new Date(val).toLocaleDateString('en-GB')
-const formatCurrency = (val: string) => 'Rp ' + parseFloat(val).toLocaleString('id-ID')
 const showDialog = (data: EventBooked) => {
     ebDialog.value = { ...data }
     eventBookedStateDialog.value = true
@@ -67,9 +56,28 @@ onBeforeMount(async() => {
     const res = await useFetchDataStore().fetchPage(useRoute().path, {})
     loadingDT.value = false
     if(!res || res.status === 'error') return
-    local.fetchData = res.data
+    local.fetchData = res.data.map((item: any) => ({
+        ...item,
+        registrationdate: new Date(item.registrationdate)
+    }))
 })
 const exportCSV = () => dt.value.exportCSV()
+const detailFormDialog = {
+    registrationno: { label: 'Registration No' },
+    registrationname: { label: 'Name' },
+    mobileno: { label: 'Mobile Number' },
+    gender: { label: 'Gender', format: (v) => v == 'M  ' ? 'Male' : 'Female' },
+    email: { label: 'Email' },
+    registrationdate: { label: 'Registration Date', format: (v) => formatTgl(new Date(v)) },
+    paymentdate: { label: 'Payment Date', format: (v) => formatTgl(new Date(v)) },
+    paymentamount: { label: 'Payment Amount', format: (v) => `${Number(v).toLocaleString('id-ID')}` },
+    paymenttype: { label: 'Payment Type' },
+    registrationstatus: { label: 'Status' },
+    notes: { label: 'Notes' }
+} as Record<keyof Pick<EventBooked, 
+    'registrationno' | 'registrationname' | 'mobileno' | 'gender' | 'email' | 'registrationdate' | 'paymentdate' | 'paymentamount' | 'paymenttype' | 'registrationstatus' | 'notes'
+>, DialogInp>
+
 </script>
 <template>
     <main class="card">
@@ -90,8 +98,8 @@ const exportCSV = () => dt.value.exportCSV()
             </template>
             <template #empty>No bookings found.</template>
             <template #loading>Loading event bookings...</template>
-            <Column header="#" style="width: 4rem; text-align: center">
-                <template #body="{ index }">
+            <Column header="No" style="width: 4rem; text-align: center">
+                <template #body="{ index, data }">
                     {{ currentFirst + index + 1 }}
                 </template>
             </Column>
@@ -106,34 +114,15 @@ const exportCSV = () => dt.value.exportCSV()
                     <InputText v-model="filterModel.value" placeholder="Search email" />
                 </template>
             </Column>
-            <Column field="eventid" header="Event ID" sortable style="min-width: 8rem">
-                <template #filter="{ filterModel }">
-                    <InputText v-model="filterModel.value" placeholder="Event ID" />
-                </template>
-            </Column>
             <Column field="registrationdate" header="Date" sortable dataType="date" style="min-width: 10rem">
-                <template #body="{ data }">{{ formatDate(data.registrationdate) }}</template>
+                <template #body="{ data }">{{ formatTgl(data.registrationdate) }}</template>
                 <template #filter="{ filterModel }">
                     <DatePicker v-model="filterModel.value" dateFormat="yy-mm-dd" placeholder="Select date" />
                 </template>
             </Column>
-            <Column field="paymentamount" header="Payment" sortable dataType="numeric" style="min-width: 10rem">
-                <template #body="{ data }">{{ formatCurrency(data.paymentamount) }}</template>
+            <Column field="eventgroup" header="Event Group" sortable style="min-width: 8rem">
                 <template #filter="{ filterModel }">
-                    <InputNumber v-model="filterModel.value" mode="currency" currency="IDR" locale="id-ID" />
-                </template>
-            </Column>
-            <Column field="registrationstatus" header="Status" sortable style="min-width: 10rem">
-                <template #body="{ data }">
-                    <Tag :value="data.registrationstatus === 'O' ? 'Open' : data.registrationstatus" :severity="data.registrationstatus === 'O' ? 'success' : 'warn'" />
-                </template>
-                <template #filter="{ filterModel }">
-                    <Select v-model="filterModel.value" :options="statusOptions" optionLabel="label" optionValue="value" placeholder="Any" showClear />
-                </template>
-            </Column>
-            <Column field="paymenttype" header="Payment Type" sortable style="min-width: 10rem">
-                <template #filter="{ filterModel }">
-                    <Select v-model="filterModel.value" :options="paymentTypeOptions" optionLabel="label" optionValue="value" placeholder="Any" showClear />
+                    <InputText v-model="filterModel.value" placeholder="Event Group" />
                 </template>
             </Column>
             <Column header="Action" :exportable="false" style="min-width: 8rem">
@@ -142,11 +131,11 @@ const exportCSV = () => dt.value.exportCSV()
                 </template>
             </Column>
         </DataTable>
-        <Dialog v-model:visible="eventBookedStateDialog" :style="{ width: '480px' }" header="Booking Details" modal>
+        <Dialog v-model:visible="eventBookedStateDialog" class="w-[75%] xs:w-[330px] phone:w-[400px] sm:w-[480px]" header="Booking Details" modal>
             <div v-if="ebDialog" class="flex flex-col gap-3">
-                <div v-for="(value, key) in ebDialog" :key="key" class="flex flex-col">
-                    <label class="font-semibold capitalize">{{ key }}</label>
-                    <InputText v-model="ebDialog[key]" disabled />
+                <div v-for="(config, key) in detailFormDialog" :key="key" class="flex flex-col">
+                    <label class="font-semibold">{{ config.label }}</label>
+                    <InputText :value="config.format ? config.format(ebDialog[key]) : ebDialog[key]" disabled/>
                 </div>
             </div>
             <template #footer>
