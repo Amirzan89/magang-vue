@@ -6,21 +6,21 @@ const props = defineProps<{
     isLoading?: boolean,
     inpVar?: Record<string, any>
     metaData: {
-        wrapper?: (inpData: any) => Component,
-        customTWGrand?: string,
-        customTWTransition?: string,
-        customCSSTransition?: string,
-        snapshots: Partial<Record<keyof typeof breakpoints | 'base', number>>
+        wrapper?: (inpData: any) => Component
+        customTWGrand?: string
+        customTWTransition?: string
+        customCSSTransition?: string
+        snapshots?: Partial<Record<keyof typeof breakpoints | 'base', number>>
         pagination?: {
-            customTWPaginator?: string,
-            item_id: string,
-            lazyLoading?: boolean,
-            preRenderPage?: number,
+            customTWPaginator?: string
+            item_id: string
+            lazyLoading?: boolean
+            preRenderPage?: number
         }
     }
     inpData?: Record<string, any>[]
     paralelRender?: number
-    serverSide?: boolean,
+    serverSide?: boolean
 }>()
 const emit = defineEmits(['lazy-data'])
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
@@ -34,6 +34,7 @@ const first = ref(0)
 const total = computed(() => props.inpData?.length)
 const maxRenderItemTest: number = Infinity
 let counterSkeletonTest = 0
+let lastDataLength = 0
 const breakpointsFn = (inp: Partial<Record<keyof typeof breakpoints | 'base', number>>) => {
     const active = (Object.keys(breakpoints) as (keyof typeof breakpoints)[]).reverse().find(bp => {
         const val = breakpoints[bp]
@@ -41,11 +42,6 @@ const breakpointsFn = (inp: Partial<Record<keyof typeof breakpoints | 'base', nu
     })
     return (active ? (inp[active] as number) : (inp.base as number)) ?? 1
 }
-const pSnapshots = computed<number>(() => {
-    const snaps = props.metaData.snapshots
-    if(!snaps || typeof snaps !== 'object') return 1
-    return breakpointsFn(snaps)
-})
 const parseGridCols = (classStr: string) => {
     const regex = /([a-z0-9]*:)?grid-cols-(\d+)/g
     const cols: Record<string, number> = {}
@@ -57,16 +53,18 @@ const parseGridCols = (classStr: string) => {
     return cols
 }
 const parsedCols = computed(() => parseGridCols(props.metaData.customTWTransition ?? ''))
-const colCount = computed(() => {
-    return breakpointsFn(parsedCols.value)
-})
+const useTotalItems = () => {
+    const snaps = props.metaData.snapshots
+    return breakpointsFn(parsedCols.value) * ((snaps && typeof snaps === 'object') ? breakpointsFn(snaps) : 1)
+}
+const isEmitting = ref(false)
 const prevRows = ref(0)
-const rows = ref(colCount.value * pSnapshots.value)
-const totalRows = computed(() => colCount.value * pSnapshots.value)
+const rows = ref(useTotalItems())
+const totalItems = computed(() => useTotalItems())
 const pagedData = computed(() => {
     if(props.serverSide) return props.inpData
     if(first.value == 0){
-        return props.inpData?.slice(0, (colCount.value) * pSnapshots.value) ?? []
+        return props.inpData?.slice(0, useTotalItems()) ?? []
     }
     return props.inpData?.slice(first.value, first.value + (rows.value ?? 0)) ?? []
 })
@@ -77,9 +75,6 @@ const renderItems = computed<any | null>(() => {
     const base = props.inpData ?? []
     const extra = slots['placeholder-card'] ? [null] : []
     return [...base, ...extra]
-})
-const loadingItems = computed(() => {
-    return colCount.value * pSnapshots.value
 })
 const getWrapper = (inpData: any) => {
     const key = inpData?.wrapperKey || inpData?.event_id || 'default'
@@ -128,30 +123,37 @@ const handlePage = (e: any) => {
         emit('lazy-data', e)
     }
 }
-watch([() => props.inpData, totalRows], () => {
-    if(props.metaData.pagination){
-        if(totalRows.value !== rows.value || totalRows.value !== 0){
-            prevRows.value = rows.value
-            first.value = Math.floor(first.value / rows.value) * totalRows.value
-            rows.value = totalRows.value
+watch([() => props.inpData?.length, totalItems],  ([newLen]) => {
+    if(isEmitting.value && (newLen ?? 0) > lastDataLength){
+        isEmitting.value = false
+        lastDataLength = newLen ?? 0
+        return
+    }
+    if(totalItems.value !== rows.value || totalItems.value !== 0){
+        prevRows.value = rows.value
+        first.value = Math.floor(first.value / rows.value) * totalItems.value
+        rows.value = totalItems.value
+        if(props.metaData.pagination){
             if(props.metaData.pagination?.lazyLoading && (first.value + rows.value >= (props.inpData?.length ?? 0))){
+                isEmitting.value = true
+                lastDataLength = newLen ?? 0
                 emit('lazy-data', null)
             }
+            const startIndex = first.value
+            const endIndex = first.value + rows.value
+            active.forEach(id => {
+                if((id - 1) < startIndex || (id - 1) >= endIndex){
+                    active.delete(id)
+                }
+            })
+            queue.sort((a, b) => {
+                const aIn = (a - 1) >= startIndex && (a - 1) < endIndex
+                const bIn = (b - 1) >= startIndex && (b - 1) < endIndex
+                return (bIn ? 1 : 0) - (aIn ? 1 : 0)
+            })
+            processQueue()
         }
     }
-    const startIndex = first.value
-    const endIndex = first.value + rows.value
-    active.forEach(id => {
-        if ((id - 1) < startIndex || (id - 1) >= endIndex) {
-            active.delete(id)
-        }
-    })
-    queue.sort((a, b) => {
-        const aIn = (a - 1) >= startIndex && (a - 1) < endIndex
-        const bIn = (b - 1) >= startIndex && (b - 1) < endIndex
-        return (bIn ? 1 : 0) - (aIn ? 1 : 0)
-    })
-    processQueue()
 })
 </script>
 <template>
@@ -168,7 +170,7 @@ watch([() => props.inpData, totalRows], () => {
         <Paginator v-if="metaData.pagination && pagedData && pagedData.length > 0" class="flex justify-center" :class="metaData.pagination.customTWPaginator" :first="first" :rows="rows" :totalRecords="total" @page="handlePage"/>
     </div>
     <div v-else :class="metaData.customTWTransition" :style="metaData.customCSSTransition">
-        <slot v-for="indexPar in loadingItems" :key="`loadingCard-${indexPar}`"/>
+        <slot v-for="indexPar in totalItems" :key="`loadingCard-${indexPar}`"/>
     </div>
 </template>
 <style scoped>

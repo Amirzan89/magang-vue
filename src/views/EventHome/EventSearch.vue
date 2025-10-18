@@ -321,8 +321,6 @@ const formSearchFilter = async() => {
     const isEqual = (a: unknown, b: unknown): boolean => {
         const rawA = toRaw(a)
         const rawB = toRaw(b)
-        console.log('isii a',rawA)
-        console.log('isii b',rawB)
         if(Array.isArray(rawA) && Array.isArray(rawB)){
             if(rawA.length !== rawB.length) return false
             if (rawA.every(v => v instanceof Date) && rawB.every(v => v instanceof Date)) {
@@ -330,18 +328,14 @@ const formSearchFilter = async() => {
             }
             return rawA.every((val, idx) => val === rawB[idx])
         }
-        console.log('')
         return rawA === rawB
     }
     for(const key of Object.keys(oldInput) as (keyof typeof oldInput)[]){
-        console.log('key',key)
         if(!isEqual(oldInput[key], currentInput[key])){
-            console.log('nemuuuu updatee ', key)
             isUpdated = true
             break
         }
     }
-    console.log('resultt ', isUpdated)
     if(!isUpdated) return
     local.total_items = 0
     abortFormController = new AbortController()

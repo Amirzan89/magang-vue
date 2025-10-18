@@ -6,7 +6,7 @@ import 'swiper/css'
 import 'swiper/css/navigation'
 import "swiper/css/thumbs"
 import 'swiper/css/autoplay'
-import { reactive, ref, computed, onBeforeMount } from 'vue'
+import { reactive, ref, computed, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { breakpoints } from '@/composables/useScreenSize'
 import { useFetchDataStore } from '@/stores/FetchData'
@@ -37,12 +37,12 @@ const onMainSwiper = (swiper: SwiperType) => {
 }
 const handleMouseEnter = () => {
     if(mainSwiper.value?.autoplay){
-        mainSwiper.value.autoplay.stop();
+        mainSwiper.value.autoplay.stop()
     }
 }
 const handleMouseLeave = () => {
     if(mainSwiper.value?.autoplay){
-        mainSwiper.value.autoplay.start();
+        mainSwiper.value.autoplay.start()
     }
 }
 const slidePerView = computed(() => {
@@ -51,22 +51,24 @@ const slidePerView = computed(() => {
     }
     return 3
 })
-const cleanImg = (img: any) => img.replaceAll('"', '').trim();
-onBeforeMount(async() =>{
-    const res = (await fetchDataS.fetchPage(useRoute().path, {}))
+const cleanImg = (img: any) => img.replaceAll('"', '').trim()
+watch(() => route.path, async() => {
+    local.isLoading = true
+    const res = (await fetchDataS.fetchPage(route.path, {}))
+    local.isLoading = false
     if(res ==  undefined || res.status == 'error'){
         return
     }
     console.log('enttokk dataa ', res.data)
     local.detail_event = res.data.detail_event
     local.all_events = res.data.all_events
-})
+}, { immediate: true })
 </script>
 <template>
-    <section class="w-[90%] lg:w-[95%] mt-1 sm:mt-3 lg:mt-5 mx-auto flex flex-col md:flex-row gap-5">
+    <section class="w-[90%] lg:w-[95%] mt-3 sm:mt-3 lg:mt-5 mx-auto flex flex-col md:flex-row gap-1 md:gap-5">
         <div class="relative md:w-[50%] lg:w-[45%] xl:w-[45%]">
             <div v-if="local.detail_event && local.detail_event.img && local.detail_event.img.length > 0">
-                <Swiper :modules="[Navigation, Thumbs, Autoplay]" :thumbs="{ swiper: thumbsSwiper }" :space-between="10" :navigation="{ nextEl: '.btn-next', prevEl: '.btn-prev' }" :loop="true" :autoplay="{ delay: 30000, disableOnInteraction: false }" @swiper="onMainSwiper" class="relative  h-[200px] phone:!h-[250px] sm:!h-[300px] md:!h-[350px] lg:!h-[400px] xl:h-[450px] mb-3 group" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
+                <Swiper :modules="[Navigation, Thumbs, Autoplay]" :thumbs="{ swiper: thumbsSwiper }" :space-between="10" :navigation="{ nextEl: '.btn-next', prevEl: '.btn-prev' }" :loop="true" :autoplay="{ delay: 30000, disableOnInteraction: false }" @swiper="onMainSwiper" class="relative  !h-[200px] phone:!h-[250px] sm:!h-[300px] md:!h-[350px] lg:!h-[400px] xl:h-[450px] mb-3 group" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
                     <template v-for="(img, i) in local.detail_event.img.filter((x: any) => x && x !== '-')" :key="i">
                         <SwiperSlide>
                             <img v-if="img && (img !== '-')" :src="img" class="w-full h-full object-cover" />
@@ -77,7 +79,7 @@ onBeforeMount(async() =>{
                         <I_VRight class="btn-next size-8 text-black-500">next</I_VRight>
                     </div>
                 </Swiper>
-                <Swiper :modules="[Navigation, Thumbs, Autoplay]" @Swiper="(swiper) => (thumbsSwiper = swiper)" :space-between="0" :slides-per-view="slidePerView" centered-slides watch-slides-progress class="w-[63%] xs:w-[54%] phone:w-[60%] sm:w-[45%] lg:w-[78%] xl:w-4/5 h-[65px] xs:h-[70px] phone:h-[80px] sm:h-[90px] md:h-[95px] lg:h-[102px] xl:h-[110px] 2xl:h-[120px]"> 
+                <Swiper :modules="[Navigation, Thumbs, Autoplay]" @Swiper="(swiper) => (thumbsSwiper = swiper)" :space-between="0" :slides-per-view="slidePerView" centered-slides watch-slides-progress class="w-[63%] xs:w-[54%] phone:w-[60%] sm:w-[45%] md:w-[73%] lg:w-[78%] xl:w-4/5 h-[65px] xs:h-[70px] phone:h-[80px] sm:h-[90px] md:h-[95px] lg:h-[102px] xl:h-[110px] 2xl:h-[120px]">
                     <SwiperSlide v-for="(img, i) in local.detail_event.img" :key="i" class="w-fit">
                         <img v-if="cleanImg(img) !== '-'" :src="cleanImg(img)" class="h-full object-contain" />
                     </SwiperSlide>
@@ -93,43 +95,37 @@ onBeforeMount(async() =>{
             </div>
         </div>
         <div class="flex-1 h-fit">
-            <h3 class="w-fit mt-1 sm:mt-3 lg:mt-5 text-lg sm:text-xl lg:text-2xl xl:text-3xl font-semibold text-[#242565]">All Events</h3>
-            <p class="xl:mt-5 text-base sm:text-lg lg:text-xl xl:text-2xl">Lorem ipsum dolor sit amet consectetur adipisicing elit. Asperiores, atque! Nihil consequuntur quasi perferendis neque facilis iusto dolore eaque. Ullam pariatur amet dicta voluptatum minima laudantium voluptates, rem quia ex.</p>
-            <div class="w-[95%] ml-[5%] mt-5 flex">
-                <div class="flex flex-col">
-                    <I_Location class="size-5 xl:size- sm:w-8 sm:h-8 text-black"/>
-                    <I_Date class="size-5 xl:size- sm:w-8 sm:h-8 text-black"/>
-                    <I_Ticket class="size-5 xl:size- sm:w-8 sm:h-8 text-black"/>
-                </div>
-                <div class="ml-2 flex flex-col text-sm sm:text-base lg:text-lg xl:text-xl">
-                    <p>Location</p>
-                    <p>Date</p>
-                    <p>Entry</p>
-                </div>
-                <div class="ml-3 flex flex-col text-sm sm:text-base lg:text-lg xl:text-xl">
-                    <span>:</span>
-                    <span>:</span>
-                    <span>:</span>
-                </div>
-                <div class="ml-1 flex flex-col text-sm sm:text-base lg:text-lg xl:text-xl">
-                    <p>{{ local.detail_event.nama_lokasi ?? '-' }}</p>
-                    <p>{{ local.detail_event.start_date ?? '-' }}</p>
-                    <p>{{ local.detail_event.price ?? '-' }}</p>
-                </div>
+            <h3 class="w-fit !m-0 phone:!mt-1 sm:!mt-3 lg:!mt-5 !text-lg sm:!text-xl lg:!text-2xl xl:!text-3xl font-medium md:font-semibold text-[#242565]">About Events</h3>
+            <p class="!m-0 !text-base sm:!text-lg lg:!text-xl xl:!text-2xl">{{ local.detail_event.event_detail }}</p>
+            <div class="w-[95%] ml-[2%] grid grid-cols-[auto_auto_auto_1fr] gap-x-2 gap-y-1 !text-base sm:!text-lg lg:!text-xl xl:!text-2xl items-start">
+                <I_Location class="size-4 sm:size-4.75 lg:size-5.5 xl:size-6.75 mt-[2.25px] xl:mt-[2.5px] text-black justify-self-center"/>
+                <p class="!m-0">Location</p>
+                <span class="text-center w-2">:</span>
+                <p class="!m-0">{{ local.detail_event.nama_lokasi ?? '-' }}</p>
+
+                <I_Date class="size-4.5 sm:size-5.25 lg:size-6 xl:size-7.25 mt-[1.75px] lg:mt-[1.5px] xl:mt-[1.75px] text-black"/>
+                <p class="!m-0">Date</p>
+                <span class="text-center w-2">:</span>
+                <p class="!m-0">{{ local.detail_event.start_date ?? '-' }}</p>
+
+                <I_Ticket class="size-4.75 sm:size-5.5 lg:size-6.25 xl:size-7.5 mt-[1.5px] sm:mt-[2px] xl:mt-[2.75px] text-black"/>
+                <p class="!m-0">Entry</p>
+                <span class="text-center w-2">:</span>
+                <p class="!m-0">{{ local.detail_event.price ?? '-' }}</p>
             </div>
             <div class="w-fit relative left-1/2 -translate-x-1/2 mt-5 flex items-center gap-5">
-                <Button v-if="route.path.startsWith('/event')" variant="outlined" :as="RouterLink" :to="'/booking/' + route.params.id" class="w-fit !text-[#3D37F1] hover:!text-white !border-[#3D37F1] hover:!bg-[#3D37F1] !text-sm sm:!text-base lg:!text-lg xl:!text-xl">Book Event</Button>
-                <Button v-if="route.path.startsWith('/booking')" variant="outlined" :as="RouterLink" :to="'/event/' + route.params.id" class="w-fit !text-[#3D37F1] hover:!text-white !border-[#3D37F1] hover:!bg-[#3D37F1] !text-sm sm:!text-base lg:!text-lg xl:!text-xl">Detail Event</Button>
-                <Button variant="outlined" as="a" :href="local.detail_event?.event_detail" target="_blank" rel="noopener noreferrer" class="w-fit !text-[#3D37F1] hover:!text-white !border-[#3D37F1] hover:!bg-[#3D37F1] !text-sm sm:!text-base lg:!text-lg xl:!text-xl">Learn More</Button>
+                <Button v-if="route.path.startsWith('/event')" variant="outlined" :as="RouterLink" :to="'/booking/' + route.params.id" class="w-fit !px-2 lg:!px-3 !py-1 lg:!py-1.5 !text-[#3D37F1] hover:!text-white !border-[#3D37F1] hover:!bg-[#3D37F1] !text-sm sm:!text-base lg:!text-lg xl:!text-xl">Book Event</Button>
+                <Button v-if="route.path.startsWith('/booking')" variant="outlined" :as="RouterLink" :to="'/event/' + route.params.id" class="w-fit !px-2 lg:!px-3 !py-1 lg:!py-1.5 !text-[#3D37F1] hover:!text-white !border-[#3D37F1] hover:!bg-[#3D37F1] !text-sm sm:!text-base lg:!text-lg xl:!text-xl">Detail Event</Button>
+                <Button variant="outlined" as="a" :href="local.detail_event?.event_detail ?? ''" target="_blank" rel="noopener noreferrer" class="w-fit !px-2 lg:!px-3 !py-1 lg:!py-1.5 !text-[#3D37F1] hover:!text-white !border-[#3D37F1] hover:!bg-[#3D37F1] !text-sm sm:!text-base lg:!text-lg xl:!text-xl">Learn More</Button>
             </div>
         </div>
     </section>
     <EventDetailComponent v-if="route.path.startsWith('/event')" :all_events="local.all_events ?? []" />
     <EventBookingComponent v-else :detail_event="local.detail_event" />
 </template>
-<style scoped>
+<style scoped>  
 :deep(.swiper-slide-thumb-active img) {
-  border: 2px solid #3b82f6;
-  border-radius: 0.375rem; /* rounded-md */
+    border: 2px solid #3b82f6;
+    border-radius: 0.375rem;
 }
 </style>

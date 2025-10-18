@@ -94,8 +94,9 @@ const formBooking = ({ valid, states, reset }: any) => {
 }
 </script>
 <template>
-    <section class="relative overflow-x-clip mt-5 mb-10 sm:mb-15 lg:pb-20">
+    <section class="relative overflow-x-clip mt-3 mb-10 sm:mb-15 lg:mb-20">
         <img src="@/assets/images/cele-3.png" alt="" class="absolute -bottom-[60%] -right-[40.5%] w-fit h-fit -z-1 object-cover opacity-30"/>
+        <h2 class="w-[90%] lg:w-[95%] !m-0 !mx-auto !text-lg sm:!text-xl lg:!text-2xl xl:!text-3xl">Booking Event</h2>
         <Form :resolver="bookingValidator" @submit="formBooking" v-slot="$form" class="w-[90%] lg:w-[95%] mx-auto flex flex-col gap-0.5 phone:gap-1 md:gap-2 xl:gap-2.5">
             <FormField name="nama" class="flex flex-col gap-0.25">
                 <label for="nama">Nama</label>
@@ -124,7 +125,7 @@ const formBooking = ({ valid, states, reset }: any) => {
                 <InputText id="email" placeholder="Masukkan Email Pengguna" />
                 <Message v-if="$form.email?.invalid" severity="error">{{ $form.email.error?.message }}</Message>
             </FormField>
-            <Button type="submit" label="Kirim" :loading="local.isRequestInProgress" class="w-fit mx-auto mt-7.5"/>
+            <Button type="submit" label="Kirim" :loading="local.isRequestInProgress" class="mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm lg:!rounded-md !text-sm sm:!text-base lg:!text-lg xl:!text-xl !font-normal"/>
         </Form>
     </section>
 </template>
