@@ -1,6 +1,4 @@
 import createAxios from '@/composables/api/axios'
-import { useConfig } from '@/composables/useConfig'
-const publicConfig = useConfig()
 export default () => {
     const genRsaPairSession = async() => {
         const { publicKey, privateKey } = await crypto.subtle.generateKey({ name: 'RSA-OAEP', modulusLength: 2048, publicExponent: new Uint8Array([1,0,1]), hash: 'SHA-256' }, true,['encrypt','decrypt'])
@@ -11,7 +9,7 @@ export default () => {
         return pubB64
     }
     const handshake = async() => {
-        const { handshakeAPI } = createAxios()
+        const { reqData } = createAxios()
         const hexToU8 = (hex: any) => {
             if (!/^[0-9a-fA-F]+$/.test(hex) || hex.length % 2) throw new Error('bad hex')
                 const out = new Uint8Array(hex.length / 2)
@@ -22,13 +20,22 @@ export default () => {
             const clientNonce = crypto.getRandomValues(new Uint8Array(16))
             const clientNonceB64 = btoa(String.fromCharCode(...clientNonce))
             const pubB64 = await genRsaPairSession()
-            const res = await handshakeAPI({pubB64, clientNonceB64});
+            const res = await reqData({
+                url: '/handshake',
+                method: 'POST',
+                reqBody: {
+                    clientPublicSpkiB64: pubB64,
+                    clientNonce: clientNonceB64,
+                },
+                reqType: 'Json',
+                isEncrypt: false,
+            })
             const pkcs8 = Uint8Array.from(atob(sessionStorage.rsa_priv), c => c.charCodeAt(0)).buffer
             const priv = await crypto.subtle.importKey('pkcs8', pkcs8, { name: 'RSA-OAEP', hash: 'SHA-256' }, false, ['decrypt'])
             const wrapped = hexToU8(res.data.encKey).buffer
             const result = new Uint8Array(await crypto.subtle.decrypt({ name: 'RSA-OAEP' }, priv, wrapped))
             // parse payload: [aes32 | hmac32 | keyId16 | clientNonce16 | serverNonce16 | exp8]
-            let off=0
+            let off = 0
             const aes = result.slice(off, off+=32)
             const hmac = result.slice(off, off+=32)
             const keyIdBytes = result.slice(off, off+=16)

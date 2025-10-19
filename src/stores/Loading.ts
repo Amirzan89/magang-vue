@@ -1,14 +1,11 @@
-import { defineStore } from "pinia";
+import { defineStore } from "pinia"
 export const useLoadingStore = defineStore('loadingStore', {
     state: () => ({
-        visible: false,
+        isLoading: false,
     }),
     actions: {
-        showLoading(){
-            this.visible = true;
+        setLoading(value: boolean){
+            this.isLoading = value
         },
-        closeLoading(){
-            this.visible = false;
-        }
     },
-});
+})

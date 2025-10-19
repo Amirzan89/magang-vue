@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { onBeforeMount, reactive, ref } from 'vue';
-import { useRoute } from 'vue-router';
-import { useFetchDataStore } from '@/stores/FetchData';
-const chartData = ref<any>();
-const chartOptions = ref<any>(null);
+import { onBeforeMount, reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import useAxios from '@/composables/api/axios'
+import { useToast } from 'primevue/usetoast'
+const route = useRoute()
+const { reqData } = useAxios()
+const toast = useToast()
+const chartData = ref<any>()
+const chartOptions = ref<any>(null)
 const local = reactive({
     list_events: null,
     total_event: 0,
@@ -52,11 +56,15 @@ const setChartOptions = () => {
     };
 };
 onBeforeMount(async() => {
-    const res = await useFetchDataStore().fetchPage(useRoute().path, {})
-    if(res ==  undefined || res.status == 'error'){
+    const res = await reqData({
+        url: route.path,
+        method: 'POST',
+        reqType: 'Json',
+    })
+    if(res.status == 'error'){
+        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, group: 'br', life: 3000 })
         return
     }
-    console.log('enttokk dataa ', res.data)
     local.list_events = res.data.list_events
     local.total_event = res.data.total_event
     local.event_group = res.data.event_group

@@ -2,8 +2,12 @@
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api'
 import { onBeforeMount, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { useFetchDataStore } from '@/stores/FetchData'
 import { formatTgl } from '@/utils/global'
+import useAxios from '@/composables/api/axios'
+import { useToast } from 'primevue/usetoast'
+const route = useRoute()
+const { reqData } = useAxios()
+const toast = useToast()
 type DialogInp = { label: string; format?: (val: any) => string }
 interface EventBooked {
     id: string
@@ -53,9 +57,16 @@ const showDialog = (data: EventBooked) => {
 }
 const hideDialog = () => (eventBookedStateDialog.value = false)
 onBeforeMount(async() => {
-    const res = await useFetchDataStore().fetchPage(useRoute().path, {})
+    const res = await reqData({
+        url: route.path,
+        method: 'POST',
+        reqType: 'Json',
+    })
     loadingDT.value = false
-    if(!res || res.status === 'error') return
+    if(res.status == 'error'){
+        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, group: 'br', life: 3000 })
+        return
+    }
     local.fetchData = res.data.map((item: any) => ({
         ...item,
         registrationdate: new Date(item.registrationdate)

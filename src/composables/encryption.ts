@@ -32,6 +32,6 @@ export default () => {
         const cipherParams = CryptoJS.lib.CipherParams.create({ ciphertext: CryptoJS.enc.Hex.parse(cipher) })
         const decrypted = CryptoJS.AES.decrypt(cipherParams, CryptoJS.enc.Hex.parse(sessionStorage.aes_key), { iv: CryptoJS.enc.Hex.parse(iv) })
         return JSON.parse(decrypted.toString(CryptoJS.enc.Utf8))
-    };
+    }
     return { encryptReq, decryptRes }
 }

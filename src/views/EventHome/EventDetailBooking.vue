@@ -8,8 +8,9 @@ import "swiper/css/thumbs"
 import 'swiper/css/autoplay'
 import { reactive, ref, computed, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import useAxios from '@/composables/api/axios'
+import { useToast } from 'primevue/usetoast'
 import { breakpoints } from '@/composables/useScreenSize'
-import { useFetchDataStore } from '@/stores/FetchData'
 import EventDetailComponent from '@/components/EventDetail.vue'
 import EventBookingComponent from '@/components/EventBooking.vue'
 import I_VLeft from '@/assets/icons/vector-left.svg?component'
@@ -17,13 +18,14 @@ import I_VRight from '@/assets/icons/vector-right.svg?component'
 import I_Location from '@/assets/icons/detail_event/location.svg?component'
 import I_Date from '@/assets/icons/detail_event/date.svg?component'
 import I_Ticket from '@/assets/icons/detail_event/ticket.svg?component'
-const fetchDataS = useFetchDataStore()
+const { reqData } = useAxios()
+const toast = useToast()
 const route = useRoute()
 const local = reactive({
     detail_event: {} as Record<string, any>,
     all_events: null as any,
     inpSearch: '',
-    isLoading: false,
+    eventID: '',
 })
 const thumbsSwiper = ref<SwiperType | null>(null)
 const mainSwiper = ref<SwiperType | null>(null);
@@ -53,18 +55,26 @@ const slidePerView = computed(() => {
 })
 const cleanImg = (img: any) => img.replaceAll('"', '').trim()
 watch(() => route.path, async() => {
-    local.isLoading = true
-    const res = (await fetchDataS.fetchPage(route.path, {}))
-    local.isLoading = false
-    if(res ==  undefined || res.status == 'error'){
+    if(route.params.id == local.eventID) return
+    local.eventID = typeof route.params.id == 'string' ? route.params.id : route.params.id[0]
+    const res = await reqData({
+        url: route.path,
+        method: 'POST',
+        reqType: 'Json',
+    })
+    if(res.status == 'error'){
+        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, group: 'br', life: 3000 })
         return
     }
-    console.log('enttokk dataa ', res.data)
     local.detail_event = res.data.detail_event
     local.all_events = res.data.all_events
 }, { immediate: true })
+const activeComponent = computed(() =>
+    route.path.startsWith('/event') ? EventDetailComponent : EventBookingComponent
+)
 </script>
 <template>
+    <img v-show="route.path.startsWith('/event')" src="@/assets/images/cele-3.png" alt="" class="absolute bottom-0 -right-[29.5%] w-[75%] h-[75%] -z-1 object-cover opacity-30"/>
     <section class="w-[90%] lg:w-[95%] mt-3 sm:mt-3 lg:mt-5 mx-auto flex flex-col md:flex-row gap-1 md:gap-5">
         <div class="relative md:w-[50%] lg:w-[45%] xl:w-[45%]">
             <div v-if="local.detail_event && local.detail_event.img && local.detail_event.img.length > 0">
@@ -120,8 +130,7 @@ watch(() => route.path, async() => {
             </div>
         </div>
     </section>
-    <EventDetailComponent v-if="route.path.startsWith('/event')" :all_events="local.all_events ?? []" />
-    <EventBookingComponent v-else :detail_event="local.detail_event" />
+    <component :is="activeComponent" keep-alive :all_events="local.all_events ?? []" :detail_event="local.detail_event"></component>
 </template>
 <style scoped>  
 :deep(.swiper-slide-thumb-active img) {

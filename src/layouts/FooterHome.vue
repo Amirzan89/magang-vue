@@ -8,21 +8,14 @@ import { reactive, markRaw } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useConfig } from '@/composables/useConfig'
 import useAxios from '@/composables/api/axios'
-import useEncryption from '@/composables/encryption'
 import { useLoadingStore } from '@/stores/Loading'
 import I_facebook from '@/assets/icons/footer_home/facebook.svg?component'
 import I_twitter from '@/assets/icons/footer_home/twitter.svg?component'
 import I_linkedln from '@/assets/icons/footer_home/linkedln.svg?component'
 const publicConfig = useConfig()
-const { axiosJson, fetchCsrfToken } = useAxios()
-const { encryptReq, decryptRes } = useEncryption()
+const { reqData } = useAxios()
 const loading = useLoadingStore()
 const toast = useToast()
-const local = reactive({
-    isRequestInProgress: false,
-    isUpdated: false,
-    isPasswordShow: false,
-})
 const routeItems = reactive([
     {
         'name': 'Facebook Page',
@@ -92,7 +85,7 @@ const footerValidator = zodResolver(z.object({
     email: z.string({ message: "Email tidak boleh kosong !" }).trim().max(50, { message: "Email maksimal 50 karakter" }).pipe(z.email({ message: "Format email tidak valid" }))
 }))
 let abortFormController: AbortController | null = null
-const formFooter = ({ valid, states, reset }: any) => {
+const formFooter = async({ valid, states, reset }: any) => {
     if(!valid){
         const errMessage = Object.values(states as Record<string, any>).find((field: any) => field?.invalid)
         toast.add({
@@ -103,63 +96,21 @@ const formFooter = ({ valid, states, reset }: any) => {
         });
         return
     }
-    if(local.isRequestInProgress) return
+    if(loading.isLoading) return
     if(abortFormController) abortFormController.abort()
     abortFormController = new AbortController()
-    let retryCount = 0
-    local.isRequestInProgress = true
-    loading.showLoading()
-    const APIReq = async(signal: AbortSignal) => {
-        try{
-            const encr = await encryptReq({
-                email: states.email.value,
-            })
-            const res = (await(await axiosJson()).post('/footer-mail', {
-                uniqueid: encr.iv,
-                cipher: encr.data,
-                mac: encr.mac,
-            }, { params: {}, signal, headers: { 'X-Merseal': sessionStorage.merseal }})).data
-            if(signal.aborted){
-                return { status: 'error', message: 'Request dibatalkan' }
-            }
-            const decRes = decryptRes(res.message, encr.iv)
-            reset()
-            console.log('res sukses', decRes.message)
-            toast.add({
-                severity: 'success',
-                summary: 'Sukses',
-                detail: decRes.message,
-                life: 3000
-            })
-        }catch(err: any){
-            if(err.name === "CanceledError"){
-                return console.log("Request dibatalkan")
-            }else if(err.response){
-                if(err.response.status === 404){
-                    return console.log("not found")
-                }
-                if([419, 429].includes(err.response.status)){
-                    if(retryCount <= 3){
-                        retryCount++
-                        await fetchCsrfToken()
-                        return APIReq(signal)
-                    }else{
-                        retryCount = 0
-                        return console.log("Request failed")
-                    }
-                }
-                if(err.response.status === 500){
-                    return console.log('500', err.response.data.message)
-                }
-                return console.log('errr response', err.response.data.message)
-            }
-            return console.log('errror', err)
-        }finally{
-            local.isRequestInProgress = false
-            loading.closeLoading()
-        }
+    const res = await reqData({
+        url: '/search',
+        method: 'POST',
+        signal: abortFormController.signal,
+        reqType: 'Json',
+        callbackResFn: reset
+    })
+    if(res.status == 'error'){
+        return console.log('error lazy')
     }
-    APIReq(abortFormController.signal)
+    toast.add({ severity: 'success', summary: 'Berhasil Login', detail: res.message, group: 'br', life: 3000 });
+    console.log('lazyy res',res.message)
 }
 </script>
 <template>

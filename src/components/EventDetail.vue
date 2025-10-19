@@ -35,7 +35,6 @@ const metaDataLoading = {
 }
 </script>
 <template>
-    <img src="@/assets/images/cele-3.png" alt="" class="absolute bottom-0 -right-[29.5%] w-[75%] h-[75%] -z-1 object-cover opacity-30"/>
     <section class="relative overflow-x-clip">
         <div class="w-[90%] relative flex flex-col mt-7 xl::mt-5 lg:mt-10 mb-10 xl:mb-30 mx-auto">
             <div class="w-[95%] mx-auto">

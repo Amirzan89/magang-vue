@@ -2,16 +2,18 @@
 import { Form, FormField } from '@primevue/forms'
 import { ref, reactive, watch, onBeforeMount, h, useSlots, defineComponent, nextTick, Teleport, type Ref, type ComponentPublicInstance, computed, toRaw } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import router from '@/router'
 import useAxios from '@/composables/api/axios'
-import useEncryption from '@/composables/encryption'
-import { width, isMobile, isTablet, isDesktop } from '@/composables/useScreenSize'
+import { useToast } from 'primevue/usetoast'
+// import { useLoadingStore } from '@/stores/Loading'
+import { isMobile, isTablet, isDesktop } from '@/composables/useScreenSize'
 import { getImgURL } from '@/utils/global'
 import CustomCardWithSkeletonComponent from '@/components/CustomCardWithSkeleton.vue'
 import freeTag from '@/assets/images/free-tag.png'
-import router from '@/router'
 const route = useRoute()
-const { axiosJson, fetchCsrfToken } = useAxios()
-const { encryptReq, decryptRes } = useEncryption()
+const { reqData } = useAxios()
+const toast = useToast()
+// const loading = useLoadingStore()
 const SideFilterRef = ref(null)
 const DialogContentRef = ref(null)
 interface EventData{
@@ -191,62 +193,6 @@ const queryParamHandler = (inp: InputForm) => {
     }
     return filteredParams
 }
-const APIComposables = async(path: string, inpSignal: AbortSignal, headers: Record<string, any> = {}) => {
-    let retryCount = 0
-    const APIReq = async(signal: AbortSignal) => {
-        try{
-            const encr = await encryptReq({})
-            const res = (await(await axiosJson()).post(path, {
-                uniqueid: encr.iv,
-                cipher: encr.data,
-                mac: encr.mac,
-            }, { params: { ...(path != '/event-categories' ? route.query :  {}), _: Date.now() }, signal, headers: { 'X-Merseal': sessionStorage.merseal, ...headers }})).data
-            if(signal.aborted){
-                return { status: 'error', message: 'Request dibatalkan' }
-            }
-            const decRes = decryptRes(res.message, encr.iv)
-            return { status: 'success', data: decRes }
-        }catch(err: any){
-            if(err.name === "CanceledError"){
-                console.log("Request dibatalkan")
-                return { status: 'error', message: 'Request dibatalkan' }
-            }else if(err.response){
-                let cusRedirect: string | null = null
-                if(err.response.status === 404){
-                    return { status:'error', message: 'not found', code: 404 }
-                }
-                if([419, 429].includes(err.response.status)){
-                    if(retryCount <= 3){
-                        retryCount++
-                        await fetchCsrfToken()
-                        return APIReq(signal)
-                    }else{
-                        retryCount = 0
-                        console.log('Request failed')
-                        // return toast
-                        return { status: 'error', message: 'Request failed' }
-                    }
-                }
-                if(err.response.status === 500){
-                    console.log('500', err.response.data.message)
-                    // return toast
-                    return { status: 'error', message: err.response.data.message }
-                }
-                console.log('err response', err.response.data.message)
-                // return toast
-                return { status:'error', message: err.response.data.message, code: err.response.status, data: { redirect: cusRedirect }}
-            }
-            console.log('errror', err)
-            // return toast
-            return { status:'error', message: err }
-        }finally{
-            if(path === '/search'){
-                await teleportTargetFn()
-            }
-        }
-    }
-    return APIReq(inpSignal)
-}
 onBeforeMount(async() => {
     const newQuery: Record<string, any> = {}
     if(route.query.find){
@@ -255,9 +201,15 @@ onBeforeMount(async() => {
         currentInput.search = newQuery.find
     }
     categoryHydrationController = new AbortController()
-    const resCategories = await APIComposables('/event-categories', categoryHydrationController.signal)
+    const resCategories = await reqData({
+        url: '/event-categories',
+        method: 'POST',
+        signal: categoryHydrationController.signal,
+        reqType: 'Json',
+    })
     if(resCategories.status == 'error'){
-        return console.log('error')
+        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Kategori', detail: resCategories.message, group: 'br', life: 3000 })
+        return
     }
     resCategories.data.forEach((item: any, i: number) => {
         if((item['event_group_name'] && item['event_group']) && ((item['event_group_name'] != '') && (item['event_group'] != ''))){
@@ -303,11 +255,24 @@ onBeforeMount(async() => {
         })
     }
     abortHydrationController = new AbortController()
-    const res = await APIComposables('/search', abortHydrationController.signal, hyHeader)
+    const res = await reqData({
+        url: '/search',
+        method: 'POST',
+        headers: hyHeader,
+        signal: abortHydrationController.signal,
+        reqType: 'Json',
+        includeQuery: newQuery,
+        callbackFinalFn: {
+            isRoute: (url) => {
+                return url == '/search'
+            },
+            fn: async() => await teleportTargetFn()
+        }
+    })
     if(res.status == 'error'){
-        return console.log('error', res.message)
+        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, group: 'br', life: 3000 })
+        return
     }
-    console.log('enttokk dataa ', res.data)
     local.fetchData = res.data.data
     local.total_items = res.data.total_items
     local.next_cursor = res.data.next_cursor
@@ -346,13 +311,26 @@ const formSearchFilter = async() => {
     router.push({ path: '/search', query: newQuery })
     local.isFormLoading = true
     oldInput.search = currentInput.search
-    const res = await APIComposables('/search', abortFormController.signal)
+    const res = await reqData({
+        url: '/search',
+        method: 'POST',
+        signal: abortFormController.signal,
+        reqType: 'Json',
+        includeQuery: newQuery,
+        callbackFinalFn: {
+            isRoute: (url) => {
+                return url == '/search'
+            },
+            fn: async() => await teleportTargetFn()
+        }
+    })
     local.isFormLoading = false
     keyword.value = currentInput.search
     if(res.status == 'error'){
-        return console.log('error', res.message)
+        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, group: 'br', life: 3000 })
+        return
     }
-    console.log('form res',res.data)
+    // console.log('form res',res.data)
     local.fetchData = res.data.data
     local.total_items = res.data.total_items
     local.has_more = res.data.has_more
@@ -362,11 +340,24 @@ const lazyDataSearch = async() => {
     if(!local.has_more) return
     await router.replace({ path:'/search', query: { ...route.query, 'next_page': local.next_cursor,'limit': 15 }})
     abortHydrationController = new AbortController()
-    const res = await APIComposables(route.path, abortHydrationController.signal)
+    const res = await reqData({
+        url: '/search',
+        method: 'POST',
+        signal: abortHydrationController.signal,
+        reqType: 'Json',
+        includeQuery: route.query,
+        callbackFinalFn: {
+            isRoute: (url) => {
+                return url == '/search'
+            },
+            fn: async() => await teleportTargetFn()
+        }
+    })
     if(res.status == 'error'){
-        return console.log('error lazy')
+        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, group: 'br', life: 3000 })
+        return
     }
-    console.log('lazyy res',res.data.data)
+    // console.log('lazyy res',res.data.data)
     local.fetchData.push(...res.data.data)
     local.next_cursor = res.data.next_cursor
     local.has_more = res.data.has_more

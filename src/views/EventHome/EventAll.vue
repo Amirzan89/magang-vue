@@ -1,79 +1,23 @@
 <script setup lang="ts">
-import { reactive, onBeforeMount, defineComponent, useSlots, h, type ComponentPublicInstance, onMounted } from 'vue'
+import { reactive, onBeforeMount, defineComponent, useSlots, h, type ComponentPublicInstance, onMounted, nextTick } from 'vue'
+import { eventBus } from '@/eventBus'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { getImgURL } from '@/utils/global'
 import useAxios from '@/composables/api/axios'
-import useEncryption from '@/composables/encryption'
+import { useToast } from 'primevue/usetoast'
 import CustomCardWithSkeletonComponent from '@/components/CustomCardWithSkeleton.vue'
 import freeTag from '@/assets/images/free-tag.png'
-import { eventBus } from '@/eventBus'
 const router = useRouter()
 const route = useRoute()
-const { axiosJson, fetchCsrfToken } = useAxios()
-const { encryptReq, decryptRes } = useEncryption()
+const { reqData } = useAxios()
+const toast = useToast()
 const local = reactive({
     fetchData: null as any,
     next_cursor: null as string | null,
     has_more: false,
     inpSearch: '',
-    isLoading: false,
 })
-let hydrationController: AbortController | null = null
-const APIComposables = async(path: string, inpSignal: AbortSignal, headers: Record<string, any> = {}) => {
-    let retryCount = 0
-    local.isLoading = true
-    const APIReq = async(signal: AbortSignal) => {
-        try{
-            const encr = await encryptReq({})
-            const res = (await(await axiosJson()).post(path, {
-                uniqueid: encr.iv,
-                cipher: encr.data,
-                mac: encr.mac,
-            }, { params: { ...route.query,_: Date.now() }, signal, headers: { 'X-Merseal': sessionStorage.merseal, ...headers }})).data
-            if(signal.aborted){
-                return { status: 'error', message: 'Request dibatalkan' }
-            }
-            const decRes = decryptRes(res.message, encr.iv)
-            return { status: 'success', data: decRes }
-        }catch(err: any){
-            if(err.name === "CanceledError"){
-                console.log("Request dibatalkan")
-                return { status: 'error', message: 'Request dibatalkan' }
-            }else if(err.response){
-                let cusRedirect: string | null = null
-                if(err.response.status === 404){
-                    return { status:'error', message: 'not found', code: 404 }
-                }
-                if([419, 429].includes(err.response.status)){
-                    if(retryCount <= 3){
-                        retryCount++
-                        await fetchCsrfToken()
-                        return APIReq(signal)
-                    }else{
-                        retryCount = 0
-                        console.log('Request failed')
-                        // return toast
-                        return { status: 'error', message: 'Request failed' }
-                    }
-                }
-                if(err.response.status === 500){
-                    console.log('500', err.response.data.message)
-                    // return toast
-                    return { status: 'error', message: err.response.data.message }
-                }
-                console.log('err response', err.response.data.message)
-                // return toast
-                return { status:'error', message: err.response.data.message, code: err.response.status, data: { redirect: cusRedirect }}
-            }
-            console.log('errror', err)
-            // return toast
-            return { status:'error', message: err }
-        }finally{
-            local.isLoading = false
-        }
-    }
-    return APIReq(inpSignal)
-}
+let abortHydrationController: AbortController | null = null
 onBeforeMount(async() => {
     const{ next_page } = route.query
     const newQuery: Record<string,any> = {}
@@ -87,12 +31,19 @@ onBeforeMount(async() => {
         }
     }
     router.replace({ path:'/events', query: newQuery })
-    hydrationController = new AbortController()
-    const res = await APIComposables(route.path, hydrationController.signal, hyHeader)
+    abortHydrationController = new AbortController()
+    const res = await reqData({
+        url: route.path,
+        method: 'POST',
+        headers: hyHeader,
+        signal: abortHydrationController.signal,
+        reqType: 'Json',
+        includeQuery: newQuery,
+    })
     if(res.status == 'error'){
-        return console.log('error hydration')
+        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, group: 'br', life: 3000 })
+        return
     }
-    console.log('enttokk dataa ', res.data)
     local.fetchData = res.data.data
     local.next_cursor = res.data.next_cursor
     local.has_more = res.data.has_more
@@ -142,12 +93,18 @@ const metaDataEventLoading = {
 const lazyDataAll = async() => {
     if(local.has_more){
         await router.replace({ path:'/events', query: { 'next_page': local.next_cursor,'limit': 15 }})
-        hydrationController = new AbortController()
-        const res = await APIComposables(route.path, hydrationController.signal)
+        abortHydrationController = new AbortController()
+        const res = await reqData({
+            url: route.path,
+            method: 'POST',
+            signal: abortHydrationController.signal,
+            reqType: 'Json',
+            includeQuery: route.query,
+        })
         if(res.status == 'error'){
-            return console.log('error lazy')
+            toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, group: 'br', life: 3000 })
+            return
         }
-        console.log('lazyy res',res.data)
         local.fetchData.push(...res.data.data)
         local.next_cursor = res.data.next_cursor
         local.has_more = res.data.has_more
@@ -169,7 +126,7 @@ const lazyDataAll = async() => {
                 <InputText id="email" type="email" class="flex-1 sm:flex-initial sm:w-55 md:w-60 lg:w-[calc(0.25rem*65)] xl:w-70 h-10 !px-1 !py-0 lg:px-3 lg:py-2 !text-sm sm:text-base lg:text-lg xl:text-xl" placeholder="Cari Event" v-model="local.inpSearch" @keyup.enter="redirectToSearchPage()"/>
                 <Button class="w-16 h-10 !p-0 lg:px-3 lg:py-2 !text-sm sm:text-base lg:text-lg xl:text-xl" @click="redirectToSearchPage()">Search</Button>
             </div>
-            <CustomCardWithSkeletonComponent v-if="local.fetchData" :metaData="metaDataAll" :inpData="local.fetchData" :paralelRender="5" @lazy-data="lazyDataAll">
+            <CustomCardWithSkeletonComponent v-if="local.fetchData" :metaData="metaDataAll" :inpData="local.fetchData" :paralelRender="4" @lazy-data="lazyDataAll">
                 <template #skeleton="{ index, skeletonRefs }">
                     <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 left-0 w-full h-full flex flex-col items-center transition-opacity duration-100 pointer-events-none">
                         <Skeleton :pt="{ root: { class: ['!w-[103%] sm:!w-[102.5%] !h-[123px] phone:!h-[172px] lg:!h-[200px] !rounded-lg relative -left-[0.25%] -top-[1%]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>

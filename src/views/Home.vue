@@ -8,9 +8,10 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/autoplay';
 import { useConfig } from '@/composables/useConfig'
+import useAxios from '@/composables/api/axios'
+import { useToast } from 'primevue/usetoast'
 import { breakpoints } from '@/composables/useScreenSize'
 import { eventBus } from '@/eventBus'
-import { useFetchDataStore } from '@/stores/FetchData'
 import { getImgURL } from '@/utils/global'
 import CustomCardWithSkeletonComponent from '@/components/CustomCardWithSkeleton.vue'
 import I_VLeft from '@/assets/icons/vector-left.svg?component'
@@ -26,33 +27,27 @@ import I_Plus from '@/assets/icons/reviews/plus.svg?component'
 import freeTag from '@/assets/images/free-tag.png';
 import defaultBoy from '@/assets/images/default_boy.jpg'
 import defaultGirl from '@/assets/images/default_girl.png'
+const route = useRoute()
 const publicConfig = useConfig()
-const fetchDataS = useFetchDataStore()
+const { reqData } = useAxios()
+const toast = useToast()
 const hoverCar = ref<boolean>(false)
 const local = reactive({
     upcoming_events: null as any,
     past_events: null as any,
     reviews: null as any,
 })
-// const sliceDate = (inp = [], key: string) => {
-//     return inp.map((item: any) => {
-//         if(item[key]){
-//             const match = item[key].match(/^(\d{1,2})\s+([A-Za-zÀ-ž]+)\s+(\d{4})$/)
-//             if(match){
-//                 item.tanggal = match[1]
-//                 item.bulan   = match[2]
-//                 item.tahun   = match[3]
-//             }
-//         }
-//         return item
-//     });
-// };
-onBeforeMount(async() =>{
-    const res = await fetchDataS.fetchPage(useRoute().path, {})
-    if(res ==  undefined || res.status == 'error'){
+onBeforeMount(async() => {
+    const res = await reqData({
+        url: route.path,
+        method: 'POST',
+        reqType: 'Json',
+    })
+    if(res.status == 'error'){
+        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, group: 'br', life: 3000 })
         return
     }
-    console.log('enttokk dataa ', res.data)
+    // console.log('enttokk dataa ', res)
     local.upcoming_events = res.data.upcoming_events
     local.past_events = res.data.past_events
     local.reviews = res.data.reviews
@@ -261,7 +256,7 @@ const metaDataReviewLoading = {
         <img src="@/assets/images/cele-2.png" alt="" class="absolute top-1/2 -translate-y-1/2 -left-[29.5%] w-[75%] h-[75%] -z-1 object-cover opacity-30"/>
         <div class="w-[94%] mx-auto">
             <h2 class="w-fit mt-5 !mb-1.25 phone:!mb-1.75 sm:!mb-2 lg:mb-3 mx-auto lg:mx-0 !text-lg phone:!text-xl md:!text-2xl lg:!text-3xl xl:!text-4xl font-semibold text-[#242565]">Past Events</h2>
-            <!-- <CustomCardWithSkeletonComponent v-if="false" :metaData="metaDataPast" :inpData="local.past_events" :paralelRender="2">
+            <CustomCardWithSkeletonComponent v-if="local.past_events" :metaData="metaDataPast" :inpData="local.past_events" :paralelRender="2">
                 <template #skeleton="{ index, skeletonRefs }">
                     <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 left-0 w-full h-full flex flex-col items-center transition-opacity duration-100 pointer-events-none">
                         <Skeleton :pt="{ root: { class: ['!w-[103%] sm:!w-[102.5%] !h-[123px] phone:!h-[172px] lg:!h-[200px] !rounded-lg relative -left-[0.25%] -top-[1%]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
@@ -302,13 +297,13 @@ const metaDataReviewLoading = {
                         <Skeleton :pt="{ root: { class: ['!w-[92px] xs:!w-[92px] phone:!w-[110px] sm:!w-[112px] lg:!w-[127px] xl:!w-[157px] 2xl:!w-[160px] !h-[14px] sm:!h-[15.5px] lg:!h-[18px] xl:!h-[18px] 2xl:!h-[20px] mt-1.5 sm:mt-1 lg:mt-2 !rounded-[3px] sm:!rounded-[4px] lg:!rounded-[5px]'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                     </div>
                 </div>
-            </CustomCardWithSkeletonComponent> -->
+            </CustomCardWithSkeletonComponent>
             <RouterLink to="/event" class="relative left-1/2 -translate-x-1/2 w-fit h-fit mt-5 lg:mt-10 px-3 py-2 sm:px-3.25 sm:py-2.25 lg:px-3.5 lg:py-2.5 text-[#3D37F1] border border-0.5 sm:border-1 lg:border-1.5 xl:border-2 border-[#3D37F1] rounded-lg md:rounded-xl flex justify-center items-center hover:bg-[#3D37F1] text-sm sm:text-base lg:text-lg xl:text-lg hover:text-white font-semibold" style="box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1);">Load More</RouterLink>
         </div>
         <div class="w-[97%] lg:w-[95%] xl:w-[97%] mx-auto mt-20 lg:mt-50">
             <h2 class="w-fit !m-0 mx-auto !text-lg phone:!text-xl md:!text-2xl lg:!text-3xl xl:!text-4xl font-semibold text-[#242565]">Reviews About Us</h2>
             <p class="w-fit mx-auto text-sm sm:text-text-base md:text-lg lg:text-xl xl:text-2xl text-center text-[#242565]">See what our amazing customers have to say about us!</p>
-            <!-- <CustomCardWithSkeletonComponent v-if="false" :metaData="metaDataReviews" :inpData="local.reviews" :paralelRender="1">
+            <CustomCardWithSkeletonComponent v-if="local.reviews" :metaData="metaDataReviews" :inpData="local.reviews" :paralelRender="1">
                 <template #skeleton="{ index, skeletonRefs }">
                     <div :ref="el => skeletonRefs[index] = el" class="skeleton-wrapper absolute z-10 top-0 left-0 w-full h-full p-3 lg:p-4 xl:p-5 flex flex-col gap-0.75 xs:gap-2 phone:gap-1.5 sm:gap-0.25 lg:gap-1.25 xl:gap-3.25 2xl:gap-4 transition-opacity duration-100 pointer-events-none">
                         <div class="w-full h-13 xs:h-14 phone:h-15 sm:h-19 md:h-20 lg:h-21 xl:h-22 flex gap-1 phone:gap-1.5 sm:gap-1 md:gap-1.75 lg:gap-1.5 xl:gap-1">
@@ -376,7 +371,7 @@ const metaDataReviewLoading = {
                     </div>
                     <Skeleton :pt="{ root: { class: ['flex-1'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                 </div>
-            </CustomCardWithSkeletonComponent> -->
+            </CustomCardWithSkeletonComponent>
         </div>
     </section>
 </template>

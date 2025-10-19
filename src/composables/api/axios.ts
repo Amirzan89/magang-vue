@@ -2,7 +2,10 @@ import axios from 'axios'
 import Cookies from 'js-cookie'
 import { useConfig } from '@/composables/useConfig'
 import RSAComposables from '@/composables/RSA'
+import useEncryption from '@/composables/encryption'
+import { useLoadingStore } from '@/stores/Loading'
 const publicConfig = useConfig()
+const { encryptReq, decryptRes } = useEncryption()
 const api = axios.create({
     baseURL: publicConfig.baseURL || 'http://localhost:8000',
     withCredentials: true,
@@ -19,55 +22,104 @@ api.interceptors.request.use(async (config) => {
     if(token) config.headers['X-XSRF-TOKEN'] = token
     return config
 })
-const axiosJson = async () => {
-    if(!sessionStorage.aes_key && !sessionStorage.hmac_key){
-        const rsaComp = RSAComposables()
-        await rsaComp.handshake()
-    }
-    api.defaults.headers.common['Accept'] = 'application/json'
-    return api
-}
-const reqData = async (url: string, method: string, data: any = '', isJson = false, reqHeaders: any = null) => {
+const reqData = async({
+    url,
+    method = 'GET',
+    reqBody = {},
+    headers = {},
+    signal = undefined,
+    isEncrypt = true,
+    includeQuery = {},
+    maxRetry = 3,
+    isNeedLoading = false,
+    callbackResFn = null,
+    callbackFinalFn = null,
+}: Partial<{
+    url: string,
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+    reqBody?: any,
+    reqType: 'Json' | 'FormData'
+    headers?: Record<string, any>,
+    signal?: AbortSignal | undefined,
+    isEncrypt: boolean,
+    includeQuery?: Record<string, any>,
+    maxRetry?: number,
+    isNeedLoading: boolean,
+    callbackResFn?: Function | null
+    callbackFinalFn?: { isRoute: (url: string) => boolean; fn: () => Promise<void> } | null
+}> = {}) => {
     let retryCount = 0
-    const headers = Object.assign({}, isJson ? { Accept: 'application/json' } : {}, reqHeaders)
-    const req = async (): Promise<any> => {
-        try{
-            const response = await api.request({ url, method, data, headers})
-            return { status: 'success', message: response.data.message, data: response.data.data }
-        }catch(err: any){
-            if(err.response){
-                switch (err.response.status) {
-                case 404: return { status: 'error', message: 'not found', code: 404 }
-                case 419:
-                case 429:
-                    if (retryCount <= 3) {
-                    retryCount++
-                    await fetchCsrfToken()
-                    return await req()
-                    }
-                    return { status: 'error', message: 'Request failed' }
-                case 500: return { status: 'error', message: err.response.message, code: 500 }
+    const makeRequest = async (): Promise<any> => {
+        const loading = useLoadingStore()
+        try {
+            let data = reqBody
+            let encr: any = null
+            if(isEncrypt){
+                if(!sessionStorage.aes_key && !sessionStorage.hmac_key){
+                    const rsaComp = RSAComposables()
+                    await rsaComp.handshake()
+                }
+                encr = await encryptReq(reqBody)
+                data = {
+                    uniqueid: encr.iv,
+                    cipher: encr.data,
+                    mac: encr.mac,
                 }
             }
-            return { status: 'error', message: err.message }
+            if(isNeedLoading){
+                loading.setLoading(true)
+            }
+            const res = (await api.request({ url, method, data, params: {
+                    ...(includeQuery ? includeQuery : {}),
+                    _: Date.now(),
+                }, signal, headers: {
+                    'X-Merseal': sessionStorage.merseal,
+                    Accept: 'application/json',
+                    ...headers,
+                }})).data
+            const responseData = isEncrypt ? decryptRes(res.message, encr.iv) : res
+            if(callbackResFn && typeof callbackResFn === 'function') callbackResFn()
+            if(isEncrypt){
+                return { status: 'success', data: responseData }
+            }
+            return { status: 'success', ...responseData }
+        }catch(err: any){
+            if(axios.isCancel(err) || err.name === 'CanceledError'){
+                return { status: 'error', message: 'Request dibatalkan' }
+            }
+            if(err.response){
+                const { status, data } = err.response
+                switch(status){
+                    case 404:
+                        return { status: 'error', message: 'Not found', code: 404 }
+                    case 419:
+                    case 429:
+                        if (retryCount < maxRetry) {
+                            retryCount++
+                            await fetchCsrfToken()
+                            return await makeRequest()
+                        }
+                        return { status: 'error', message: 'Request failed after retries' }
+                    case 500:
+                        return { status: 'error', message: data?.message || 'Server error', code: 500 }
+                    default:
+                        return { status: 'error', message: data?.message || 'Unknown error', code: status }
+                }
+            }
+            return { status: 'error', message: err.message || 'Network error' }
+        }finally{
+            if(isNeedLoading) loading.setLoading(false)
+            if(callbackFinalFn && typeof callbackFinalFn.isRoute === 'function' && typeof callbackFinalFn.fn === 'function' && callbackFinalFn.isRoute(url!)){
+                await callbackFinalFn.fn()
+            }
         }
     }
-    return await req()
+    return await makeRequest()
 }
-
-const handshakeAPI = async (data: { pubB64: any, clientNonceB64: any }) => {
-    return (await api.post('/handshake', {
-        clientPublicSpkiB64: data.pubB64,
-        clientNonce: data.clientNonceB64,
-    })).data
-}
-
 export default () => {
     return {
         axios: api,
-        axiosJson,
         fetchCsrfToken,
         reqData,
-        handshakeAPI,
     }
 }
