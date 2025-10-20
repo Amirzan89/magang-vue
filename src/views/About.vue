@@ -32,6 +32,7 @@ onBeforeMount(async() => {
     local.reviews = res.data.reviews
 })
 const metaDataReviews = {
+    item_id: 'review_id',
     wrapper: () => defineComponent({
         setup(){
             const slots = useSlots()
@@ -43,6 +44,15 @@ const metaDataReviews = {
         }
     }),
     customTWTransition: 'flex-1 mt-5 grid grid-cols-1 phone:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4',
+}
+const metaDataReviewLoading = {
+    customTWTransition: 'flex-1 grid grid-cols-1 phone:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 [grid-auto-rows:8rem] phone:[grid-auto-rows:11rem] md:[grid-auto-rows:10.75rem] lg:[grid-auto-rows:12.5rem] xl:[grid-auto-rows:14rem] 2xl:[grid-auto-rows:15.5rem] gap-2 lg:gap-4',
+    snapshots: {
+        base: 5,
+        sm: 3,
+        md: 3,
+        xl: 2,
+    },
 }
 </script>
 <template>

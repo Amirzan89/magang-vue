@@ -356,13 +356,13 @@ const lazyDataSearch = async() => {
         toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, life: 3000 })
         return
     }
-    // console.log('lazyy res',res.data)
     local.fetchData.push(...res.data)
     local.next_cursor = res.next_cursor
     local.has_more = res.has_more
 }
 const metaDataSearch = {
-    wrapper: (inpData: any) => defineComponent({
+    item_id: 'event_id',
+    wrapper: () => defineComponent({
         setup(){
             const slots = useSlots()
             return () => {

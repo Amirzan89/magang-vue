@@ -6,6 +6,7 @@ const props = defineProps<{
     isLoading?: boolean,
     inpVar?: Record<string, any>
     metaData: {
+        item_id?: string,
         wrapper?: (inpData: any) => Component
         customTWGrand?: string
         customTWTransition?: string
@@ -13,7 +14,6 @@ const props = defineProps<{
         snapshots?: Partial<Record<keyof typeof breakpoints | 'base', number>>
         pagination?: {
             customTWPaginator?: string
-            item_id: string
             lazyLoading?: boolean
             preRenderPage?: number
         }
@@ -76,12 +76,19 @@ const renderItems = computed<any | null>(() => {
     const extra = slots['placeholder-card'] ? [null] : []
     return [...base, ...extra]
 })
-const getWrapper = (inpData: any) => {
-    const key = inpData?.wrapperKey || inpData?.event_id || 'default'////////must_revision////////////////////
-    if(!wrapperCache.has(key)){
-        wrapperCache.set(key, props.metaData.wrapper!(inpData))
+const getWrapper = (inpData: any, index?: number) => {
+    if(!inpData){
+        const placeholderKey = `__placeholder__-${index ?? 'unknown'}`
+        if(!wrapperCache.has(placeholderKey)){
+            wrapperCache.set(placeholderKey, props.metaData.wrapper!(null))
+        }
+        return wrapperCache.get(placeholderKey)
     }
-    return wrapperCache.get(key)
+    const nameKey = inpData[props.metaData.item_id!]
+    if(!wrapperCache.has(nameKey)){
+        wrapperCache.set(nameKey, props.metaData.wrapper!(inpData))
+    }
+    return wrapperCache.get(nameKey)
 }
 const runAnimation = async (index: number) => {
     active.add(index)
@@ -156,6 +163,7 @@ watch([() => props.inpData?.length, totalItems],  ([newLen]) => {
     }
 })
 onBeforeMount(() => {
+    console.log('custom card',props.inpData)
     if(props.metaData.pagination && props.metaData.pagination?.lazyLoading && (first.value + rows.value >= (props.inpData?.length ?? 0))){
         emit('lazy-data', null)
     }
@@ -164,7 +172,7 @@ onBeforeMount(() => {
 <template>
     <div v-if="!props.isLoading" :class="metaData.customTWGrand">
         <div :class="metaData.customTWTransition" :style="metaData.customCSSTransition">
-            <component v-if="hasData" v-for="(item, indexPar) in renderItems" :key="indexPar <= props.inpData!.length ? item?.[props.metaData.pagination?.item_id!] : `card-${indexPar}-${props.inpData?.length}`" v-show="indexPar >= first && indexPar < (first + rows)" :is="getWrapper(item)">
+            <component v-if="hasData" v-for="(item, indexPar) in renderItems" :key="indexPar <= props.inpData!.length ? item?.[props.metaData.item_id!] : `card-${indexPar}-${props.inpData?.length}`" v-show="indexPar >= first && indexPar < (first + rows)" :is="getWrapper(item, indexPar)">
                 <template v-if="item && (indexPar < props.inpData!.length)">
                     <slot name="skeleton" :index="indexPar" :skeletonRefs="skeletonRefs"/>
                     <slot name="card" :index="indexPar" :inpData="item" :toggleSkeleton="(i: number) => handleToggleSkeleton(i)" :cardRefs="cardRefs"/>

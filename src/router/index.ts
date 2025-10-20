@@ -17,9 +17,9 @@ const router = createRouter({
     ],
     scrollBehavior(to, from, savedPosition){
         if(savedPosition){
-            return  { left: 0, top: 0, behavior: 'instant' }
+            return  { left: 0, top: 0, behavior: 'instant' }////////
         }else{
-            return { left: 0, top: 0, behavior: 'instant' }
+            return { left: 0, top: 0, behavior: 'instant' }////////
         }
     }
 })

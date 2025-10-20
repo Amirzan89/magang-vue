@@ -8,6 +8,7 @@ const props = defineProps<{
     all_events: [],
 }>()
 const metaDataPopuler = {
+    item_id: 'event_id',
     wrapper: () => defineComponent({
         setup(){
             const slots = useSlots()

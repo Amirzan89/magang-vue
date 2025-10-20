@@ -76,6 +76,7 @@ const catHero = reactive([
     },
 ])
 const metaDataUpcoming = {
+    item_id: 'event_id',
     wrapper: () => defineComponent({
         setup(){
             const slots = useSlots()
@@ -94,6 +95,7 @@ const metaDataUpcoming = {
     },
 }
 const metaDataPast = {
+    item_id: 'event_id',
     wrapper: () => defineComponent({
         setup(){
             const slots = useSlots()
@@ -121,6 +123,7 @@ const metaDataEventLoading = {
 }
 
 const metaDataReviews = {
+    item_id: 'review_id',
     wrapper: () => defineComponent({
         setup(){
             const slots = useSlots()
