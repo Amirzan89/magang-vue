@@ -27,7 +27,7 @@ const formBooking = async({ valid, states, reset }: any) => {
     if(abortFormController) abortFormController.abort()
     abortFormController = new AbortController()
     const res = await reqData({
-        url: '/event-booking',
+        url: '/api/event-booking',
         method: 'POST',
         signal: abortFormController.signal,
         reqBody: {
@@ -44,9 +44,9 @@ const formBooking = async({ valid, states, reset }: any) => {
         callbackResFn: reset
     })
     if(res.status == 'error'){
-        toast.add({ severity: 'error', summary: 'Gagal Booking', detail: res.message, group: 'br', life: 3000 });
+        toast.add({ severity: 'error', summary: 'Gagal Booking', detail: res.message, life: 3000 })
     }
-    toast.add({ severity: 'success', summary: 'Berhasil Booking', detail: res.message, group: 'br', life: 3000 });
+    toast.add({ severity: 'success', summary: 'Berhasil Booking', detail: res.message, life: 3000 })
 }
 </script>
 <template>

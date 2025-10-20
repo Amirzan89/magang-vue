@@ -79,10 +79,17 @@ const reqData = async({
             }})).data
             const responseData = isEncrypt ? decryptRes(res.message, encr.iv) : res
             if(callbackResFn && typeof callbackResFn === 'function') callbackResFn()
-            if(isEncrypt){
-                return { status: 'success', data: responseData }
+            let normalized = {}
+            if(responseData?.data && responseData?.message){
+                normalized = responseData
+            }else if (responseData?.data){
+                normalized = { ...responseData, message: 'success' }
+            }else if (responseData?.message){
+                normalized = { data: null, message: responseData.message }
+            }else{
+                normalized = { data: responseData, message: 'success' }
             }
-            return { status: 'success', ...responseData }
+            return { status: 'success', ...normalized }
         }catch(err: any){
             if(axios.isCancel(err) || err.name === 'CanceledError'){
                 return { status: 'error', message: 'Request dibatalkan' }

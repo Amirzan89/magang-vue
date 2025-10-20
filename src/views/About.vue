@@ -25,7 +25,7 @@ onBeforeMount(async() => {
         reqType: 'Json',
     })
     if(res.status == 'error'){
-        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, group: 'br', life: 3000 })
+        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, life: 3000 })
         return
     }
     local.contributors = res.data.contributors

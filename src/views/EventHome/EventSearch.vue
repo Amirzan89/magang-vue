@@ -208,7 +208,7 @@ onBeforeMount(async() => {
         reqType: 'Json',
     })
     if(resCategories.status == 'error'){
-        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Kategori', detail: resCategories.message, group: 'br', life: 3000 })
+        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Kategori', detail: resCategories.message, life: 3000 })
         return
     }
     resCategories.data.forEach((item: any, i: number) => {
@@ -270,13 +270,13 @@ onBeforeMount(async() => {
         }
     })
     if(res.status == 'error'){
-        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, group: 'br', life: 3000 })
+        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, life: 3000 })
         return
     }
-    local.fetchData = res.data.data
-    local.total_items = res.data.total_items
-    local.next_cursor = res.data.next_cursor
-    local.has_more = res.data.has_more
+    local.fetchData = res.data
+    local.total_items = res.total_items
+    local.next_cursor = res.next_cursor
+    local.has_more = res.has_more
     await nextTick()
     local.isFirstLoad = false
 })
@@ -327,14 +327,13 @@ const formSearchFilter = async() => {
     local.isFormLoading = false
     keyword.value = currentInput.search
     if(res.status == 'error'){
-        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, group: 'br', life: 3000 })
+        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, life: 3000 })
         return
     }
-    // console.log('form res',res.data)
-    local.fetchData = res.data.data
-    local.total_items = res.data.total_items
-    local.has_more = res.data.has_more
-    local.next_cursor = res.data.next_cursor
+    local.fetchData = res.data
+    local.total_items = res.total_items
+    local.has_more = res.has_more
+    local.next_cursor = res.next_cursor
 }
 const lazyDataSearch = async() => {
     if(!local.has_more) return
@@ -354,13 +353,13 @@ const lazyDataSearch = async() => {
         }
     })
     if(res.status == 'error'){
-        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, group: 'br', life: 3000 })
+        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, life: 3000 })
         return
     }
-    // console.log('lazyy res',res.data.data)
-    local.fetchData.push(...res.data.data)
-    local.next_cursor = res.data.next_cursor
-    local.has_more = res.data.has_more
+    // console.log('lazyy res',res.data)
+    local.fetchData.push(...res.data)
+    local.next_cursor = res.next_cursor
+    local.has_more = res.has_more
 }
 const metaDataSearch = {
     wrapper: (inpData: any) => defineComponent({

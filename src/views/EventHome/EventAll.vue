@@ -41,12 +41,12 @@ onBeforeMount(async() => {
         includeQuery: newQuery,
     })
     if(res.status == 'error'){
-        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, group: 'br', life: 3000 })
+        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, life: 3000 })
         return
     }
-    local.fetchData = res.data.data
-    local.next_cursor = res.data.next_cursor
-    local.has_more = res.data.has_more
+    local.fetchData = res.data
+    local.next_cursor = res.next_cursor
+    local.has_more = res.has_more
     eventBus.emit('tHeader')
 })
 const redirectToSearchPage = async() => {
@@ -102,12 +102,12 @@ const lazyDataAll = async() => {
             includeQuery: route.query,
         })
         if(res.status == 'error'){
-            toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, group: 'br', life: 3000 })
+            toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, life: 3000 })
             return
         }
-        local.fetchData.push(...res.data.data)
-        local.next_cursor = res.data.next_cursor
-        local.has_more = res.data.has_more
+        local.fetchData.push(...res.data)
+        local.next_cursor = res.next_cursor
+        local.has_more = res.has_more
     }
 }
 </script>

@@ -109,7 +109,7 @@ const formFooter = async({ valid, states, reset }: any) => {
     if(res.status == 'error'){
         return console.log('error lazy')
     }
-    toast.add({ severity: 'success', summary: 'Berhasil Login', detail: res.message, group: 'br', life: 3000 });
+    toast.add({ severity: 'success', summary: 'Berhasil Login', detail: res.message, life: 3000 })
     console.log('lazyy res',res.message)
 }
 </script>

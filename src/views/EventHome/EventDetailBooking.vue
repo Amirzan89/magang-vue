@@ -58,12 +58,12 @@ watch(() => route.path, async() => {
     if(route.params.id == local.eventID) return
     local.eventID = typeof route.params.id == 'string' ? route.params.id : route.params.id[0]
     const res = await reqData({
-        url: route.path,
+        url: '/api' + route.path,
         method: 'POST',
         reqType: 'Json',
     })
     if(res.status == 'error'){
-        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, group: 'br', life: 3000 })
+        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, life: 3000 })
         return
     }
     local.detail_event = res.data.detail_event
