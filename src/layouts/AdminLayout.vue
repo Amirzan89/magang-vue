@@ -4,6 +4,7 @@ import { computed, ref, watch } from 'vue'
 import FooterAdmin from './FooterAdmin.vue'
 import Sidebar from './Sidebar.vue'
 import HeaderAdmin from './HeaderAdmin.vue'
+import Loading from '@/components/Loading.vue'
 const { layoutConfig, layoutState, isSidebarActive } = useLayout()
 const outsideClickListener = ref(null)
 watch(isSidebarActive, (newVal) => {
@@ -58,5 +59,6 @@ const isOutsideClicked = (event) => {
         </div>
         <div class="layout-mask animate-fadein"></div>
     </div>
+    <Loading/>
     <Toast position="bottom-right" />
 </template>

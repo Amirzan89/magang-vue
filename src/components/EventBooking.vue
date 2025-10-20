@@ -45,6 +45,7 @@ const formBooking = async({ valid, states, reset }: any) => {
     })
     if(res.status == 'error'){
         toast.add({ severity: 'error', summary: 'Gagal Booking', detail: res.message, life: 3000 })
+        return
     }
     toast.add({ severity: 'success', summary: 'Berhasil Booking', detail: res.message, life: 3000 })
 }

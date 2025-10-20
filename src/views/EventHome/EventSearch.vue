@@ -366,7 +366,7 @@ const metaDataSearch = {
         setup(){
             const slots = useSlots()
             return () => {
-                return h(RouterLink, { to: inpData.event_id, class: 'relative' }, {
+                return h('div', { class: 'relative' }, {
                     default: () => slots.default ? slots.default() : null
                 })
             }

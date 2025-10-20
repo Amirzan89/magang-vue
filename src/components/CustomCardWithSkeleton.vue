@@ -77,7 +77,7 @@ const renderItems = computed<any | null>(() => {
     return [...base, ...extra]
 })
 const getWrapper = (inpData: any) => {
-    const key = inpData?.wrapperKey || inpData?.event_id || 'default'
+    const key = inpData?.wrapperKey || inpData?.event_id || 'default'////////must_revision////////////////////
     if(!wrapperCache.has(key)){
         wrapperCache.set(key, props.metaData.wrapper!(inpData))
     }

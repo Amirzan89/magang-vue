@@ -95,7 +95,7 @@ const activeComponent = computed(() =>
                     </SwiperSlide>
                 </Swiper>
             </div>
-            <div v-else>
+            <div v-else class="pointer-events-none">
                 <Skeleton :pt="{ root: { class: ['!h-[200px] phone:!h-[250px] sm:!h-[300px] md:!h-[350px] lg:!h-[400px] xl:!h-[450px] !rounded-lg mb-3'], style: 'background-color: rgba(0,0,0, 0.18)' }}"/>
                 <div class="w-[63%] xs:w-[54%] phone:w-[60%] sm:w-[45%] lg:w-[78%] xl:w-4/5 h-[65px] xs:h-[70px] phone:h-[80px] sm:h-[90px] md:h-[95px] lg:h-[102px] xl:h-[110px] 2xl:h-[120px] mx-auto flex gap-5">
                     <template v-for="i in slidePerView">
