@@ -57,7 +57,7 @@ const setChartOptions = () => {
 };
 onBeforeMount(async() => {
     const res = await reqData({
-        url: route.path,
+        url: '/api' + route.path,
         method: 'POST',
         reqType: 'Json',
     })

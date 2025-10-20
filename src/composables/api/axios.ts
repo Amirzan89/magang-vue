@@ -70,13 +70,13 @@ const reqData = async({
                 loading.setLoading(true)
             }
             const res = (await api.request({ url, method, data, params: {
-                    ...(includeQuery ? includeQuery : {}),
-                    _: Date.now(),
-                }, signal, headers: {
-                    'X-Merseal': sessionStorage.merseal,
-                    Accept: 'application/json',
-                    ...headers,
-                }})).data
+                ...(includeQuery ? includeQuery : {}),
+                _: Date.now(),
+            }, signal, headers: {
+                'X-Merseal': sessionStorage.merseal,
+                Accept: 'application/json',
+                ...headers,
+            }})).data
             const responseData = isEncrypt ? decryptRes(res.message, encr.iv) : res
             if(callbackResFn && typeof callbackResFn === 'function') callbackResFn()
             if(isEncrypt){

@@ -21,7 +21,7 @@ export default () => {
             const clientNonceB64 = btoa(String.fromCharCode(...clientNonce))
             const pubB64 = await genRsaPairSession()
             const res = await reqData({
-                url: '/handshake',
+                url: '/api/handshake',
                 method: 'POST',
                 reqBody: {
                     clientPublicSpkiB64: pubB64,

@@ -2,25 +2,32 @@
 import { ref, reactive, onBeforeMount, defineComponent, h, useSlots, type ComponentPublicInstance } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { useConfig } from '@/composables/useConfig'
-import { useFetchDataStore } from '@/stores/FetchData'
+import useAxios from '@/composables/api/axios'
+import { useToast } from 'primevue/usetoast'
 import CustomCardWithSkeletonComponent from '@/components/CustomCardWithSkeleton.vue'
 import I_FullStar from '@/assets/icons/reviews/full-star.svg?component'
 import I_HalfStar from '@/assets/icons/reviews/half-star.svg?component'
 import I_EmptyStar from '@/assets/icons/reviews/empty-star.svg?component'
 import defaultBoy from '@/assets/images/default_boy.jpg'
 import defaultGirl from '@/assets/images/default_girl.png'
+const route = useRoute()
 const publicConfig = useConfig()
-const fetchDataS = useFetchDataStore()
+const { reqData } = useAxios()
+const toast = useToast()
 const local = reactive({
     contributors: null as any,
     reviews: null as any,
 })
-onBeforeMount(async() =>{
-    const res = await fetchDataS.fetchPage(useRoute().path, {})
-    if(res ==  undefined || res.status == 'error'){
+onBeforeMount(async() => {
+    const res = await reqData({
+        url: '/api' + route.path,
+        method: 'POST',
+        reqType: 'Json',
+    })
+    if(res.status == 'error'){
+        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, group: 'br', life: 3000 })
         return
     }
-    console.log('enttokk dataa ', res.data)
     local.contributors = res.data.contributors
     local.reviews = res.data.reviews
 })

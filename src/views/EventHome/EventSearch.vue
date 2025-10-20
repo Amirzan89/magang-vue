@@ -202,7 +202,7 @@ onBeforeMount(async() => {
     }
     categoryHydrationController = new AbortController()
     const resCategories = await reqData({
-        url: '/event-categories',
+        url: '/api/event-categories',
         method: 'POST',
         signal: categoryHydrationController.signal,
         reqType: 'Json',
@@ -256,7 +256,7 @@ onBeforeMount(async() => {
     }
     abortHydrationController = new AbortController()
     const res = await reqData({
-        url: '/search',
+        url: '/api/search',
         method: 'POST',
         headers: hyHeader,
         signal: abortHydrationController.signal,
@@ -312,7 +312,7 @@ const formSearchFilter = async() => {
     local.isFormLoading = true
     oldInput.search = currentInput.search
     const res = await reqData({
-        url: '/search',
+        url: '/api/search',
         method: 'POST',
         signal: abortFormController.signal,
         reqType: 'Json',
@@ -341,7 +341,7 @@ const lazyDataSearch = async() => {
     await router.replace({ path:'/search', query: { ...route.query, 'next_page': local.next_cursor,'limit': 15 }})
     abortHydrationController = new AbortController()
     const res = await reqData({
-        url: '/search',
+        url: '/api/search',
         method: 'POST',
         signal: abortHydrationController.signal,
         reqType: 'Json',

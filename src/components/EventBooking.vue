@@ -1,18 +1,16 @@
 <script setup lang="ts">
+import * as z from 'zod'
 import { zodResolver } from "@primevue/forms/resolvers/zod"
 import { Form, FormField } from "@primevue/forms"
 import useAxios from '@/composables/api/axios'
+import { useLoadingStore } from '@/stores/Loading'
 import { useToast } from 'primevue/usetoast'
-import * as z from 'zod'
-import { reactive } from 'vue'
 const { reqData } = useAxios()
 const toast = useToast()
+const loading = useLoadingStore()
 const props = defineProps<{
     detail_event: Record<string, any>,
 }>()
-const local = reactive({
-    isRequestInProgress: false,
-})
 const bookingValidator = zodResolver(z.object({
     nama: z.string({ message: "Nama tidak boleh kosong !" }).min(1, { message: "Nama harus di isi !" }).max(50, { message: "Nama maksimal 50 karakter" }),
     gender: z.enum(["M", "F"], { message: "Pilih jenis kelamin" }),
@@ -83,7 +81,7 @@ const formBooking = async({ valid, states, reset }: any) => {
                 <InputText id="email" placeholder="Masukkan Email Pengguna" />
                 <Message v-if="$form.email?.invalid" severity="error">{{ $form.email.error?.message }}</Message>
             </FormField>
-            <Button type="submit" label="Kirim" :loading="local.isRequestInProgress" class="mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm lg:!rounded-md !text-sm sm:!text-base lg:!text-lg xl:!text-xl !font-normal"/>
+            <Button type="submit" label="Kirim" :loading="loading.isLoading" class="mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm lg:!rounded-md !text-sm sm:!text-base lg:!text-lg xl:!text-xl !font-normal"/>
         </Form>
     </section>
 </template>

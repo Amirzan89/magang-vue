@@ -1,16 +1,5 @@
 import createAxios from '@/composables/api/axios'
 const { reqData } = createAxios()
-export const Login = async(data: { email: string, password: string }) => {
-    return reqData({
-        url: '/lofin',
-        method: 'POST',
-        reqBody: {
-            email: data.email,
-            password: data.password,
-        },
-        reqType: 'Json',
-    })
-}
 export const CreateForgotPassword = async(data: { email:string }) => {
     return await reqData({
         url: '/verify/create/password',

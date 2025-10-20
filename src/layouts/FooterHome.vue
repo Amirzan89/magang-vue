@@ -100,7 +100,7 @@ const formFooter = async({ valid, states, reset }: any) => {
     if(abortFormController) abortFormController.abort()
     abortFormController = new AbortController()
     const res = await reqData({
-        url: '/search',
+        url: '/api/footer-mail',
         method: 'POST',
         signal: abortFormController.signal,
         reqType: 'Json',

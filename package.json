@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "run-p type-check \"build-only {@}\" --",
+    "build": "vite build && node ./deploy.js",
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build"
@@ -21,6 +21,7 @@
     "axios": "^1.11.0",
     "chart.js": "^4.5.0",
     "crypto-js": "^4.2.0",
+    "dotenv": "^17.2.3",
     "gsap": "^3.13.0",
     "js-cookie": "^3.0.5",
     "pinia": "^3.0.3",

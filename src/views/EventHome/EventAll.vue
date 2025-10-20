@@ -33,7 +33,7 @@ onBeforeMount(async() => {
     router.replace({ path:'/events', query: newQuery })
     abortHydrationController = new AbortController()
     const res = await reqData({
-        url: route.path,
+        url: '/api' + route.path,
         method: 'POST',
         headers: hyHeader,
         signal: abortHydrationController.signal,
@@ -95,7 +95,7 @@ const lazyDataAll = async() => {
         await router.replace({ path:'/events', query: { 'next_page': local.next_cursor,'limit': 15 }})
         abortHydrationController = new AbortController()
         const res = await reqData({
-            url: route.path,
+            url: '/api' + route.path,
             method: 'POST',
             signal: abortHydrationController.signal,
             reqType: 'Json',
