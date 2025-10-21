@@ -308,7 +308,7 @@ const formSearchFilter = async() => {
     if(currentInput.search != ''){
         newQuery.limit = 15
     }
-    router.push({ path: '/search', query: newQuery })
+    await router.push({ path: '/search', query: newQuery })
     local.isFormLoading = true
     oldInput.search = currentInput.search
     const res = await reqData({

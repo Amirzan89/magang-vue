@@ -5,7 +5,6 @@ import { customBreakpoints, width } from '@/composables/useScreenSize'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import EmptyLayout from '@/layouts/EmptyLayout.vue'
-import LoadingComponent from './components/Loading.vue'
 const route = useRoute()
 type LayoutKey = 'admin' | 'default' | 'empty'
 const layouts: Record<LayoutKey, any> = {
@@ -31,7 +30,6 @@ watch(width, updatePadding)
 </script>
 <template>
     <component :is="Layout" :key="layoutName" />
-    <!-- <LoadingComponent/> -->
 </template>
 <style>
 .fade-enter-active,.fade-leave-active { transition: opacity .15s }

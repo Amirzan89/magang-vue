@@ -47,7 +47,6 @@ onBeforeMount(async() => {
         toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, life: 3000 })
         return
     }
-    // console.log('enttokk dataa ', res)
     local.upcoming_events = res.data.upcoming_events
     local.past_events = res.data.past_events
     local.reviews = res.data.reviews

@@ -163,7 +163,6 @@ watch([() => props.inpData?.length, totalItems],  ([newLen]) => {
     }
 })
 onBeforeMount(() => {
-    console.log('custom card',props.inpData)
     if(props.metaData.pagination && props.metaData.pagination?.lazyLoading && (first.value + rows.value >= (props.inpData?.length ?? 0))){
         emit('lazy-data', null)
     }

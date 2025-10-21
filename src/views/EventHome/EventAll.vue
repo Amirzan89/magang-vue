@@ -50,7 +50,7 @@ onBeforeMount(async() => {
     eventBus.emit('tHeader')
 })
 const redirectToSearchPage = async() => {
-    router.push({
+    await router.push({
         path: '/search',
         query: {
             find: local.inpSearch

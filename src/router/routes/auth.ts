@@ -2,7 +2,7 @@ export default [
     {
         path: '/login',
         name: 'LoginPage',
-        component: () => import('@/views/Admin/Dashboard.vue'),
-        meta: { layout: 'mpety' },
+        component: () => import('@/views/Login.vue'),
+        meta: { layout: 'empty', requiresAuth: true },
     },
 ]
