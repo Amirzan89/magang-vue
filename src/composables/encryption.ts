@@ -33,5 +33,5 @@ export default () => {
         const decrypted = CryptoJS.AES.decrypt(cipherParams, CryptoJS.enc.Hex.parse(sessionStorage.aes_key), { iv: CryptoJS.enc.Hex.parse(iv) })
         return JSON.parse(decrypted.toString(CryptoJS.enc.Utf8))
     }
-    return { encryptReq, decryptRes }
+    return { genIV, encryptReq, decryptRes }
 }

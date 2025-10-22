@@ -56,8 +56,7 @@ const reqData = async({
             let encr: any = null
             if(isEncrypt){
                 if(!sessionStorage.aes_key && !sessionStorage.hmac_key){
-                    const rsaComp = RSAComposables()
-                    await rsaComp.handshake()
+                    await RSAComposables().handshake()
                 }
                 encr = await encryptReq(reqBody)
                 data = {
@@ -71,7 +70,6 @@ const reqData = async({
             }
             const res = (await api.request({ url, method, data, params: {
                 ...(includeQuery ? includeQuery : {}),
-                _: Date.now(),
             }, signal, headers: {
                 'X-Merseal': sessionStorage.merseal,
                 Accept: 'application/json',

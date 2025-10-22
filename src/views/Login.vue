@@ -5,6 +5,7 @@ import { Form, FormField } from "@primevue/forms"
 import { ref, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import useAxios from '@/composables/api/axios'
+import { useFetchDataStore } from '@/stores/FetchData'
 import { useLoadingStore } from '@/stores/Loading'
 import { useToast } from 'primevue/usetoast'
 import FooterHome from '@/layouts/FooterHome.vue'
@@ -15,6 +16,7 @@ const router = useRouter()
 const loading = useLoadingStore()
 const { reqData } = useAxios()
 const toast = useToast()
+const fetchDataS = useFetchDataStore()
 const local = reactive({
     isRequestInProgress: false,
     isUpdated: false,
@@ -53,6 +55,7 @@ const loginForm = async({ valid, states, reset }: any) => {
         toast.add({ severity: 'error', summary: 'Gagal Login', detail: res.message, life: 3000 })
         return
     }
+    fetchDataS.login()
     toast.add({ severity: 'success', summary: 'Berhasil Login', detail: res.message, life: 3000 })
     setTimeout(async() => {
         await router.push('/dashboard')

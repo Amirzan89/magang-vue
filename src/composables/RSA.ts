@@ -32,8 +32,7 @@ export default () => {
             })
             const pkcs8 = Uint8Array.from(atob(sessionStorage.rsa_priv), c => c.charCodeAt(0)).buffer
             const priv = await crypto.subtle.importKey('pkcs8', pkcs8, { name: 'RSA-OAEP', hash: 'SHA-256' }, false, ['decrypt'])
-            const wrapped = hexToU8(res.data.encKey).buffer
-            const result = new Uint8Array(await crypto.subtle.decrypt({ name: 'RSA-OAEP' }, priv, wrapped))
+            const result = new Uint8Array(await crypto.subtle.decrypt({ name: 'RSA-OAEP' }, priv, hexToU8(res.data.encKey).buffer))
             // parse payload: [aes32 | hmac32 | keyId16 | clientNonce16 | serverNonce16 | exp8]
             let off = 0
             const aes = result.slice(off, off+=32)
