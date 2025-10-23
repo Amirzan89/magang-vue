@@ -5,7 +5,7 @@ const publicPrefixes = ['/event/']
 export function setupGuards(router: Router){
     router.beforeEach(async(to) => {
         const fetchDataS = useFetchDataStore()
-        if(!fetchDataS.isFirstTime){
+        if(fetchDataS.isFirstTime){
             await fetchDataS.checkAuth()
         }
         const isPublic = publicRoutes.includes(to.path) || publicPrefixes.some((prefix) => to.path.startsWith(prefix))

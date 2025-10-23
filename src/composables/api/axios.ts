@@ -52,20 +52,20 @@ const reqData = async({
     let retryCount = 0
     const makeRequest = async (): Promise<any> => {
         const loading = useLoadingStore()
-        try{
-            let data = reqBody
-            let encr: any = null
-            if(isEncrypt){
-                if(!sessionStorage.aes_key && !sessionStorage.hmac_key){
-                    await RSAComposables().handshake()
-                }
-                encr = await encryptReq(reqBody)
-                data = {
-                    uniqueid: encr.iv,
-                    cipher: encr.data,
-                    mac: encr.mac,
-                }
+        let data = reqBody
+        let encr: any = null
+        if(isEncrypt){
+            if(!sessionStorage.aes_key && !sessionStorage.hmac_key){
+                await RSAComposables().handshake()
             }
+            encr = await encryptReq(reqBody)
+            data = {
+                uniqueid: encr.iv,
+                cipher: encr.data,
+                mac: encr.mac,
+            }
+        }
+        try{
             if(isNeedLoading){
                 loading.setLoading(true)
             }
@@ -99,10 +99,10 @@ const reqData = async({
                 switch(status){
                     case 302:
                         fetchDataS.login()
-                        return { status: 'error', message: data?.message, code: 302 }
+                        return { status: 'error', message: encr ? decryptRes(data?.message, encr.iv).message : data?.message, code: 302 }
                     case 401:
                         fetchDataS.logout()
-                        return { status: 'error', message: data?.message, code: 401 }
+                        return { status: 'error', message: encr ? decryptRes(data?.message, encr.iv).message : data?.message, code: 401 }
                     case 404:
                         return { status: 'error', message: 'Not found', code: 404 }
                     case 419:

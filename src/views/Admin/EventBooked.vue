@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api'
 import { onBeforeMount, reactive, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { formatTgl } from '@/utils/global'
 import useAxios from '@/composables/api/axios'
 import { useToast } from 'primevue/usetoast'
 const route = useRoute()
+const router = useRouter()
 const { reqData } = useAxios()
 const toast = useToast()
 type DialogInp = { label: string; format?: (val: any) => string }
@@ -64,10 +65,17 @@ onBeforeMount(async() => {
     })
     loadingDT.value = false
     if(res.status == 'error'){
-        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, life: 3000 })
+        if(res.code === 401){
+            toast.add({ severity: 'error', summary: 'Gagal Autentikasi', detail: 'Sesi telah habis, silahkan login kembali !', life: 3000 })
+        }else{
+            toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, life: 3000 })
+        }
+        setTimeout(() => {
+            router.push('/login')
+        }, 3000);
         return
     }
-    local.fetchData = res.data.map((item: any) => ({
+    local.fetchData = res.data.list_booked.map((item: any) => ({
         ...item,
         registrationdate: new Date(item.registrationdate)
     }))

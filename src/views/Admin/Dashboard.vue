@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { onBeforeMount, reactive, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import useAxios from '@/composables/api/axios'
 import { useToast } from 'primevue/usetoast'
 const route = useRoute()
+const router = useRouter()
 const { reqData } = useAxios()
 const toast = useToast()
 const chartData = ref<any>()
@@ -62,7 +63,14 @@ onBeforeMount(async() => {
         reqType: 'Json',
     })
     if(res.status == 'error'){
-        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, life: 3000 })
+        if(res.code === 401){
+            toast.add({ severity: 'error', summary: 'Gagal Autentikasi', detail: 'Sesi telah habis, silahkan login kembali !', life: 3000 })
+        }else{
+            toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, life: 3000 })
+        }
+        setTimeout(() => {
+            router.push('/login')
+        }, 3000);
         return
     }
     local.list_events = res.data.list_events

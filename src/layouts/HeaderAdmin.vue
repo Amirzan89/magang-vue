@@ -1,4 +1,5 @@
 <script setup>
+import { RouterLink } from 'vue-router';
 import { useLayout } from './composables/layout';
 const { toggleMenu } = useLayout();
 </script>
@@ -22,10 +23,10 @@ const { toggleMenu } = useLayout();
             </button>
             <div class="layout-topbar-menu hidden lg:block">
                 <div class="layout-topbar-menu-content">
-                    <button type="button" class="layout-topbar-action">
+                    <RouterLink to="/profile" class="layout-topbar-action">
                         <i class="pi pi-user"></i>
                         <span>Profile</span>
-                    </button>
+                    </RouterLink>
                 </div>
             </div>
         </div>
