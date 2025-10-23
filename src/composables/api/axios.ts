@@ -4,6 +4,7 @@ import { useConfig } from '@/composables/useConfig'
 import RSAComposables from '@/composables/RSA'
 import useEncryption from '@/composables/encryption'
 import { useLoadingStore } from '@/stores/Loading'
+import { useFetchDataStore } from '@/stores/FetchData'
 const publicConfig = useConfig()
 const { encryptReq, decryptRes } = useEncryption()
 const api = axios.create({
@@ -51,7 +52,7 @@ const reqData = async({
     let retryCount = 0
     const makeRequest = async (): Promise<any> => {
         const loading = useLoadingStore()
-        try {
+        try{
             let data = reqBody
             let encr: any = null
             if(isEncrypt){
@@ -80,9 +81,9 @@ const reqData = async({
             let normalized = {}
             if(responseData?.data && responseData?.message){
                 normalized = responseData
-            }else if (responseData?.data){
+            }else if(responseData?.data){
                 normalized = { ...responseData, message: 'success' }
-            }else if (responseData?.message){
+            }else if(responseData?.message){
                 normalized = { data: null, message: responseData.message }
             }else{
                 normalized = { data: responseData, message: 'success' }
@@ -93,8 +94,15 @@ const reqData = async({
                 return { status: 'error', message: 'Request dibatalkan' }
             }
             if(err.response){
+                const fetchDataS = useFetchDataStore()
                 const { status, data } = err.response
                 switch(status){
+                    case 302:
+                        fetchDataS.login()
+                        return { status: 'error', message: data?.message, code: 302 }
+                    case 401:
+                        fetchDataS.logout()
+                        return { status: 'error', message: data?.message, code: 401 }
                     case 404:
                         return { status: 'error', message: 'Not found', code: 404 }
                     case 419:

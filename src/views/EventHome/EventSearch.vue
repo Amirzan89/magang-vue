@@ -62,13 +62,13 @@ const oldInput = reactive<InputForm>({
     search: '',
     category: [],
     pay: '' as 'pay' | 'free' | 'all',
-    dates: [new Date(), new Date()],
+    dates: [new Date(), new Date()], /////////
 })
 const currentInput = reactive<InputForm>({
     search: '',
     category: [],
     pay: '' as 'pay' | 'free' | 'all',
-    dates: [new Date(), new Date()],
+    dates: [new Date(), new Date()], /////////
 })
 const isDialogOpen = ref(false)
 const teleportTarget = ref(null)

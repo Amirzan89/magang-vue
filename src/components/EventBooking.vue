@@ -31,7 +31,7 @@ const formBooking = async({ valid, states, reset }: any) => {
         method: 'POST',
         signal: abortFormController.signal,
         reqBody: {
-            nama: states.nama.value,
+            nama: states.nama.value, ///////////
             gender: states.gender.value,
             mobileno: states.mobileno.value,
             event_group: props.detail_event.event_group,

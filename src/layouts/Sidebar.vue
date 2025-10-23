@@ -1,8 +1,15 @@
 <script setup lang="ts">
 import { useLayout } from './composables/layout'
 import { onBeforeMount, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import useAxios from '@/composables/api/axios'
+import { useFetchDataStore } from '@/stores/FetchData'
+import { useToast } from 'primevue/usetoast'
 const route = useRoute()
+const router = useRouter()
+const { reqData } = useAxios()
+const fetchDataS = useFetchDataStore()
+const toast = useToast()
 const { layoutState, setActiveMenuItem, toggleMenu } = useLayout()
 const isActiveMenu = ref(false)
 const itemKey = ref<any>([])
@@ -38,9 +45,26 @@ const itemClick = (event: Event, item: any, index: number) => {
 const checkActiveRoute = (item: any) => {
     return route.path === item.to
 }
+const logoutForm = async() => {
+    const res = await reqData({
+        url: '/api/admin/logout',
+        method: 'POST',
+        reqType: 'Json',
+        isNeedLoading: true,
+    })
+    if(res.status == 'error'){
+        toast.add({ severity: 'error', summary: 'Gagal Logout', detail: res.message, life: 3000 })
+        return
+    }
+    fetchDataS.logout()
+    toast.add({ severity: 'success', summary: 'Berhasil Logout', detail: res.message, life: 3000 })
+    setTimeout(async() => {
+        await router.push('/login')
+    }, 3000)
+}
 </script>
 <template>
-    <div class="layout-sidebar">
+    <div class="layout-sidebar !pb-5 flex flex-col justify-between">
         <ul class="layout-menu">
             <ul class="layout-submenu">
                 <template v-for="(item, i) in model" :key="item">
@@ -53,5 +77,9 @@ const checkActiveRoute = (item: any) => {
                 </template>
             </ul>
         </ul>
+        <Button variant="outlined" class="px-2.5 flex !justify-start !items-center !gap-1.5 cursor-pointer" @click="logoutForm">
+            <i class="pi pi-fw pi-home !text-[18px]"></i>
+            <span class="text-base sm:text-lg lg:text-xl xl:text-2xl">Logout</span>
+        </Button>
     </div>
 </template>

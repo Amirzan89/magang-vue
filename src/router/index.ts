@@ -28,5 +28,5 @@ const router = createRouter({
         return { left: 0, top: 0, behavior: 'instant' }
     }
 })
-// setupGuards(router)
+setupGuards(router)
 export default router

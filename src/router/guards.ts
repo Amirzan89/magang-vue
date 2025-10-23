@@ -3,10 +3,10 @@ import { useFetchDataStore } from '@/stores/FetchData'
 const publicRoutes = ['/', '/about', '/events', '/search', '/login', '/password/reset', '/verify/password', '/verify/email']
 const publicPrefixes = ['/event/']
 export function setupGuards(router: Router){
-    router.beforeEach(async (to) => {
+    router.beforeEach(async(to) => {
         const fetchDataS = useFetchDataStore()
-        if(!fetchDataS.checked){
-            await fetchDataS.checkAuth(to.fullPath)
+        if(!fetchDataS.isFirstTime){
+            await fetchDataS.checkAuth()
         }
         const isPublic = publicRoutes.includes(to.path) || publicPrefixes.some((prefix) => to.path.startsWith(prefix))
         if(!isPublic && !fetchDataS.isAuth){
