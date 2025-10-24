@@ -49,13 +49,14 @@ const isOutsideClicked = (event) => {
 </script>
 <template>
     <div class="layout-wrapper" :class="containerClass">
-        <HeaderAdmin></HeaderAdmin>
-        <Sidebar></Sidebar>
-        <div class="layout-main-container">
-            <div class="layout-main">
+        <HeaderAdmin/>
+        <Sidebar/>
+        <div class="layout-main-container relative overflow-x-clip overflow-y-clip">
+            <img src="@/assets/images/cele-3.png" alt="" class="absolute bottom-0 md:-bottom-5 -right-13 sm:-right-23 md:-right-32 lg:-right-35 xl:-right-35 2xl:-right-37 h-57 xs:h-62 phone:h-65 sm:h-90 md:h-130 lg:h-132 xl:h-137 2xl:h-145 -z-1 object-contain opacity-30 scale-300 sm:scale-270 md:scale-250"/>
+            <main class="layout-main">
                 <router-view></router-view>
-            </div>
-            <FooterAdmin></FooterAdmin>
+            </main>
+            <FooterAdmin/>
         </div>
         <div class="layout-mask animate-fadein"></div>
     </div>

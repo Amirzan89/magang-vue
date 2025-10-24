@@ -65,12 +65,11 @@ onBeforeMount(async() => {
     if(res.status == 'error'){
         if(res.code === 401){
             toast.add({ severity: 'error', summary: 'Gagal Autentikasi', detail: 'Sesi telah habis, silahkan login kembali !', life: 3000 })
-        }else{
-            toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, life: 3000 })
+            setTimeout(() => {
+                return router.push('/login')
+            }, 3000)
         }
-        setTimeout(() => {
-            router.push('/login')
-        }, 3000);
+        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, life: 3000 })
         return
     }
     local.list_events = res.data.list_events
@@ -83,7 +82,7 @@ onBeforeMount(async() => {
 })
 </script>
 <template>
-    <main class="grid grid-cols-12 gap-8">
+    <section class="grid grid-cols-12 gap-8">
         <div class="col-span-12 xl:col-span-6 xl:row-span-2">
             <div class="card">
                 <Chart type="doughnut" :data="chartData" :options="chartOptions" class="w-full md:w-[30rem]"></Chart>
@@ -133,5 +132,5 @@ onBeforeMount(async() => {
                 </template>
             </Column>
         </DataTable>
-    </main>
+    </section>
 </template>

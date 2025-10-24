@@ -67,12 +67,11 @@ onBeforeMount(async() => {
     if(res.status == 'error'){
         if(res.code === 401){
             toast.add({ severity: 'error', summary: 'Gagal Autentikasi', detail: 'Sesi telah habis, silahkan login kembali !', life: 3000 })
-        }else{
-            toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, life: 3000 })
+            setTimeout(() => {
+                return router.push('/login')
+            }, 3000)
         }
-        setTimeout(() => {
-            router.push('/login')
-        }, 3000);
+        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, life: 3000 })
         return
     }
     local.fetchData = res.data.list_booked.map((item: any) => ({

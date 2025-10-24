@@ -2,6 +2,13 @@ import { defineStore } from 'pinia'
 import useAxios from '@/composables/api/axios'
 import RSAComposables from '@/composables/RSA'
 import useEncryption from '@/composables/encryption'
+interface AuthData{
+    nama_lengkap: string,
+    jenis_kelamin: string,
+    no_telpon: string,
+    email: string,
+    foto: File,
+}
 const { genIV, decryptRes } = useEncryption()
 const handleAuthResponse = async(res: any) => {
     const code = res?.code ?? 200
@@ -19,6 +26,7 @@ const handleAuthResponse = async(res: any) => {
 }
 export const useFetchDataStore = defineStore('FetchData', {
     state: () => ({
+        cacheAuth: {} as AuthData,
         isAuth: false as boolean,
         isFirstTime: true as boolean,
     }),
@@ -37,7 +45,7 @@ export const useFetchDataStore = defineStore('FetchData', {
                     isEncrypt: false,
                 })
                 res.message = decryptRes(res.message, iv).message
-                if(res.code !== 302 && res.code !== 401){
+                if(![302, 401].includes(res.code)){
                     const handARes = await handleAuthResponse(res)
                     this.isAuth = handARes.isAuth
                 }

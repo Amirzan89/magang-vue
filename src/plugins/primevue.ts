@@ -2,14 +2,19 @@ import 'primeicons/primeicons.css'
 import PrimeVue from 'primevue/config'
 import Aura from '@primeuix/themes/aura'
 import StyleClass from 'primevue/styleclass'
-import Toolbar from 'primevue/toolbar';
+import Tabs from 'primevue/tabs'
+import TabList from 'primevue/tablist'
+import Tab from 'primevue/tab'
+import TabPanels from 'primevue/tabpanels'
+import TabPanel from 'primevue/tabpanel'
+import Toolbar from 'primevue/toolbar'
 import Paginator from 'primevue/paginator'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import ColumnGroup from 'primevue/columngroup'
 import Row from 'primevue/row'
-import Tag from 'primevue/tag';
-import Chart from 'primevue/chart';
+import Tag from 'primevue/tag'
+import Chart from 'primevue/chart'
 import Dialog from 'primevue/dialog'
 import Skeleton from 'primevue/skeleton'
 import Card from 'primevue/card'
@@ -39,6 +44,11 @@ export default function setupPrimeVue(app: any){
     })
     app.use(ToastService)
     app.directive('styleclass', StyleClass)
+    app.component('Tabs', Tabs)
+    app.component('TabList', TabList)
+    app.component('Tab', Tab)
+    app.component('TabPanels', TabPanels)
+    app.component('TabPanel', TabPanel)
     app.component('Toolbar', Toolbar)
     app.component('Paginator', Paginator)
     app.component('DataTable', DataTable)

@@ -1,7 +1,12 @@
 <script setup>
-import { RouterLink } from 'vue-router';
-import { useLayout } from './composables/layout';
-const { toggleMenu } = useLayout();
+import { RouterLink } from 'vue-router'
+import { useLayout } from './composables/layout'
+import { useFetchDataStore } from '@/stores/FetchData'
+const { toggleMenu } = useLayout()
+const fetchDataS = useFetchDataStore()
+watch(fetchDataS.cacheAuth, () => {
+    
+}, { immediate: true })
 </script>
 <template>
     <div class="layout-topbar h-full">
@@ -13,9 +18,9 @@ const { toggleMenu } = useLayout();
             <button class="layout-menu-button layout-topbar-action" @click="toggleMenu">
                 <i class="pi pi-bars"></i>
             </button>
-            <router-link to="/" class="layout-topbar-logo h-full">
+            <RouterLink to="/" class="layout-topbar-logo h-full">
                 <img src="@/assets/icons/logowhite.png" alt="Uni Events Logo" class="w-auto" style="height: calc(100% - 10px);"/>
-            </router-link>
+            </RouterLink>
         </div>
         <div class="layout-topbar-actions">
             <button class="layout-topbar-menu-button layout-topbar-action" v-styleclass="{ selector: '@next', enterFromClass: 'hidden', enterActiveClass: 'animate-scalein', leaveToClass: 'hidden', leaveActiveClass: 'animate-fadeout', hideOnOutsideClick: true }">
@@ -23,9 +28,9 @@ const { toggleMenu } = useLayout();
             </button>
             <div class="layout-topbar-menu hidden lg:block">
                 <div class="layout-topbar-menu-content">
-                    <RouterLink to="/profile" class="layout-topbar-action">
-                        <i class="pi pi-user"></i>
-                        <span>Profile</span>
+                    <RouterLink to="/profile" class="layout-topbar-action hover:!bg-transparent">
+                        <img v-if="imgSrc" :src="imgSrc" @error="onImageError" alt="Foto Profil" class="rounded-full object-cover"/>
+                        <img v-else :src="defaultImg" alt="Default" class="rounded-full object-cover"/>
                     </RouterLink>
                 </div>
             </div>

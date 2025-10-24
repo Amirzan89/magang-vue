@@ -2,8 +2,8 @@
 import * as z from 'zod'
 import { zodResolver } from "@primevue/forms/resolvers/zod"
 import { Form, FormField } from "@primevue/forms"
-import { ref, reactive } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { reactive } from 'vue'
+import { useRouter } from 'vue-router'
 import useAxios from '@/composables/api/axios'
 import { useFetchDataStore } from '@/stores/FetchData'
 import { useLoadingStore } from '@/stores/Loading'
@@ -32,12 +32,7 @@ const loginValidator = zodResolver(z.object({
 const loginForm = async({ valid, states, reset }: any) => {
     if(!valid){
         const errMessage = Object.values(states as Record<string, any>).find((field: any) => field?.invalid)
-        toast.add({
-            severity: 'error',
-            summary: 'Gagal dikirim',
-            detail: errMessage?.error?.message || 'Periksa kembali input kamu!',
-            life: 3000
-        });
+        toast.add({ severity: 'error', summary: 'Gagal dikirim', detail: errMessage?.error?.message || 'Periksa kembali input !', life: 3000 });
         return
     }
     const res = await reqData({

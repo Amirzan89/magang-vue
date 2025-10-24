@@ -11,4 +11,10 @@ export default [
         component: () => import('@/views/Admin/EventBooked.vue'),
         meta: { layout: 'admin' },
     },
+    {
+        path: '/profile',
+        name: 'ProfilePage',
+        component: () => import('@/views/Admin/Profile.vue'),
+        meta: { layout: 'admin' },
+    },
 ]
