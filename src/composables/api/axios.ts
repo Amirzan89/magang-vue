@@ -84,7 +84,7 @@ const reqData = async({
             }else if(responseData?.data){
                 normalized = { ...responseData, message: 'success' }
             }else if(responseData?.message){
-                normalized = { data: null, message: responseData.message }
+                normalized = { message: responseData.message }
             }else{
                 normalized = { data: responseData, message: 'success' }
             }

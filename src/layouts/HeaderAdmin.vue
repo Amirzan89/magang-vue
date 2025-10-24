@@ -4,9 +4,12 @@ import { useLayout } from './composables/layout'
 import { useFetchDataStore } from '@/stores/FetchData'
 const { toggleMenu } = useLayout()
 const fetchDataS = useFetchDataStore()
-watch(fetchDataS.cacheAuth, () => {
-    
-}, { immediate: true })
+import Im_DefaultBoy from '@/assets/images/default_boy.jpg'
+import Im_DefaultGirl from '@/assets/images/default_girl.png'
+const renderImgFallback = () => {
+    if(!fetchDataS.cacheAuth) return Im_DefaultBoy
+    return fetchDataS.cacheAuth.jenis_kelamin == 'laki-laki' ? Im_DefaultBoy : Im_DefaultGirl
+}
 </script>
 <template>
     <div class="layout-topbar h-full">
@@ -29,8 +32,8 @@ watch(fetchDataS.cacheAuth, () => {
             <div class="layout-topbar-menu hidden lg:block">
                 <div class="layout-topbar-menu-content">
                     <RouterLink to="/profile" class="layout-topbar-action hover:!bg-transparent">
-                        <img v-if="imgSrc" :src="imgSrc" @error="onImageError" alt="Foto Profil" class="rounded-full object-cover"/>
-                        <img v-else :src="defaultImg" alt="Default" class="rounded-full object-cover"/>
+                        <img v-if="fetchDataS.imgUrl" :src="fetchDataS.imgUrl" @error="renderImgFallback" alt="Foto Profil" class="rounded-full object-cover"/>
+                        <img v-else :src="renderImgFallback" alt="Default" class="rounded-full object-cover"/>
                     </RouterLink>
                 </div>
             </div>

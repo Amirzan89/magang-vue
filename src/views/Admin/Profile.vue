@@ -5,14 +5,20 @@ import { Form, FormField } from "@primevue/forms"
 import { onMounted, reactive, ref, type Ref, type ComponentPublicInstance, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import useAxios from '@/composables/api/axios'
+import RSAComposables from '@/composables/RSA'
+import useEncryption from '@/composables/encryption'
 import { useFetchDataStore } from '@/stores/FetchData'
 import { useToast } from 'primevue/usetoast'
+import Im_DefaultBoy from '@/assets/images/default_boy.jpg'
+import Im_DefaultGirl from '@/assets/images/default_girl.png'
 import I_Drop from '@/assets/icons/drop.svg'
 import I_eye from '@/assets/icons/eye.svg'
 import I_eye_slash from '@/assets/icons/eye-slash.svg'
 const route = useRoute()
 const router = useRouter()
 const { reqData } = useAxios()
+const rsaComp = RSAComposables()
+const { genIV, decryptImg } = useEncryption()
 const fetchDataS = useFetchDataStore()
 const toast = useToast()
 const local = reactive({
@@ -20,7 +26,6 @@ const local = reactive({
     foto: null as File | null,
     linkImgProfile: '' as string,
     isErrorFoto: false as boolean,
-    isUpdated: false,
     isPasswordLamaShow: false,
     isPasswordBaruShow: false,
     isPasswordBaruUlangiShow: false,
@@ -44,10 +49,28 @@ onMounted(async() => {
             toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, life: 3000 })
             return
         }
-        console.log('isii res',res)
         fetchDataS.cacheAuth = res.data
+        const iv = rsaComp.hexCus.enc(await genIV())
+        const resFoto = await reqData({
+            url: '/api/admin/download/foto-profile',
+            headers: { 'X-Auth-Check': 'true', 'X-UniqueId': iv },
+            isEncrypt: false,
+        })
+        if(resFoto.status == 'error'){
+            if(resFoto.code === 401){
+                toast.add({ severity: 'error', summary: 'Gagal Autentikasi', detail: 'Sesi telah habis, silahkan login kembali !', life: 3000 })
+                setTimeout(() => {
+                    return router.push('/login')
+                }, 3000)
+            }
+            toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: resFoto.message, life: 3000 })
+            return
+        }
+        console.log('isi ressfot',resFoto)
+        fetchDataS.setDecryptedImage(decryptImg(resFoto.message, iv))
     }
-    console.log('isii fet',fetchDataS.cacheAuth)
+    local.linkImgProfile = fetchDataS.imgUrl ?? ''
+    // console.log('isii fet',fetchDataS.cacheAuth)
     const data = fetchDataS.cacheAuth
     await nextTick()
     const $form = profileForm.value
@@ -56,9 +79,12 @@ onMounted(async() => {
         $form.jenis_kelamin.value = data.jenis_kelamin
         $form.no_telpon.value = data.no_telpon
         $form.email.value = data.email
-        // $form.foto.value = null
     }
 })
+const renderImgFallback = () => {
+    if(!fetchDataS.cacheAuth) return Im_DefaultBoy
+    return fetchDataS.cacheAuth.jenis_kelamin == 'laki-laki' ? Im_DefaultBoy : Im_DefaultGirl
+}
 const handleFormClickPersonal = () => {
     fileInputProfile.value.click()
 }
@@ -89,6 +115,8 @@ const handleFiles = async(files: FileList) => {
     local.foto = file
     local.linkImgProfile = URL.createObjectURL(file)
     local.isErrorFoto = false
+    const $form = profileForm.value
+    if($form?.foto) $form.foto.value = file
 }
 const profileValidator = zodResolver(z.object({
     nama_lengkap: z.string().min(1, 'Nama lengkap harus diisi!').max(50, 'Nama Lengkap maksimal 50 karakter'),
@@ -122,22 +150,21 @@ const updateProfileForm = async({ valid, states, reset }: any) => {
         reqType: 'Json',
         isNeedLoading: true,
         callbackResFn: () => {
-            const fotoCache = local.foto
-            // fetchDataS.cacheAuth.foto = undefined
-            fetchDataS.cacheAuth.nama_lengkap = states.nama_lengkap.value
-            fetchDataS.cacheAuth.jenis_kelamin = states.jenis_kelamin.value
-            fetchDataS.cacheAuth.no_telpon = states.no_telpon.value
-            fetchDataS.cacheAuth.email = states.email.value
-            // fetchDataS.cacheAuth.foto = fotoCache
-            reset()
         }
     })
     if(res.status == 'error'){
         toast.add({ severity: 'error', summary: 'Gagal Update Profile', detail: res.message, life: 3000 })
         return
     }
+    fetchDataS.cacheAuth.nama_lengkap = states.nama_lengkap.value
+    fetchDataS.cacheAuth.jenis_kelamin = states.jenis_kelamin.value
+    fetchDataS.cacheAuth.no_telpon = states.no_telpon.value
+    fetchDataS.cacheAuth.email = states.email.value
+    reset()
+    fetchDataS.clearDecryptedImage()
+    await nextTick()
     setTimeout(() => {
-        // fetchDataS.cacheAuth.foto = fotoCache
+        fetchDataS.setDecryptedImage(new Blob([states.foto.value], { type: 'image/jpeg' }))
         toast.add({ severity: 'success', summary: 'Berhasil Update Profile', detail: res.message, life: 3000 });
     }, 5)
 }
@@ -207,13 +234,16 @@ const updatePasswordForm = async({ valid, states, reset }: any) => {
                                 <div class="3xs:w-[85%] xs:w-[70%] phone:w-[55%] sm:w-[50%] md:w-[45%] lg:w-[35%] xl:w-[30%] 2xl:w-[25%] 3xs:h-30 sm:h-35 lg:h-40 xl:h-50 2xl:h-55 flex flex-col justify-center mx-auto cursor-pointer gap-2 rounded-lg" :class="{
                                     'border-black border-dashed border-3' : local.linkImgProfile === '' || local.isErrorFoto,
                                 }" @dragover.prevent="handleDragOverPersonal" @drop.prevent="handleDropPersonal" @click="handleFormClickPersonal">
-                                    <img :src="local.linkImgProfile" alt="" class="w-full h-full object-contain" :class="{ 'hidden': local.linkImgProfile === ''}" @load="local.isErrorFoto = false" @error="local.isErrorFoto = true">
+                                    <img :src="local.linkImgProfile" alt="" class="w-full h-full object-contain" :class="{ 'hidden': local.linkImgProfile === ''}" @load="local.isErrorFoto = false" @error="renderImgFallback">
                                     <I_Drop class="mt-2 h-15 relative top-2 pointer-events-none" :class="local.linkImgProfile !== '' && !local.isErrorFoto ? 'hidden' : ''"/>
                                     <span class="text-center text-lg" :class="local.linkImgProfile !== '' && !local.isErrorFoto ? 'hidden' : ''">Pilih atau jatuhkan file gambar</span>
                                     <input type="file" class="hidden" ref="fileInputProfile" @change="handleFileChangePersonal">
                                 </div>
                             </div>
                             <div class="flex flex-col gap-0.5 phone:gap-1 md:gap-2 xl:gap-2.5">
+                                <FormField name="foto" class="hidden">
+                                    <InputText id="foto" type="file" hidden/>
+                                </FormField>
                                 <FormField name="nama_lengkap" class="flex flex-col gap-0.25 !text-sm phone:!text-base md:!text-lg lg:!text-xl xl:!text-2xl">
                                     <label for="nama_lengkap">Nama</label>
                                     <InputText id="nama_lengkap" type="text" placeholder="Masukkan Nama Lengkap"/>

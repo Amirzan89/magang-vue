@@ -7,7 +7,7 @@ interface AuthData{
     jenis_kelamin: string,
     no_telpon: string,
     email: string,
-    foto: File,
+    // foto: File,
 }
 const { genIV, decryptRes } = useEncryption()
 const handleAuthResponse = async(res: any) => {
@@ -26,9 +26,10 @@ const handleAuthResponse = async(res: any) => {
 }
 export const useFetchDataStore = defineStore('FetchData', {
     state: () => ({
-        cacheAuth: {} as AuthData,
+        cacheAuth: {} as Partial<AuthData>,
         isAuth: false as boolean,
         isFirstTime: true as boolean,
+        imgUrl: null as string | null,
     }),
     actions: {
         async checkAuth(){
@@ -59,8 +60,18 @@ export const useFetchDataStore = defineStore('FetchData', {
         login(){
             this.isAuth = true
         },
+        setDecryptedImage(url: Blob){
+            if(this.imgUrl) URL.revokeObjectURL(this.imgUrl)
+            this.imgUrl = URL.createObjectURL(url)
+        },
+        clearDecryptedImage(){
+            if(this.imgUrl) URL.revokeObjectURL(this.imgUrl)
+            this.imgUrl = null
+        },
         logout(){
             this.isAuth = false
+            this.cacheAuth = {}
+            this.clearDecryptedImage()
         },
     },
 })

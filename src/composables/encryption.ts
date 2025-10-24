@@ -28,10 +28,22 @@ export default () => {
         const mac = new Uint8Array(await crypto.subtle.sign('HMAC', hmacKey, payload))
         return { iv: rsaComp.hexCus.enc(iv), data: cipherHex, mac: rsaComp.hexCus.enc(mac) }
     }
-    const decryptRes = (cipher: string, iv: string) => {
+    const decryptRes = (cipher: string, ivHex: string) => {
         const cipherParams = CryptoJS.lib.CipherParams.create({ ciphertext: CryptoJS.enc.Hex.parse(cipher) })
-        const decrypted = CryptoJS.AES.decrypt(cipherParams, CryptoJS.enc.Hex.parse(sessionStorage.aes_key), { iv: CryptoJS.enc.Hex.parse(iv) })
+        const decrypted = CryptoJS.AES.decrypt(cipherParams, CryptoJS.enc.Hex.parse(sessionStorage.aes_key), { iv: CryptoJS.enc.Hex.parse(ivHex), mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 })
         return JSON.parse(decrypted.toString(CryptoJS.enc.Utf8))
     }
-    return { genIV, encryptReq, decryptRes }
+    const decryptImg = (cipherHex: string, ivHex: string) => {
+        const cipherParams = CryptoJS.lib.CipherParams.create({ ciphertext: CryptoJS.enc.Hex.parse(cipherHex) })
+        const decrypted = CryptoJS.AES.decrypt(cipherParams, CryptoJS.enc.Hex.parse(sessionStorage.aes_key), { iv: CryptoJS.enc.Hex.parse(ivHex), mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 })
+        const wordArray = decrypted
+        const words = wordArray.words
+        const sigBytes = wordArray.sigBytes
+        const u8 = new Uint8Array(sigBytes)
+        for(let i = 0; i < sigBytes; i++){
+            u8[i] = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff
+        }
+        return new Blob([u8], { type: 'image/jpg' })
+    }
+    return { genIV, encryptReq, decryptRes, decryptImg }
 }
