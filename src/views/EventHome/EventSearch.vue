@@ -424,7 +424,7 @@ const metaDataLoading = {
                     <div class="flex-1 phone:flex-initial flex gap-2 lg:gap-3">
                         <InputText id="email" type="email" class="flex-1 sm:flex-initial sm:w-55 md:w-60 lg:w-[calc(0.25rem*65)] xl:w-70" :class="{ 'pointer-events-none': local.isFirstLoad }" placeholder="Cari Event" v-model="currentInput.search" @keyup.enter="formSearchFilter()"/>
                         <Button class="!px-1.75 rounded-md" @click="formSearchFilter()">Search</Button>
-                        <Button v-if="isMobile || isTablet" class="!px-1.75 rounded-md" :class="{ 'pointer-events-none': (displayMode != 'loading' && oldInput.search == '') || displayMode == 'empty' }" @click="isDialogOpen = true">Filters</Button>
+                        <Button v-if="isMobile || isTablet" class="!px-1.75 rounded-md" :class="{ 'pointer-events-none': local.isFirstLoad || ((displayMode != 'loading' && oldInput.search == '') || displayMode == 'empty') }" @click="isDialogOpen = true">Filters</Button>
                     </div>
                 </div>
                 <p class="!m-0" v-if="(displayMode == 'initial' || displayMode == 'loading' || displayMode == 'success') && oldInput.search != ''">
@@ -437,7 +437,7 @@ const metaDataLoading = {
                 </p>
             </div>
             <div class="flex gap-3 mt-1 lg:mt-2 xl:mt-3">
-                <Transition name="sidefilter" appear>
+                <Transition name="sidefilter" appear>///////
                     <Form v-if="isDesktop" v-show="displayMode == 'initial' || displayMode == 'loading' || displayMode == 'success'" :ref="el => SideFilterRef =  (el as ComponentPublicInstance)?.$el" class="sticky w-70 h-fit rounded-xl flex flex-col gap-2 pt-3 pb-5 pl-5 pr-5" style="background-color: #fff; box-shadow: 0px 18px 47px 0px rgba(0, 0, 0, 0.1); top: calc(var(--paddTop) + 10px);"/>
                 </Transition>
                 <CustomCardWithSkeletonComponent v-show="displayMode == 'success'" :metaData="metaDataSearch" :inpData="local.fetchData" :paralelRender="4" @lazy-data="lazyDataSearch">

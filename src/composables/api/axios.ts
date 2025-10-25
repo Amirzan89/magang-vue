@@ -100,6 +100,8 @@ const reqData = async({
                     case 302:
                         fetchDataS.login()
                         return { status: 'error', message: encr ? decryptRes(data?.message, encr.iv).message : data?.message, code: 302 }
+                    case 400:
+                        return { status: 'error', message: encr ? decryptRes(data?.message, encr.iv).message : data?.message, code: 400 }
                     case 401:
                         fetchDataS.logout()
                         return { status: 'error', message: encr ? decryptRes(data?.message, encr.iv).message : data?.message, code: 401 }

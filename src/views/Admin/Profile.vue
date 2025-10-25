@@ -2,7 +2,7 @@
 import * as z from 'zod'
 import { zodResolver } from "@primevue/forms/resolvers/zod"
 import { Form, FormField } from "@primevue/forms"
-import { onMounted, reactive, ref, type Ref, type ComponentPublicInstance, nextTick } from 'vue'
+import { onMounted, reactive, ref, type Ref, type ComponentPublicInstance, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import useAxios from '@/composables/api/axios'
 import RSAComposables from '@/composables/RSA'
@@ -14,6 +14,7 @@ import Im_DefaultGirl from '@/assets/images/default_girl.png'
 import I_Drop from '@/assets/icons/drop.svg'
 import I_eye from '@/assets/icons/eye.svg'
 import I_eye_slash from '@/assets/icons/eye-slash.svg'
+import { base64_encode } from '@/utils/Base64File'
 const route = useRoute()
 const router = useRouter()
 const { reqData } = useAxios()
@@ -66,20 +67,17 @@ onMounted(async() => {
             toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: resFoto.message, life: 3000 })
             return
         }
-        console.log('isi ressfot',resFoto)
         fetchDataS.setDecryptedImage(decryptImg(resFoto.message, iv))
     }
     local.linkImgProfile = fetchDataS.imgUrl ?? ''
-    // console.log('isii fet',fetchDataS.cacheAuth)
     const data = fetchDataS.cacheAuth
     await nextTick()
-    const $form = profileForm.value
-    if($form){
-        $form.nama_lengkap.value = data.nama_lengkap
-        $form.jenis_kelamin.value = data.jenis_kelamin
-        $form.no_telpon.value = data.no_telpon
-        $form.email.value = data.email
-    }
+    profileForm.value.setValues({
+        nama_lengkap: data.nama_lengkap,
+        jenis_kelamin: data.jenis_kelamin,
+        no_telpon: data.no_telpon,
+        email: data.email
+    })
 })
 const renderImgFallback = () => {
     if(!fetchDataS.cacheAuth) return Im_DefaultBoy
@@ -112,11 +110,9 @@ const handleFiles = async(files: FileList) => {
         toast.add({ severity: 'error', summary: 'Gagal Upload Foto', detail: 'Ukuran File Foto tidak bisa lebih dari 2MB', life: 3000 })
         return
     }
-    local.foto = file
+    profileForm.value.setFieldValue('foto', file)
     local.linkImgProfile = URL.createObjectURL(file)
     local.isErrorFoto = false
-    const $form = profileForm.value
-    if($form?.foto) $form.foto.value = file
 }
 const profileValidator = zodResolver(z.object({
     nama_lengkap: z.string().min(1, 'Nama lengkap harus diisi!').max(50, 'Nama Lengkap maksimal 50 karakter'),
@@ -137,6 +133,7 @@ const updateProfileForm = async({ valid, states, reset }: any) => {
     if(states.nama_lengkap.value === fetchDataS.cacheAuth.nama_lengkap && states.email.value === fetchDataS.cacheAuth.email && states.jenis_kelamin.value === fetchDataS.cacheAuth.jenis_kelamin && states.no_telpon.value === fetchDataS.cacheAuth.no_telpon && states.foto.value === null){
         return toast.add({ severity: 'error', summary: 'Gagal Update Profile', detail: 'Data belum diubah !', life: 3000 })
     }
+    const fileFoto = await base64_encode(states.foto.value)
     const res = await reqData({
         url: '/api/admin/update/profile',
         method: 'PUT',
@@ -145,12 +142,13 @@ const updateProfileForm = async({ valid, states, reset }: any) => {
             jenis_kelamin: states.jenis_kelamin.value,
             no_telpon: states.no_telpon.value,
             email_new: states.email.value !== fetchDataS.cacheAuth.email ? states.email.value : '',
-            foto: local.foto,
+            foto: {
+                data: fileFoto.data,
+                meta: fileFoto.meta
+            }
         },
         reqType: 'Json',
         isNeedLoading: true,
-        callbackResFn: () => {
-        }
     })
     if(res.status == 'error'){
         toast.add({ severity: 'error', summary: 'Gagal Update Profile', detail: res.message, life: 3000 })
@@ -160,11 +158,11 @@ const updateProfileForm = async({ valid, states, reset }: any) => {
     fetchDataS.cacheAuth.jenis_kelamin = states.jenis_kelamin.value
     fetchDataS.cacheAuth.no_telpon = states.no_telpon.value
     fetchDataS.cacheAuth.email = states.email.value
-    reset()
     fetchDataS.clearDecryptedImage()
     await nextTick()
     setTimeout(() => {
-        fetchDataS.setDecryptedImage(new Blob([states.foto.value], { type: 'image/jpeg' }))
+        const fileFoto = states.foto.value
+        fetchDataS.setDecryptedImage(new Blob([fileFoto], { type: fileFoto.typpeee }))
         toast.add({ severity: 'success', summary: 'Berhasil Update Profile', detail: res.message, life: 3000 });
     }, 5)
 }
@@ -229,10 +227,11 @@ const updatePasswordForm = async({ valid, states, reset }: any) => {
                 </TabList>
                 <TabPanels class="!p-2">
                     <TabPanel value="0">
-                        <Form :ref="el => profileForm =  (el as ComponentPublicInstance)?.$el" :resolver="profileValidator" @submit="updateProfileForm" v-slot="$form" class="flex flex-col gap-1 phone:gap-1.5 sm:gap-2 xl:gap-5 rounded-3xl">
+                        <Form ref="profileForm" :resolver="profileValidator" @submit="updateProfileForm" v-slot="$form" class="flex flex-col gap-1 phone:gap-1.5 sm:gap-2 xl:gap-5 rounded-3xl">
                             <div class="col-12 md:col-10">
                                 <div class="3xs:w-[85%] xs:w-[70%] phone:w-[55%] sm:w-[50%] md:w-[45%] lg:w-[35%] xl:w-[30%] 2xl:w-[25%] 3xs:h-30 sm:h-35 lg:h-40 xl:h-50 2xl:h-55 flex flex-col justify-center mx-auto cursor-pointer gap-2 rounded-lg" :class="{
                                     'border-black border-dashed border-3' : local.linkImgProfile === '' || local.isErrorFoto,
+                                    'pointer-events-none': !local.isWUpProfile,
                                 }" @dragover.prevent="handleDragOverPersonal" @drop.prevent="handleDropPersonal" @click="handleFormClickPersonal">
                                     <img :src="local.linkImgProfile" alt="" class="w-full h-full object-contain" :class="{ 'hidden': local.linkImgProfile === ''}" @load="local.isErrorFoto = false" @error="renderImgFallback">
                                     <I_Drop class="mt-2 h-15 relative top-2 pointer-events-none" :class="local.linkImgProfile !== '' && !local.isErrorFoto ? 'hidden' : ''"/>
@@ -245,30 +244,30 @@ const updatePasswordForm = async({ valid, states, reset }: any) => {
                                     <InputText id="foto" type="file" hidden/>
                                 </FormField>
                                 <FormField name="nama_lengkap" class="flex flex-col gap-0.25 !text-sm phone:!text-base md:!text-lg lg:!text-xl xl:!text-2xl">
-                                    <label for="nama_lengkap">Nama</label>
-                                    <InputText id="nama_lengkap" type="text" placeholder="Masukkan Nama Lengkap"/>
+                                    <label for="nama_lengkap">Nama Lengkap</label>
+                                    <InputText id="nama_lengkap" type="text" placeholder="Masukkan Nama Lengkap" :class="{ 'pointer-events-none': !local.isWUpProfile }"/>
                                 </FormField>
                                 <div class="flex gap-3">
                                     <FormField name="jenis_kelamin" class="flex-1 flex flex-col gap-0.25 !text-sm phone:!text-base md:!text-lg lg:!text-xl xl:!text-2xl">
                                         <label for="jenis_kelamin">Jenis Kelamin</label>
-                                        <InputText id="jenis_kelamin" type="email" placeholder="Enter Email Address"/>
+                                        <InputText id="jenis_kelamin" type="text" placeholder="Enter Email Address" :class="{ 'pointer-events-none': !local.isWUpProfile }"/>
                                     </FormField>
                                     <FormField name="no_telpon" class="flex-1 flex flex-col gap-0.25 !text-sm phone:!text-base md:!text-lg lg:!text-xl xl:!text-2xl">
                                         <label for="no_telpon">No Telpon</label>
-                                        <InputText id="no_telpon" type="text" placeholder="Masukkan Nomor Telepon" @input="formatNoProfile($form)"/>
+                                        <InputText id="no_telpon" type="text" placeholder="Masukkan Nomor Telepon" :class="{ 'pointer-events-none': !local.isWUpProfile }" @input="formatNoProfile($form)"/>
                                     </FormField>
                                 </div>
                                 <FormField name="email" class="flex flex-col gap-0.25 !text-sm phone:!text-base md:!text-lg lg:!text-xl xl:!text-2xl">
                                     <label for="email">Email Address</label>
-                                    <InputText id="email" type="email" placeholder="Enter Email Address"/>
+                                    <InputText id="email" type="email" placeholder="Enter Email Address" :class="{ 'pointer-events-none': !local.isWUpProfile }"/>
                                 </FormField>
                             </div>
                             <div>
-                                <div v-if="local.isWUpProfile">
+                                <div v-show="local.isWUpProfile">
                                     <Button type="button" label="Cancel Update" class="!w-full mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm lg:!rounded-[17px] !text-sm sm:!text-base lg:!text-lg xl:!text-xl !font-normal" @click="local.isWUpProfile = false"/>
                                     <Button type="submit" label="Update Profile" class="!w-full mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm lg:!rounded-[17px] !text-sm sm:!text-base lg:!text-lg xl:!text-xl !font-normal"/>
                                 </div>
-                                <Button type="button" label="Edit Profile" class="!w-full mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm lg:!rounded-[17px] !text-sm sm:!text-base lg:!text-lg xl:!text-xl !font-normal" @click="local.isWUpProfile = true"/>
+                                <Button v-show="!local.isWUpProfile" type="button" label="Edit Profile" class="!w-full mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm lg:!rounded-[17px] !text-sm sm:!text-base lg:!text-lg xl:!text-xl !font-normal" @click="local.isWUpProfile = true"/>
                             </div>
                         </Form>
                     </TabPanel>
