@@ -1,10 +1,11 @@
 import{ type Router } from 'vue-router'
 import { useFetchDataStore } from '@/stores/FetchData'
 const publicRoutes = ['/', '/about', '/events', '/search', '/login', '/password/reset', '/verify/password', '/verify/email']
-const publicPrefixes = ['/event/']
+const publicPrefixes = ['/event/', '/booking/']
 export function setupGuards(router: Router){
     router.beforeEach(async(to) => {
         const fetchDataS = useFetchDataStore()
+        console.log('isii fetchh', fetchDataS.isFirstTime)
         if(fetchDataS.isFirstTime){
             await fetchDataS.checkAuth()
         }

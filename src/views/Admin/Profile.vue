@@ -25,7 +25,7 @@ const toast = useToast()
 const local = reactive({
     isWUpProfile: false,
     foto: null as File | null,
-    linkImgProfile: '' as string,
+    linkImgProfile: fetchDataS.imgUrl || '' as string,
     isErrorFoto: false as boolean,
     isPasswordLamaShow: false,
     isPasswordBaruShow: false,
@@ -34,49 +34,13 @@ const local = reactive({
 const profileForm: Ref = ref(null)
 const fileInputProfile: Ref = ref(null)
 onMounted(async() => {
-    if(Object.keys(fetchDataS.cacheAuth).length === 0){
-        const res = await reqData({
-            url: '/api' + route.path,
-            method: 'POST',
-            reqType: 'Json',
-        })
-        if(res.status == 'error'){
-            if(res.code === 401){
-                toast.add({ severity: 'error', summary: 'Gagal Autentikasi', detail: 'Sesi telah habis, silahkan login kembali !', life: 3000 })
-                setTimeout(() => {
-                    return router.push('/login')
-                }, 3000)
-            }
-            toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, life: 3000 })
-            return
-        }
-        fetchDataS.cacheAuth = res.data
-        const iv = rsaComp.hexCus.enc(await genIV())
-        const resFoto = await reqData({
-            url: '/api/admin/download/foto-profile',
-            headers: { 'X-Auth-Check': 'true', 'X-UniqueId': iv },
-            isEncrypt: false,
-        })
-        if(resFoto.status == 'error'){
-            if(resFoto.code === 401){
-                toast.add({ severity: 'error', summary: 'Gagal Autentikasi', detail: 'Sesi telah habis, silahkan login kembali !', life: 3000 })
-                setTimeout(() => {
-                    return router.push('/login')
-                }, 3000)
-            }
-            toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: resFoto.message, life: 3000 })
-            return
-        }
-        fetchDataS.setDecryptedImage(decryptImg(resFoto.message, iv))
-    }
     local.linkImgProfile = fetchDataS.imgUrl ?? ''
-    const data = fetchDataS.cacheAuth
     await nextTick()
     profileForm.value.setValues({
-        nama_lengkap: data.nama_lengkap,
-        jenis_kelamin: data.jenis_kelamin,
-        no_telpon: data.no_telpon,
-        email: data.email
+        nama_lengkap: fetchDataS.cacheAuth.nama_lengkap,
+        jenis_kelamin: fetchDataS.cacheAuth.jenis_kelamin,
+        no_telpon: fetchDataS.cacheAuth.no_telpon,
+        email: fetchDataS.cacheAuth.email
     })
 })
 const renderImgFallback = () => {
