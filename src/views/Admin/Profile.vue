@@ -29,6 +29,7 @@ const local = reactive({
     isLoadingImgShow: true,
     linkImgShow: '' as string,
     isShowOverlay: false,
+    isHoveringOverlay: false,
     linkImgProfile: '' as string,
     isErrorFoto: false as boolean,
     isPasswordLamaShow: false,
@@ -298,8 +299,10 @@ const updatePasswordForm = async({ valid, states, reset }: any) => {
                                 <div class="relative w-full 3xs:w-[85%] xs:w-[70%] phone:w-[55%] sm:w-[50%] md:w-[45%] lg:w-[35%] xl:w-[30%] 2xl:w-[25%] h-30 3xs:h-35 sm:h-35 md:h-37 lg:h-42 xl:h-50 2xl:h-55 flex flex-col justify-center items-center mx-auto cursor-pointer gap-2 rounded-lg" :class="{
                                     'border-black border-dashed border-3' : local.linkImgProfile === '' || local.isErrorFoto,
                                 }" @dragover.prevent="local.linkImgProfile === '' && handleDragOverPersonal($event)" @drop.prevent="local.linkImgProfile === '' && handleDropPersonal($event)" @click="handleFormClickPersonal">
-                                    <div v-if="local.linkImgProfile !== ''" v-show="local.isShowOverlay" class="absolute inset-0 backdrop-blur-xs sm:backdrop-blur-none hover:sm:backdrop-blur-xs z-20 flex items-center justify-center transition">
-                                        <I_Close v-show="breakpoints.greater('sm') || local.isShowOverlay" class="size-7 sm:size-8 md:size-9 lg:size-10 p-1.25 bg-red-500 sm:bg-transparent hover:sm:bg-red-500 text-white sm:text-transparent hover:sm:text-white rounded-full shadow-md sm:shadow-none hover:sm:shadow-md cursor-pointer transition" @click.stop="delFile"></I_Close>
+                                    <div v-if="local.linkImgProfile !== ''" v-show="local.isShowOverlay" class="absolute inset-0 backdrop-blur-xs sm:backdrop-blur-none z-20 flex items-center justify-center transition" :class="{ 'sm:backdrop-blur-xs': local.isHoveringOverlay }">
+                                        <div class="size-[45%] rounded-full flex items-center justify-center" @mouseenter="local.isHoveringOverlay = true" @mouseleave="local.isHoveringOverlay = false">
+                                            <I_Close v-show="breakpoints.greater('sm') || local.isShowOverlay" class="size-7 sm:size-8 md:size-9 lg:size-10 p-1.25 bg-red-500 sm:bg-transparent hover:sm:bg-red-500 text-white sm:text-transparent hover:sm:text-white rounded-full shadow-md sm:shadow-none hover:sm:shadow-md cursor-pointer transition" @click.stop="delFile"></I_Close>
+                                        </div>
                                     </div>
                                     <img :src="local.linkImgProfile" alt="" class="w-full h-full object-contain" :class="{ 'hidden': local.linkImgProfile === ''}" @load="local.isErrorFoto = false" @error="renderImgFallback">
                                     <img src="@/assets/images/drop.png" class="size-12.5 phone:size-14 sm:size-16 md:size-18 lg:size-20 xl:size-23 2xl:size-25" :class="local.linkImgProfile !== '' && !local.isErrorFoto ? 'hidden' : ''"/>

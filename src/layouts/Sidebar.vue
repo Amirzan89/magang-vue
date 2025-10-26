@@ -77,9 +77,9 @@ const logoutForm = async() => {
                 </template>
             </ul>
         </ul>
-        <Button variant="outlined" class="px-2.5 flex !justify-start !items-center !gap-1.5 cursor-pointer" @click="logoutForm">
+        <Button variant="outlined" class="px-2.5 flex !justify-start !items-center !gap-1.5 !border-none cursor-pointer" @click="logoutForm">
             <i class="pi pi-fw pi-home !text-[18px]"></i>
-            <span class="text-base sm:text-lg lg:text-xl xl:text-2xl">Logout</span>
+            <span class="text-base">Logout</span>
         </Button>
     </div>
 </template>

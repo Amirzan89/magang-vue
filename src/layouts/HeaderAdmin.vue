@@ -31,9 +31,10 @@ const renderImgFallback = () => {
             </button>
             <div class="layout-topbar-menu hidden lg:block">
                 <div class="layout-topbar-menu-content">
-                    <RouterLink to="/profile" class="layout-topbar-action hover:!bg-transparent">
-                        <img v-if="fetchDataS.imgUrl" :src="fetchDataS.imgUrl" @error="renderImgFallback" alt="Foto Profil" class="rounded-full object-cover"/>
+                    <RouterLink to="/profile" class="layout-topbar-action flex gap-3 lg:block hover:lg:!bg-transparent">
+                        <img v-if="fetchDataS.imgUrl" :src="fetchDataS.imgUrl" @error="renderImgFallback" alt="Foto Profil" class="size-7 lg:size-full rounded-full object-cover"/>
                         <img v-else :src="renderImgFallback" alt="Default" class="rounded-full object-cover"/>
+                        <span class="hidden lg:block">Profile</span>
                     </RouterLink>
                 </div>
             </div>
