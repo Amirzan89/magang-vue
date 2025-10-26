@@ -5,7 +5,6 @@ const publicPrefixes = ['/event/', '/booking/']
 export function setupGuards(router: Router){
     router.beforeEach(async(to) => {
         const fetchDataS = useFetchDataStore()
-        console.log('isii fetchh', fetchDataS.isFirstTime)
         if(fetchDataS.isFirstTime){
             await fetchDataS.checkAuth()
         }

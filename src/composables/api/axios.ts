@@ -106,7 +106,7 @@ const reqData = async({
                         fetchDataS.logout()
                         return { status: 'error', message: encr ? decryptRes(data?.message, encr.iv).message : data?.message, code: 401 }
                     case 404:
-                        return { status: 'error', message: 'Not found', code: 404 }
+                        return { status: 'error', message: (encr ? decryptRes(data?.message, encr.iv).message : data?.message) ?? 'Not found', code: 404 }
                     case 419:
                     case 429:
                         if (retryCount < maxRetry) {

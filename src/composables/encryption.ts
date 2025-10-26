@@ -33,17 +33,17 @@ export default () => {
         const decrypted = CryptoJS.AES.decrypt(cipherParams, CryptoJS.enc.Hex.parse(sessionStorage.aes_key), { iv: CryptoJS.enc.Hex.parse(ivHex), mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 })
         return JSON.parse(decrypted.toString(CryptoJS.enc.Utf8))
     }
-    const decryptImg = (cipherHex: string, ivHex: string) => {
-        const cipherParams = CryptoJS.lib.CipherParams.create({ ciphertext: CryptoJS.enc.Hex.parse(cipherHex) })
-        const decrypted = CryptoJS.AES.decrypt(cipherParams, CryptoJS.enc.Hex.parse(sessionStorage.aes_key), { iv: CryptoJS.enc.Hex.parse(ivHex), mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 })
-        const wordArray = decrypted
-        const words = wordArray.words
-        const sigBytes = wordArray.sigBytes
-        const u8 = new Uint8Array(sigBytes)
-        for(let i = 0; i < sigBytes; i++){
-            u8[i] = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff
-        }
-        return new Blob([u8], { type: 'image/jpg' })
-    }
-    return { genIV, encryptReq, decryptRes, decryptImg }
+    // const decryptImg = (cipherHex: string, ivHex: string) => {
+    //     const cipherParams = CryptoJS.lib.CipherParams.create({ ciphertext: CryptoJS.enc.Hex.parse(cipherHex) })
+    //     const decrypted = CryptoJS.AES.decrypt(cipherParams, CryptoJS.enc.Hex.parse(sessionStorage.aes_key), { iv: CryptoJS.enc.Hex.parse(ivHex), mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 })
+    //     const wordArray = decrypted
+    //     const words = wordArray.words
+    //     const sigBytes = wordArray.sigBytes
+    //     const u8 = new Uint8Array(sigBytes)
+    //     for(let i = 0; i < sigBytes; i++){
+    //         u8[i] = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff
+    //     }
+    //     return new Blob([u8], { type: 'image/jpg' })
+    // }
+    return { genIV, encryptReq, decryptRes }
 }

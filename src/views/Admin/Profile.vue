@@ -9,6 +9,7 @@ import RSAComposables from '@/composables/RSA'
 import useEncryption from '@/composables/encryption'
 import { useFetchDataStore } from '@/stores/FetchData'
 import { useToast } from 'primevue/usetoast'
+import{ isImageFile, base64_decode_to_blob, type Base64File } from '@/utils/Base64File'
 import Im_DefaultBoy from '@/assets/images/default_boy.jpg'
 import Im_DefaultGirl from '@/assets/images/default_girl.png'
 import I_Drop from '@/assets/icons/drop.svg'
@@ -19,7 +20,7 @@ const route = useRoute()
 const router = useRouter()
 const { reqData } = useAxios()
 const rsaComp = RSAComposables()
-const { genIV, decryptImg } = useEncryption()
+const { genIV, decryptRes } = useEncryption()
 const fetchDataS = useFetchDataStore()
 const toast = useToast()
 const local = reactive({
@@ -34,14 +35,53 @@ const local = reactive({
 const profileForm: Ref = ref(null)
 const fileInputProfile: Ref = ref(null)
 onMounted(async() => {
-    local.linkImgProfile = fetchDataS.imgUrl ?? ''
+    const res = await reqData({
+        url: '/api' + route.path,
+        method: 'POST',
+        reqType: 'Json',
+    })
+    if(res.status == 'error'){
+        if(res.code === 401){
+            toast.add({ severity: 'error', summary: 'Gagal Autentikasi', detail: 'Sesi telah habis, silahkan login kembali !', life: 3000 })
+            setTimeout(() => router.push('/login'), 3000)
+            return
+        }
+        toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, life: 3000 })
+        return
+    }
+    const iv = rsaComp.hexCus.enc(await genIV())
+    let resFoto = await reqData({
+        url: '/api/admin/download/foto-profile',
+        headers: { 'X-Auth-Check': 'true', 'X-UniqueId': iv },
+        isEncrypt: false,
+    })
+    const decrypted = decryptRes(resFoto.message, iv)
+    resFoto = {
+        ...resFoto,
+        message: decrypted.message,
+        data: decrypted.data,
+    }
+    if(resFoto.status == 'error'){
+        if(resFoto.code === 401){
+            toast.add({ severity: 'error', summary: 'Gagal Autentikasi', detail: 'Sesi telah habis, silahkan login kembali !', life: 3000 })
+            setTimeout(() => router.push('/login'), 3000)
+            return
+        }
+        if(resFoto.code !== 404){
+            toast.add({ severity: 'error', summary: 'Gagal Ambil Foto Profile', detail: resFoto.message, life: 3000 })
+        }
+    }
+    local.linkImgProfile = res.data.jenis_kelamin === 'perempuan' ? Im_DefaultGirl : Im_DefaultBoy
+    resFoto.data && resFoto.data !== null && isImageFile(resFoto.data.meta) ? fetchDataS.setDecryptedImage(base64_decode_to_blob(resFoto.data)) : fetchDataS.clearDecryptedImage()
+    local.linkImgProfile = fetchDataS.imgUrl ?? (res.data.jenis_kelamin === 'perempuan' ? Im_DefaultGirl : Im_DefaultBoy)
     await nextTick()
     profileForm.value.setValues({
-        nama_lengkap: fetchDataS.cacheAuth.nama_lengkap,
-        jenis_kelamin: fetchDataS.cacheAuth.jenis_kelamin,
-        no_telpon: fetchDataS.cacheAuth.no_telpon,
-        email: fetchDataS.cacheAuth.email
+        nama_lengkap: res.data.nama_lengkap,
+        jenis_kelamin: res.data.jenis_kelamin,
+        no_telpon: res.data.no_telpon,
+        email: res.data.email
     })
+    fetchDataS.cacheAuth = res.data
 })
 const renderImgFallback = () => {
     if(!fetchDataS.cacheAuth) return Im_DefaultBoy
@@ -122,11 +162,11 @@ const updateProfileForm = async({ valid, states, reset }: any) => {
     fetchDataS.cacheAuth.jenis_kelamin = states.jenis_kelamin.value
     fetchDataS.cacheAuth.no_telpon = states.no_telpon.value
     fetchDataS.cacheAuth.email = states.email.value
-    fetchDataS.clearDecryptedImage()
+    // fetchDataS.clearDecryptedImage()
     await nextTick()
     setTimeout(() => {
         const fileFoto = states.foto.value
-        fetchDataS.setDecryptedImage(new Blob([fileFoto], { type: fileFoto.typpeee }))
+        // fetchDataS.setDecryptedImage(new Blob([fileFoto], { type: fileFoto.typpeee }))
         toast.add({ severity: 'success', summary: 'Berhasil Update Profile', detail: res.message, life: 3000 });
     }, 5)
 }

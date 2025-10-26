@@ -12,7 +12,7 @@ interface AuthData{
     email: string
     foto: Base64File | null,
 }
-const { genIV, decryptRes, decryptImg } = useEncryption()
+const { genIV, decryptRes } = useEncryption()
 const handleAuthResponse = async(res: any) => {
     const code = res?.code ?? 200
     const data = res?.data ?? ''
@@ -38,7 +38,6 @@ export const useFetchDataStore = defineStore('FetchData', {
         async checkAuth(){
             const { reqData } = useAxios()
             const rsaComp = RSAComposables()
-            console.log('check authh')
             try{
                 if(this.isFirstTime && !sessionStorage.aes_key && !sessionStorage.hmac_key){
                     await rsaComp.handshake()
@@ -54,25 +53,16 @@ export const useFetchDataStore = defineStore('FetchData', {
                     const handARes = await handleAuthResponse(res)
                     this.isAuth = handARes.isAuth
                     this.cacheAuth = handARes.data
-                    if(this.cacheAuth && this.cacheAuth.foto !== null && isImageFile(this.cacheAuth.foto!.meta)){
-                        this.setDecryptedImage(base64_decode_to_blob(this.cacheAuth.foto!))
+                    if(this.cacheAuth.foto && this.cacheAuth.foto !== null && isImageFile(this.cacheAuth.foto.meta)){
+                        this.setDecryptedImage(base64_decode_to_blob(this.cacheAuth.foto))
                     }else{
-                        if(this.cacheAuth.jenis_kelamin){
-                            if(this.cacheAuth.jenis_kelamin == 'laki-laki'){
-                                this.imgUrl = Im_DefaultBoy
-                            }else{
-                                this.imgUrl = Im_DefaultGirl
-                            }
-                        }else{
-                            this.imgUrl = Im_DefaultBoy
-                        }
+                        this.imgUrl = this.cacheAuth.jenis_kelamin === 'perempuan' ? Im_DefaultGirl : Im_DefaultBoy
                     }
                 }
-                if(this.isFirstTime) this.isFirstTime = false
-                return
             }catch(err){
                 this.isAuth = false
-                return
+            }finally{
+                this.isFirstTime = false
             }
         },
         login(){
