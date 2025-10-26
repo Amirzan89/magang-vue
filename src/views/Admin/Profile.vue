@@ -9,10 +9,11 @@ import RSAComposables from '@/composables/RSA'
 import useEncryption from '@/composables/encryption'
 import { useFetchDataStore } from '@/stores/FetchData'
 import { useToast } from 'primevue/usetoast'
+import { width, breakpoints } from '@/composables/useScreenSize'
 import{ isImageFile, base64_decode_to_blob, type Base64File } from '@/utils/Base64File'
 import Im_DefaultBoy from '@/assets/images/default_boy.jpg'
 import Im_DefaultGirl from '@/assets/images/default_girl.png'
-import I_Drop from '@/assets/icons/drop.svg'
+import I_Close from '@/assets/icons/close.svg'
 import I_eye from '@/assets/icons/eye.svg'
 import I_eye_slash from '@/assets/icons/eye-slash.svg'
 import { base64_encode } from '@/utils/Base64File'
@@ -24,9 +25,11 @@ const { genIV, decryptRes } = useEncryption()
 const fetchDataS = useFetchDataStore()
 const toast = useToast()
 const local = reactive({
-    isWUpProfile: false,
-    foto: null as File | null,
-    linkImgProfile: fetchDataS.imgUrl || '' as string,
+    isFirstTime: true,
+    isLoadingImgShow: true,
+    linkImgShow: '' as string,
+    isShowOverlay: false,
+    linkImgProfile: '' as string,
     isErrorFoto: false as boolean,
     isPasswordLamaShow: false,
     isPasswordBaruShow: false,
@@ -34,7 +37,15 @@ const local = reactive({
 })
 const profileForm: Ref = ref(null)
 const fileInputProfile: Ref = ref(null)
+const itemsGender = ref([
+    { name: 'Laki-laki', value: 'laki-laki' },
+    { name: 'Perempuan', value: 'perempuan' },
+])
 nextTick(() => {
+    local.isFirstTime = false
+    local.linkImgProfile = fetchDataS.imgUrl || ''
+    local.linkImgShow = fetchDataS.imgUrl || ''
+    console.log(profileForm.value)
     profileForm.value.setValues({
         nama_lengkap: fetchDataS.cacheAuth.nama_lengkap,
         jenis_kelamin: fetchDataS.cacheAuth.jenis_kelamin,
@@ -79,9 +90,10 @@ onBeforeMount(async() => {
             toast.add({ severity: 'error', summary: 'Gagal Ambil Foto Profile', detail: resFoto.message, life: 3000 })
         }
     }
-    local.linkImgProfile = res.data.jenis_kelamin === 'perempuan' ? Im_DefaultGirl : Im_DefaultBoy
     resFoto.data && resFoto.data !== null && isImageFile(resFoto.data.meta) ? fetchDataS.setDecryptedImage(base64_decode_to_blob(resFoto.data)) : fetchDataS.clearDecryptedImage()
-    local.linkImgProfile = fetchDataS.imgUrl ?? (res.data.jenis_kelamin === 'perempuan' ? Im_DefaultGirl : Im_DefaultBoy)
+    if(local.isFirstTime){
+        local.linkImgProfile = fetchDataS.imgUrl ?? (res.data.jenis_kelamin === 'perempuan' ? Im_DefaultGirl : Im_DefaultBoy)
+    }
     await nextTick()
     profileForm.value.setValues({
         nama_lengkap: res.data.nama_lengkap,
@@ -96,7 +108,12 @@ const renderImgFallback = () => {
     return fetchDataS.cacheAuth.jenis_kelamin == 'laki-laki' ? Im_DefaultBoy : Im_DefaultGirl
 }
 const handleFormClickPersonal = () => {
-    fileInputProfile.value.click()
+    if(local.linkImgProfile){
+        if(breakpoints.greater('sm').value) return
+        local.isShowOverlay = !local.isShowOverlay
+    }else{
+        fileInputProfile.value.click()
+    }
 }
 const handleFileChangePersonal = (event: any) => {
     handleFiles(event.target.files)
@@ -124,6 +141,17 @@ const handleFiles = async(files: FileList) => {
     }
     profileForm.value.setFieldValue('foto', file)
     local.linkImgProfile = URL.createObjectURL(file)
+    local.isErrorFoto = false
+    local.isShowOverlay = false
+}
+watch(width, () => {
+    local.isShowOverlay = breakpoints.greater('sm').value ? true : false
+}, { immediate: true })
+const delFile = async() => {
+    if(local.isFirstTime) return
+    URL.revokeObjectURL(local.linkImgProfile)
+    local.linkImgProfile = ''
+    profileForm.value.setFieldValue('foto', null)
     local.isErrorFoto = false
 }
 const profileValidator = zodResolver(z.object({
@@ -166,15 +194,16 @@ const updateProfileForm = async({ valid, states, reset }: any) => {
         toast.add({ severity: 'error', summary: 'Gagal Update Profile', detail: res.message, life: 3000 })
         return
     }
+    local.linkImgShow = local.linkImgProfile
     fetchDataS.cacheAuth.nama_lengkap = states.nama_lengkap.value
     fetchDataS.cacheAuth.jenis_kelamin = states.jenis_kelamin.value
     fetchDataS.cacheAuth.no_telpon = states.no_telpon.value
     fetchDataS.cacheAuth.email = states.email.value
-    // fetchDataS.clearDecryptedImage()
+    fetchDataS.clearDecryptedImage()
     await nextTick()
     setTimeout(() => {
         const fileFoto = states.foto.value
-        // fetchDataS.setDecryptedImage(new Blob([fileFoto], { type: fileFoto.typpeee }))
+        fetchDataS.setDecryptedImage(new Blob([fileFoto], { type: fileFoto.type }))
         toast.add({ severity: 'success', summary: 'Berhasil Update Profile', detail: res.message, life: 3000 });
     }, 5)
 }
@@ -226,28 +255,55 @@ const updatePasswordForm = async({ valid, states, reset }: any) => {
     }
     toast.add({ severity: 'success', summary: 'Berhasil Update Password', detail: res.message, life: 3000 })
 }
-
 </script>
 <template>
-    <section class="flex flex-col gap-5">
-        <h1>Profile</h1>
-        <div class="card !p-4" style="box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.35);">
+    <section class="flex flex-col sm:gap-0.5 md:gap-1 lg:gap-1.5">
+        <h1 class="!p-0 !m-0 !text-xl sm:!text-2xl lg:!text-3xl xl:!text-4xl">Profile</h1>
+        <div class="card !pt-0 !px-3 !pb-4" style="box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.35);">
             <Tabs value="0">
                 <TabList>
                     <Tab value="0">Profile</Tab>
-                    <Tab value="1">Updae Password</Tab>
+                    <Tab value="1">Update Profile</Tab>
+                    <Tab value="2">Update Password</Tab>
                 </TabList>
                 <TabPanels class="!p-2">
                     <TabPanel value="0">
-                        <Form ref="profileForm" :resolver="profileValidator" @submit="updateProfileForm" v-slot="$form" class="flex flex-col gap-1 phone:gap-1.5 sm:gap-2 xl:gap-5 rounded-3xl">
+                        <div class="flex items-center 3xs:h-30 sm:h-35 lg:h-40 xl:h-50 2xl:h-55 mb-4">
+                            <div class="relative 3xs:w-[85%] xs:w-[70%] phone:w-[55%] sm:w-[50%] md:w-[40%] lg:w-[32%] xl:w-[30%] 2xl:w-[25%] 3xs:h-30 sm:h-35 lg:h-40 xl:h-50 2xl:h-55 flex flex-col justify-center mx-auto cursor-pointer gap-2 rounded-lg">
+                                <Skeleton v-if="local.isLoadingImgShow || local.linkImgShow == ''" shape="rectangle" width="100%" height="100%" borderRadius="20px"/>
+                                <img :src="local.linkImgShow" alt="" class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-full h-full object-contain" :class="{ 'hidden': local.linkImgShow === ''}" @load="local.isLoadingImgShow = false" @error="local.isLoadingImgShow = false"/>
+                            </div>
+                        </div>
+                        <div class="ml-[2%] grid grid-cols-[auto_auto_1fr] gap-x-2 gap-y-1 !text-sm sm:!text-base lg:!text-lg xl:!text-xl items-start">
+                            <p class="!m-0">Nama Lengkap</p>
+                            <span class="text-center w-2">:</span>
+                            <p class="!m-0">{{ profileForm?.states.nama_lengkap.value }}</p>
+
+                            <p class="!m-0">Jenis Kelamin</p>
+                            <span class="text-center w-2">:</span>
+                            <p class="!m-0">{{ profileForm?.states.jenis_kelamin.value }}</p>
+
+                            <p class="!m-0">No Telpon</p>
+                            <span class="text-center w-2">:</span>
+                            <p class="!m-0">{{ profileForm?.states.no_telpon.value }}</p>
+
+                            <p class="!m-0">Email</p>
+                            <span class="text-center w-2">:</span>
+                            <p class="!m-0">{{ profileForm?.states.email.value }}</p>
+                        </div>
+                    </TabPanel>
+                    <TabPanel value="1">
+                        <Form ref="profileForm" :resolver="profileValidator" @submit="updateProfileForm" v-slot="$form" class="flex flex-col gap-3 sm:gap-4 xl:gap-5 rounded-3xl">
                             <div class="col-12 md:col-10">
-                                <div class="3xs:w-[85%] xs:w-[70%] phone:w-[55%] sm:w-[50%] md:w-[45%] lg:w-[35%] xl:w-[30%] 2xl:w-[25%] 3xs:h-30 sm:h-35 lg:h-40 xl:h-50 2xl:h-55 flex flex-col justify-center mx-auto cursor-pointer gap-2 rounded-lg" :class="{
+                                <div class="relative w-full 3xs:w-[85%] xs:w-[70%] phone:w-[55%] sm:w-[50%] md:w-[45%] lg:w-[35%] xl:w-[30%] 2xl:w-[25%] h-30 3xs:h-35 sm:h-35 md:h-37 lg:h-42 xl:h-50 2xl:h-55 flex flex-col justify-center items-center mx-auto cursor-pointer gap-2 rounded-lg" :class="{
                                     'border-black border-dashed border-3' : local.linkImgProfile === '' || local.isErrorFoto,
-                                    'pointer-events-none': !local.isWUpProfile,
-                                }" @dragover.prevent="handleDragOverPersonal" @drop.prevent="handleDropPersonal" @click="handleFormClickPersonal">
+                                }" @dragover.prevent="local.linkImgProfile === '' && handleDragOverPersonal($event)" @drop.prevent="local.linkImgProfile === '' && handleDropPersonal($event)" @click="handleFormClickPersonal">
+                                    <div v-if="local.linkImgProfile !== ''" v-show="local.isShowOverlay" class="absolute inset-0 backdrop-blur-xs sm:backdrop-blur-none hover:sm:backdrop-blur-xs z-20 flex items-center justify-center transition">
+                                        <I_Close v-show="breakpoints.greater('sm') || local.isShowOverlay" class="size-7 sm:size-8 md:size-9 lg:size-10 p-1.25 bg-red-500 sm:bg-transparent hover:sm:bg-red-500 text-white sm:text-transparent hover:sm:text-white rounded-full shadow-md sm:shadow-none hover:sm:shadow-md cursor-pointer transition" @click.stop="delFile"></I_Close>
+                                    </div>
                                     <img :src="local.linkImgProfile" alt="" class="w-full h-full object-contain" :class="{ 'hidden': local.linkImgProfile === ''}" @load="local.isErrorFoto = false" @error="renderImgFallback">
-                                    <I_Drop class="mt-2 h-15 relative top-2 pointer-events-none" :class="local.linkImgProfile !== '' && !local.isErrorFoto ? 'hidden' : ''"/>
-                                    <span class="text-center text-lg" :class="local.linkImgProfile !== '' && !local.isErrorFoto ? 'hidden' : ''">Pilih atau jatuhkan file gambar</span>
+                                    <img src="@/assets/images/drop.png" class="size-12.5 phone:size-14 sm:size-16 md:size-18 lg:size-20 xl:size-23 2xl:size-25" :class="local.linkImgProfile !== '' && !local.isErrorFoto ? 'hidden' : ''"/>
+                                    <span class="w-[70%] phone:w-full text-center text-base sm:text-lg lg:text-xl" :class="local.linkImgProfile !== '' && !local.isErrorFoto ? 'hidden' : ''">Pilih file atau jatuhkan gambar</span>
                                     <input type="file" class="hidden" ref="fileInputProfile" @change="handleFileChangePersonal">
                                 </div>
                             </div>
@@ -255,37 +311,31 @@ const updatePasswordForm = async({ valid, states, reset }: any) => {
                                 <FormField name="foto" class="hidden">
                                     <InputText id="foto" type="file" hidden/>
                                 </FormField>
-                                <FormField name="nama_lengkap" class="flex flex-col gap-0.25 !text-sm phone:!text-base md:!text-lg lg:!text-xl xl:!text-2xl">
+                                <FormField name="nama_lengkap" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
                                     <label for="nama_lengkap">Nama Lengkap</label>
-                                    <InputText id="nama_lengkap" type="text" placeholder="Masukkan Nama Lengkap" :class="{ 'pointer-events-none': !local.isWUpProfile }"/>
+                                    <InputText id="nama_lengkap" type="text" placeholder="Masukkan Nama Lengkap"/>
                                 </FormField>
-                                <div class="flex gap-3">
-                                    <FormField name="jenis_kelamin" class="flex-1 flex flex-col gap-0.25 !text-sm phone:!text-base md:!text-lg lg:!text-xl xl:!text-2xl">
+                                <div class="grid grid-rows-2 grid-cols-1 sm:grid-rows-1 sm:grid-cols-2 sm:gap-3">
+                                    <FormField name="jenis_kelamin" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
                                         <label for="jenis_kelamin">Jenis Kelamin</label>
-                                        <InputText id="jenis_kelamin" type="text" placeholder="Enter Email Address" :class="{ 'pointer-events-none': !local.isWUpProfile }"/>
+                                        <Select :options="itemsGender" optionLabel="name" optionValue="value" placeholder="Pilih Jenis Kelamin" class="w-full"/>
                                     </FormField>
-                                    <FormField name="no_telpon" class="flex-1 flex flex-col gap-0.25 !text-sm phone:!text-base md:!text-lg lg:!text-xl xl:!text-2xl">
+                                    <FormField name="no_telpon" class="!flex-1 flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
                                         <label for="no_telpon">No Telpon</label>
-                                        <InputText id="no_telpon" type="text" placeholder="Masukkan Nomor Telepon" :class="{ 'pointer-events-none': !local.isWUpProfile }" @input="formatNoProfile($form)"/>
+                                        <InputText id="no_telpon" type="text" placeholder="Masukkan Nomor Telepon" @input="formatNoProfile($form)"/>
                                     </FormField>
                                 </div>
-                                <FormField name="email" class="flex flex-col gap-0.25 !text-sm phone:!text-base md:!text-lg lg:!text-xl xl:!text-2xl">
+                                <FormField name="email" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
                                     <label for="email">Email Address</label>
-                                    <InputText id="email" type="email" placeholder="Enter Email Address" :class="{ 'pointer-events-none': !local.isWUpProfile }"/>
+                                    <InputText id="email" type="email" placeholder="Masukkan Alamat Email"/>
                                 </FormField>
                             </div>
-                            <div>
-                                <div v-show="local.isWUpProfile">
-                                    <Button type="button" label="Cancel Update" class="!w-full mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm lg:!rounded-[17px] !text-sm sm:!text-base lg:!text-lg xl:!text-xl !font-normal" @click="local.isWUpProfile = false"/>
-                                    <Button type="submit" label="Update Profile" class="!w-full mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm lg:!rounded-[17px] !text-sm sm:!text-base lg:!text-lg xl:!text-xl !font-normal"/>
-                                </div>
-                                <Button v-show="!local.isWUpProfile" type="button" label="Edit Profile" class="!w-full mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm lg:!rounded-[17px] !text-sm sm:!text-base lg:!text-lg xl:!text-xl !font-normal" @click="local.isWUpProfile = true"/>
-                            </div>
+                            <Button type="submit" label="Update Profile" class="!w-full phone:!w-fit mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm sm:!rounded-md md:!rounded-lg lg:!rounded-xl !text-base sm:!text-lg lg:!text-xl xl:!text-2xl !font-normal"/>
                         </Form>
                     </TabPanel>
-                    <TabPanel value="1">
+                    <TabPanel value="2">
                         <Form :resolver="gantiPasswordValidator" @submit="updatePasswordForm" v-slot="$form" class="flex flex-col gap-0.5 phone:gap-1 md:gap-2 xl:gap-2.5 rounded-3xl">
-                            <FormField name="pass_lama" class="flex flex-col gap-0.25 !text-sm phone:!text-base md:!text-lg lg:!text-xl xl:!text-2xl">
+                            <FormField name="pass_lama" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
                                 <label for="pass_lama bg-amber-500">Password Sekarang</label>
                                 <div class="relative w-full">
                                     <InputText id="pass_lama" :type="local.isPasswordLamaShow ? 'text' : 'password'" placeholder="Enter Your Password" class="!w-full"/>
@@ -297,7 +347,7 @@ const updatePasswordForm = async({ valid, states, reset }: any) => {
                                     </div>
                                 </div>
                             </FormField>
-                            <FormField name="pass_baru" class="flex flex-col gap-0.25 !text-sm phone:!text-base md:!text-lg lg:!text-xl xl:!text-2xl">
+                            <FormField name="pass_baru" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
                                 <label for="pass_baru bg-amber-500">Password Baru</label>
                                 <div class="relative w-full">
                                     <InputText id="pass_baru" :type="local.isPasswordBaruShow ? 'text' : 'password'" placeholder="Enter Your Password" class="!w-full"/>
@@ -309,7 +359,7 @@ const updatePasswordForm = async({ valid, states, reset }: any) => {
                                     </div>
                                 </div>
                             </FormField>
-                            <FormField name="pass_baru_ulangi" class="flex flex-col gap-0.25 !text-sm phone:!text-base md:!text-lg lg:!text-xl xl:!text-2xl">
+                            <FormField name="pass_baru_ulangi" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
                                 <label for="pass_baru_ulangi bg-amber-500">Masukkan kembali Password Baru</label>
                                 <div class="relative w-full">
                                     <InputText id="pass_baru_ulangi" :type="local.isPasswordBaruUlangiShow ? 'text' : 'password'" placeholder="Enter Your Password" class="!w-full"/>
@@ -321,7 +371,7 @@ const updatePasswordForm = async({ valid, states, reset }: any) => {
                                     </div>
                                 </div>
                             </FormField>
-                            <Button type="submit" label="Update Password" class="!w-full mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm lg:!rounded-[17px] !text-sm sm:!text-base lg:!text-lg xl:!text-xl !font-normal"/>
+                            <Button type="submit" label="Update Password" class="!w-full phone:!w-fit mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm sm:!rounded-md md:!rounded-lg lg:!rounded-xl !text-base sm:!text-lg lg:!text-xl xl:!text-2xl !font-normal"/>
                         </Form>
                     </TabPanel>
                 </TabPanels>
