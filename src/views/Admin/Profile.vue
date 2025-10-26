@@ -2,7 +2,7 @@
 import * as z from 'zod'
 import { zodResolver } from "@primevue/forms/resolvers/zod"
 import { Form, FormField } from "@primevue/forms"
-import { onMounted, reactive, ref, type Ref, type ComponentPublicInstance, nextTick, watch } from 'vue'
+import { onMounted, reactive, ref, type Ref, type ComponentPublicInstance, nextTick, watch, onBeforeMount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import useAxios from '@/composables/api/axios'
 import RSAComposables from '@/composables/RSA'
@@ -34,7 +34,15 @@ const local = reactive({
 })
 const profileForm: Ref = ref(null)
 const fileInputProfile: Ref = ref(null)
-onMounted(async() => {
+nextTick(() => {
+    profileForm.value.setValues({
+        nama_lengkap: fetchDataS.cacheAuth.nama_lengkap,
+        jenis_kelamin: fetchDataS.cacheAuth.jenis_kelamin,
+        no_telpon: fetchDataS.cacheAuth.no_telpon,
+        email: fetchDataS.cacheAuth.email
+    })
+})
+onBeforeMount(async() => {
     const res = await reqData({
         url: '/api' + route.path,
         method: 'POST',
