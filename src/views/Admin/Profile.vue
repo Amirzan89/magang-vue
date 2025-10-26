@@ -45,7 +45,6 @@ nextTick(() => {
     local.isFirstTime = false
     local.linkImgProfile = fetchDataS.imgUrl || ''
     local.linkImgShow = fetchDataS.imgUrl || ''
-    console.log(profileForm.value)
     profileForm.value.setValues({
         nama_lengkap: fetchDataS.cacheAuth.nama_lengkap,
         jenis_kelamin: fetchDataS.cacheAuth.jenis_kelamin,
@@ -91,9 +90,10 @@ onBeforeMount(async() => {
         }
     }
     resFoto.data && resFoto.data !== null && isImageFile(resFoto.data.meta) ? fetchDataS.setDecryptedImage(base64_decode_to_blob(resFoto.data)) : fetchDataS.clearDecryptedImage()
-    if(local.isFirstTime){
+    if(local.isFirstTime || local.linkImgProfile === ''){
         local.linkImgProfile = fetchDataS.imgUrl ?? (res.data.jenis_kelamin === 'perempuan' ? Im_DefaultGirl : Im_DefaultBoy)
     }
+    local.linkImgShow = fetchDataS.imgUrl ?? (res.data.jenis_kelamin === 'perempuan' ? Im_DefaultGirl : Im_DefaultBoy)
     await nextTick()
     profileForm.value.setValues({
         nama_lengkap: res.data.nama_lengkap,
@@ -269,7 +269,7 @@ const updatePasswordForm = async({ valid, states, reset }: any) => {
                 <TabPanels class="!p-2">
                     <TabPanel value="0">
                         <div class="flex items-center 3xs:h-30 sm:h-35 lg:h-40 xl:h-50 2xl:h-55 mb-4">
-                            <div class="relative 3xs:w-[85%] xs:w-[70%] phone:w-[55%] sm:w-[50%] md:w-[40%] lg:w-[32%] xl:w-[30%] 2xl:w-[25%] 3xs:h-30 sm:h-35 lg:h-40 xl:h-50 2xl:h-55 flex flex-col justify-center mx-auto cursor-pointer gap-2 rounded-lg">
+                            <div class="relative 3xs:w-[85%] xs:w-[70%] phone:w-[55%] sm:w-[50%] md:w-[40%] lg:w-[32%] xl:w-[30%] 2xl:w-[25%] 3xs:h-30 sm:h-35 lg:h-40 xl:h-50 2xl:h-55 flex flex-col justify-center mx-auto gap-2 rounded-lg">
                                 <Skeleton v-if="local.isLoadingImgShow || local.linkImgShow == ''" shape="rectangle" width="100%" height="100%" borderRadius="20px"/>
                                 <img :src="local.linkImgShow" alt="" class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-full h-full object-contain" :class="{ 'hidden': local.linkImgShow === ''}" @load="local.isLoadingImgShow = false" @error="local.isLoadingImgShow = false"/>
                             </div>

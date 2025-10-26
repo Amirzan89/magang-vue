@@ -7,9 +7,12 @@ import { useRouter } from 'vue-router'
 import useAxios from '@/composables/api/axios'
 import { useFetchDataStore } from '@/stores/FetchData'
 import { useLoadingStore } from '@/stores/Loading'
+import{ isImageFile, base64_decode_to_blob, type Base64File } from '@/utils/Base64File'
 import { useToast } from 'primevue/usetoast'
 import FooterHome from '@/layouts/FooterHome.vue'
 import Loading from '@/components/Loading.vue'
+import Im_DefaultBoy from '@/assets/images/default_boy.jpg'
+import Im_DefaultGirl from '@/assets/images/default_girl.png'
 import I_eye from '@/assets/icons/eye.svg'
 import I_eye_slash from '@/assets/icons/eye-slash.svg'
 const router = useRouter()
@@ -51,6 +54,12 @@ const loginForm = async({ valid, states, reset }: any) => {
         return
     }
     fetchDataS.login()
+    fetchDataS.cacheAuth = res.data
+    if(res.data.foto && res.data.foto !== null && isImageFile(res.data.foto.meta)){
+        fetchDataS.setDecryptedImage(base64_decode_to_blob(res.data.foto))
+    }else{
+        fetchDataS.imgUrl = res.data.jenis_kelamin === 'perempuan' ? Im_DefaultGirl : Im_DefaultBoy
+    }
     toast.add({ severity: 'success', summary: 'Berhasil Login', detail: res.message, life: 3000 })
     setTimeout(async() => {
         await router.push('/dashboard')
