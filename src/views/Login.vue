@@ -2,12 +2,14 @@
 import * as z from 'zod'
 import { zodResolver } from "@primevue/forms/resolvers/zod"
 import { Form, FormField } from "@primevue/forms"
-import { reactive } from 'vue'
+import { onBeforeMount, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { useConfig } from '@/composables/useConfig'
 import useAxios from '@/composables/api/axios'
+import { useGlobalStore } from '@/stores/Global'
 import { useFetchDataStore } from '@/stores/FetchData'
 import { useLoadingStore } from '@/stores/Loading'
-import{ isImageFile, base64_decode_to_blob, type Base64File } from '@/utils/Base64File'
+import{ isImageFile, base64_decode_to_blob } from '@/utils/Base64File'
 import { useToast } from 'primevue/usetoast'
 import FooterHome from '@/layouts/FooterHome.vue'
 import Loading from '@/components/Loading.vue'
@@ -16,6 +18,8 @@ import Im_DefaultGirl from '@/assets/images/default_girl.png'
 import I_eye from '@/assets/icons/eye.svg'
 import I_eye_slash from '@/assets/icons/eye-slash.svg'
 const router = useRouter()
+const publicConfig = useConfig()
+const globalStore = useGlobalStore()
 const loading = useLoadingStore()
 const { reqData } = useAxios()
 const toast = useToast()
@@ -24,6 +28,13 @@ const local = reactive({
     isRequestInProgress: false,
     isUpdated: false,
     isPasswordShow: false,
+    isGoogle: false,
+})
+onBeforeMount(() => {
+    if(globalStore.message){
+        local.isGoogle = true
+        toast.add({ severity: 'success', summary: 'Berhasil Login', detail: globalStore.message, life: 3000 })
+    }
 })
 const showPass = () => {
     local.isPasswordShow = !local.isPasswordShow
@@ -108,12 +119,16 @@ const loginForm = async({ valid, states, reset }: any) => {
                         </div>
                         <p class="!text-sm phone:!text-base md:!text-lg lg:!text-xl xl:!text-2xl">Forgot Password ? <RouterLink to="/forgot-password">Click Here</RouterLink></p>
                         <Button type="submit" label="Login" :loading="loading.isLoading" class="!w-full mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm lg:!rounded-[17px] !text-sm sm:!text-base lg:!text-lg xl:!text-xl !font-normal"/>
+                        <Button variant="outlined" as="a" :href="publicConfig.baseURL +'/login/google'" rel="noopener noreferrer" class="relative left-1/2 -translate-x-1/2 w-fit mt-5 sm:mt-7.5 lg:mt-10 !px-2 sm:!px-3 lg:!px-4 !py-1 sm!py-1.5 lg:!py-2 !text-[#3D37F1] hover:!text-white !border-[#3D37F1] hover:!bg-[#3D37F1] !text-sm sm:!text-base lg:!text-lg xl:!text-xl">Login Google</Button>
                     </Form>
                 </div>
             </div>
         </section>
     </main>
-    <FooterHome></FooterHome>
+    <FooterHome/>
+    <Dialog v-model:visible="local.isGoogle" class="w-[70%] xs:w-[230px] phone:w-[300px]" header="Filter Details" pt:mask:class="backdrop-blur-sm" modal dismissableMask @after-hide="globalStore.reset()">
+        {{ globalStore.message }}
+    </Dialog>
     <Loading/>
     <Toast position="bottom-right" />
 </template>

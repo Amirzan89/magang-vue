@@ -79,7 +79,6 @@ export const useFetchDataStore = defineStore('FetchData', {
         logout(){
             this.isAuth = false
             this.cacheAuth = {}
-            this.clearDecryptedImage()
         },
     },
 })

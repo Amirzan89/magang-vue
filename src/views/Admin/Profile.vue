@@ -4,13 +4,15 @@ import { zodResolver } from "@primevue/forms/resolvers/zod"
 import { Form, FormField } from "@primevue/forms"
 import { onMounted, reactive, ref, type Ref, type ComponentPublicInstance, nextTick, watch, onBeforeMount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useConfig } from '@/composables/useConfig'
 import useAxios from '@/composables/api/axios'
 import RSAComposables from '@/composables/RSA'
 import useEncryption from '@/composables/encryption'
+import { useGlobalStore } from '@/stores/Global'
 import { useFetchDataStore } from '@/stores/FetchData'
 import { useToast } from 'primevue/usetoast'
 import { width, breakpoints } from '@/composables/useScreenSize'
-import{ isImageFile, base64_decode_to_blob, type Base64File } from '@/utils/Base64File'
+import{ isImageFile, base64_decode_to_blob } from '@/utils/Base64File'
 import Im_DefaultBoy from '@/assets/images/default_boy.jpg'
 import Im_DefaultGirl from '@/assets/images/default_girl.png'
 import I_Close from '@/assets/icons/close.svg'
@@ -18,6 +20,8 @@ import I_eye from '@/assets/icons/eye.svg'
 import I_eye_slash from '@/assets/icons/eye-slash.svg'
 import { base64_encode } from '@/utils/Base64File'
 const route = useRoute()
+const publicConfig = useConfig()
+const globalStore = useGlobalStore()
 const router = useRouter()
 const { reqData } = useAxios()
 const rsaComp = RSAComposables()
@@ -25,6 +29,7 @@ const { genIV, decryptRes } = useEncryption()
 const fetchDataS = useFetchDataStore()
 const toast = useToast()
 const local = reactive({
+    isGoogle: false,
     isFirstTime: true,
     isLoadingImgShow: true,
     linkImgShow: '' as string,
@@ -54,6 +59,9 @@ nextTick(() => {
     })
 })
 onBeforeMount(async() => {
+    if(globalStore.message){
+        local.isGoogle = true
+    }
     const res = await reqData({
         url: '/api' + route.path,
         method: 'POST',
@@ -334,6 +342,7 @@ const updatePasswordForm = async({ valid, states, reset }: any) => {
                                 </FormField>
                             </div>
                             <Button type="submit" label="Update Profile" class="!w-full phone:!w-fit mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm sm:!rounded-md md:!rounded-lg lg:!rounded-xl !text-base sm:!text-lg lg:!text-xl xl:!text-2xl !font-normal"/>
+                            <Button variant="outlined" as="a" :href="publicConfig.baseURL +'/profile/bind-google'" rel="noopener noreferrer" class="relative left-1/2 -translate-x-1/2 w-fit mt-5 sm:mt-7.5 lg:mt-10 !px-2 sm:!px-3 lg:!px-4 !py-1 sm!py-1.5 lg:!py-2 !text-[#3D37F1] hover:!text-white !border-[#3D37F1] hover:!bg-[#3D37F1] !text-sm sm:!text-base lg:!text-lg xl:!text-xl">Login Google</Button>
                         </Form>
                     </TabPanel>
                     <TabPanel value="2">
@@ -381,4 +390,7 @@ const updatePasswordForm = async({ valid, states, reset }: any) => {
             </Tabs>
         </div>
     </section>
+    <Dialog v-model:visible="local.isGoogle" class="w-[70%] xs:w-[230px] phone:w-[300px]" header="Filter Details" pt:mask:class="backdrop-blur-sm" modal dismissableMask @after-hide="globalStore.reset()">
+        {{ globalStore.message }}
+    </Dialog>
 </template>

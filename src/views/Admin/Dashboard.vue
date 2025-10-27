@@ -3,10 +3,12 @@ import { onBeforeMount, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import useAxios from '@/composables/api/axios'
 import { useToast } from 'primevue/usetoast'
+import { useGlobalStore } from '@/stores/Global'
 const route = useRoute()
 const router = useRouter()
 const { reqData } = useAxios()
 const toast = useToast()
+const globalStore = useGlobalStore()
 const chartData = ref<any>()
 const chartOptions = ref<any>(null)
 const local = reactive({
@@ -57,6 +59,7 @@ const setChartOptions = () => {
     };
 };
 onBeforeMount(async() => {
+    globalStore.reset()
     const res = await reqData({
         url: '/api' + route.path,
         method: 'POST',
