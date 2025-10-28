@@ -4,12 +4,14 @@ import { useRoute } from 'vue-router'
 import { customBreakpoints, width } from '@/composables/useScreenSize'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import AdminLayout from '@/layouts/AdminLayout.vue'
+import AuthLayout from '@/layouts/AuthLayout.vue'
 import EmptyLayout from '@/layouts/EmptyLayout.vue'
 const route = useRoute()
-type LayoutKey = 'admin' | 'default' | 'empty'
+type LayoutKey = 'admin' | 'auth' | 'default' | 'empty'
 const layouts: Record<LayoutKey, any> = {
-    default: DefaultLayout,
     admin: AdminLayout,
+    auth: AuthLayout,
+    default: DefaultLayout,
     empty: EmptyLayout,
 }
 const layoutName = computed(() => (route.matched[route.matched.length - 1]?.meta?.layout as LayoutKey) || 'default')
