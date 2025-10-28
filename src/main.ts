@@ -13,7 +13,6 @@ function getInitialState(){
     if(!cookie) return null
     try{
         const value = decodeURIComponent(cookie.split('=')[1])
-        console.log('balue',value)
         const decoded = JSON.parse(atob(value))
         return decoded
     }catch(e){
@@ -25,7 +24,6 @@ const state = getInitialState()
 if(state){
     const store = useGlobalStore()
     store.hydrate(state)
-    console.log('entok state', state)
     document.cookie = '__INITIAL_COSTUM_STATE__=; Max-Age=0; path=/;'
 }
 app.use(router)

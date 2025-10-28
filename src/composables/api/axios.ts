@@ -116,7 +116,7 @@ const reqData = async({
                         }
                         return { status: 'error', message: 'Request failed after retries' }
                     case 500:
-                        return { status: 'error', message: data?.message || 'Server error', code: 500 }
+                        return { status: 'error', message: encr ? decryptRes(data?.message, encr.iv).message : data?.message || 'Server error', code: 500 }
                     default:
                         return { status: 'error', message: data?.message || 'Unknown error', code: status }
                 }

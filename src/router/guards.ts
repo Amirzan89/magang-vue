@@ -23,7 +23,6 @@ export function setupGuards(router: Router){
         if(isPublic && fetchDataS.isAuth){
             return { path: '/dashboard' }
         }
-        console.log('iis ', fetchDataS.imgUrl)
         return true
     })
     router.onError((err) => {

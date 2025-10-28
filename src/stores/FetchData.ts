@@ -11,6 +11,7 @@ interface AuthData{
     no_telpon: string
     email: string
     foto: Base64File | null,
+    google_id: string | null,
 }
 const { genIV, decryptRes } = useEncryption()
 const handleAuthResponse = async(res: any) => {
@@ -43,22 +44,35 @@ export const useFetchDataStore = defineStore('FetchData', {
                     await rsaComp.handshake()
                 }
                 const iv = rsaComp.hexCus.enc(await genIV())
-                const res = await reqData({
+                let res = await reqData({
                     url: '/check-auth',
                     headers: { 'X-Auth-Check': 'true', 'X-UniqueId': iv },
                     isEncrypt: false,
                 })
-                res.data = decryptRes(res.message, iv).data
+                res = {
+                    ...res,
+                    ...decryptRes(res.message, iv)
+                }
                 if(![302, 401].includes(res.code)){
                     const handARes = await handleAuthResponse(res)
                     this.isAuth = handARes.isAuth
                     this.cacheAuth = handARes.data
-                    if(this.cacheAuth.foto && this.cacheAuth.foto !== null && isImageFile(this.cacheAuth.foto.meta)){
-                        this.setDecryptedImage(base64_decode_to_blob(this.cacheAuth.foto))
-                    }else{
-                        this.imgUrl = this.cacheAuth.jenis_kelamin === 'perempuan' ? Im_DefaultGirl : Im_DefaultBoy
-                    }
+                    
                 }
+                if(!this.cacheAuth.foto){
+                    this.imgUrl = this.cacheAuth.jenis_kelamin === 'perempuan' ? Im_DefaultGirl : Im_DefaultBoy
+                    return
+                }
+                const foto = this.cacheAuth.foto
+                if(this.cacheAuth.google_id && typeof foto === 'string' && (foto as string).startsWith('https://lh3.googleusercontent.com')){
+                    this.imgUrl = foto
+                    return
+                }
+                if(isImageFile(foto.meta)){
+                    this.setDecryptedImage(base64_decode_to_blob(foto))
+                    return
+                }
+                this.imgUrl = this.cacheAuth.jenis_kelamin === 'perempuan' ? Im_DefaultGirl : Im_DefaultBoy
             }catch(err){
                 this.isAuth = false
             }finally{

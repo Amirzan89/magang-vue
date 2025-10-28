@@ -49,8 +49,8 @@ const itemsGender = ref([
 ])
 nextTick(() => {
     local.isFirstTime = false
-    local.linkImgProfile = fetchDataS.imgUrl || ''
-    local.linkImgShow = fetchDataS.imgUrl || ''
+    local.linkImgProfile = fetchDataS.imgUrl ?? (fetchDataS.cacheAuth.jenis_kelamin === 'perempuan' ? Im_DefaultGirl : Im_DefaultBoy)
+    local.linkImgShow = fetchDataS.imgUrl ?? (fetchDataS.cacheAuth.jenis_kelamin === 'perempuan' ? Im_DefaultGirl : Im_DefaultBoy)
     profileForm.value.setValues({
         nama_lengkap: fetchDataS.cacheAuth.nama_lengkap,
         jenis_kelamin: fetchDataS.cacheAuth.jenis_kelamin,
@@ -342,7 +342,8 @@ const updatePasswordForm = async({ valid, states, reset }: any) => {
                                 </FormField>
                             </div>
                             <Button type="submit" label="Update Profile" class="!w-full phone:!w-fit mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm sm:!rounded-md md:!rounded-lg lg:!rounded-xl !text-base sm:!text-lg lg:!text-xl xl:!text-2xl !font-normal"/>
-                            <Button variant="outlined" as="a" :href="publicConfig.baseURL +'/profile/bind-google'" rel="noopener noreferrer" class="relative left-1/2 -translate-x-1/2 w-fit mt-5 sm:mt-7.5 lg:mt-10 !px-2 sm:!px-3 lg:!px-4 !py-1 sm!py-1.5 lg:!py-2 !text-[#3D37F1] hover:!text-white !border-[#3D37F1] hover:!bg-[#3D37F1] !text-sm sm:!text-base lg:!text-lg xl:!text-xl">Login Google</Button>
+                            <Button v-if="fetchDataS.cacheAuth.google_id" class="relative left-1/2 -translate-x-1/2 w-fit mt-5 sm:mt-7.5 lg:mt-10 !px-2 sm:!px-3 lg:!px-4 !py-1 sm!py-1.5 lg:!py-2 !text-sm sm:!text-base lg:!text-lg xl:!text-xl" disabled>Already Bind with google</Button>
+                            <Button v-else variant="outlined" as="a" :href="publicConfig.baseURL +'/profile/bind-google'" rel="noopener noreferrer" class="relative left-1/2 -translate-x-1/2 w-fit mt-5 sm:mt-7.5 lg:mt-10 !px-2 sm:!px-3 lg:!px-4 !py-1 sm!py-1.5 lg:!py-2 !text-[#3D37F1] hover:!text-white !border-[#3D37F1] hover:!bg-[#3D37F1] !text-sm sm:!text-base lg:!text-lg xl:!text-xl">Bind with google</Button>
                         </Form>
                     </TabPanel>
                     <TabPanel value="2">
@@ -390,7 +391,7 @@ const updatePasswordForm = async({ valid, states, reset }: any) => {
             </Tabs>
         </div>
     </section>
-    <Dialog v-model:visible="local.isGoogle" class="w-[70%] xs:w-[230px] phone:w-[300px]" header="Filter Details" pt:mask:class="backdrop-blur-sm" modal dismissableMask @after-hide="globalStore.reset()">
+    <Dialog v-model:visible="local.isGoogle" class="w-[70%] xs:w-[230px] phone:w-[300px]" :closable="false" pt:mask:class="backdrop-blur-sm" modal dismissableMask @after-hide="globalStore.reset()">
         {{ globalStore.message }}
     </Dialog>
 </template>

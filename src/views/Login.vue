@@ -33,7 +33,6 @@ const local = reactive({
 onBeforeMount(() => {
     if(globalStore.message){
         local.isGoogle = true
-        toast.add({ severity: 'success', summary: 'Berhasil Login', detail: globalStore.message, life: 3000 })
     }
 })
 const showPass = () => {
@@ -58,7 +57,6 @@ const loginForm = async({ valid, states, reset }: any) => {
         },
         reqType: 'Json',
         isNeedLoading: true,
-        callbackResFn: reset
     })
     if(res.status == 'error'){
         toast.add({ severity: 'error', summary: 'Gagal Login', detail: res.message, life: 3000 })
@@ -126,7 +124,7 @@ const loginForm = async({ valid, states, reset }: any) => {
         </section>
     </main>
     <FooterHome/>
-    <Dialog v-model:visible="local.isGoogle" class="w-[70%] xs:w-[230px] phone:w-[300px]" header="Filter Details" pt:mask:class="backdrop-blur-sm" modal dismissableMask @after-hide="globalStore.reset()">
+    <Dialog v-model:visible="local.isGoogle" class="w-[70%] xs:w-[230px] phone:w-[300px]" :closable="false" pt:mask:class="backdrop-blur-sm" modal dismissableMask @after-hide="globalStore.reset()">
         {{ globalStore.message }}
     </Dialog>
     <Loading/>
