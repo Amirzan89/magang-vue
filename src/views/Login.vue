@@ -17,6 +17,7 @@ import Im_DefaultBoy from '@/assets/images/default_boy.jpg'
 import Im_DefaultGirl from '@/assets/images/default_girl.png'
 import I_eye from '@/assets/icons/eye.svg'
 import I_eye_slash from '@/assets/icons/eye-slash.svg'
+import I_google from '@/assets/icons/google.svg'
 const router = useRouter()
 const publicConfig = useConfig()
 const globalStore = useGlobalStore()
@@ -77,8 +78,8 @@ const loginForm = async({ valid, states, reset }: any) => {
 </script>
 <template>
     <main class="relative h-screen flex flex-col">
-        <div class="relative w-full h-20 sm:h-30 lg:h-40 flex justify-center items-center">
-            <img src="@/assets/images/logowhite.png" alt="">
+        <div class="relative w-full h-30 sm:h-[130px] md:h-35 lg:h-[150px] flex justify-center items-center">
+            <img src="@/assets/images/logowhite.png" alt="" class="h-[44.5%] object-contain">
             <div class="absolute top-0 left-0 w-full h-full -z-1">
                 <img src="@/assets/images/header.png" alt="" class="w-full h-full object-fill"/>
                 <div class="absolute top-0 left-0 w-full h-full opacity-90" style="background: #ED4690; background: linear-gradient(145deg,rgba(237, 70, 144, 1) 0%, rgba(85, 34, 204, 1) 100%)"/>
@@ -86,47 +87,51 @@ const loginForm = async({ valid, states, reset }: any) => {
         </div>
         <section class="relative overflow-clip flex-1">
             <img src="@/assets/images/cele-3.png" alt="" class="absolute bottom-0 md:-bottom-5 -right-13 sm:-right-23 md:-right-32 lg:-right-35 xl:-right-35 2xl:-right-37 h-57 xs:h-62 phone:h-65 sm:h-90 md:h-130 lg:h-132 xl:h-137 2xl:h-145 -z-1 object-contain opacity-30 scale-300 sm:scale-270 md:scale-250"/>
-            <div class="relative left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[90%] flex rounded-3xl">
+            <div class="relative left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[95%] sm:h-[92%] lg:h-[90%] flex rounded-3xl">
                 <div class="absolute top-0 left-0 w-full h-full -z-1">
                     <img src="@/assets/images/party-1.png" alt="" class="w-full h-full object-fill rounded-3xl" />
                     <div class="absolute top-0 left-0 w-full h-full opacity-90 rounded-3xl" style="background: #ED4690; background: linear-gradient(145deg,rgba(237, 70, 144, 1) 0%, rgba(85, 34, 204, 1) 100%)"/>
                 </div>
-                <div class="w-[75%] h-fit ml-auto mr-10 my-auto flex flex-col md:flex-row justify-between bg-amber-500a">
-                    <div class="w-[30%]">
-                        <h2 class="!text-lg phone:!text-xl md:!text-2xl lg:!text-4xl xl:!text-[40px] !text-white">Login Your Account</h2>
+                <div class="w-[85%] md:w-[90%] lg:w-[82.5%] xl:w-[75%] h-fit mx-auto lg:ml-auto lg:mr-10 my-auto flex flex-col md:flex-row justify-between gap-5 md:gap-0 bg-amber-500a">
+                    <div class="lg:w-[30%]">
+                        <h2 class="!m-0 !text-lg phone:!text-xl md:!text-2xl lg:!text-4xl xl:!text-[40px] !text-white">Login Your Account</h2>
                         <p class="!text-base phone:!text-lg md:!text-xl lg:!text-2xl xl:!text-3xl !text-white">For the purpose of industry regulation, your details are required</p>
                     </div>
-                    <Form :resolver="loginValidator" @submit="loginForm" v-slot="$form" class="w-[90%] lg:w-[50%] h-fit px-12 py-7 flex flex-col gap-0.5 phone:gap-1 md:gap-2 xl:gap-2.5 rounded-3xl" style="background-color: rgba(255,255,255, 0.7); box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.35);">
-                        <div>
-                            <FormField name="email" class="flex flex-col gap-0.25 !text-sm phone:!text-base md:!text-lg lg:!text-xl xl:!text-2xl">
-                                <label for="email">Email Address</label>
-                                <InputText id="email" type="email" placeholder="Enter Email Address"/>
-                            </FormField>
-                            <FormField name="password" class="flex flex-col gap-0.25 !text-sm phone:!text-base md:!text-lg lg:!text-xl xl:!text-2xl">
-                                <label for="password bg-amber-500">Password</label>
-                                <div class="relative w-full">
-                                    <InputText id="password" :type="local.isPasswordShow ? 'text' : 'password'" placeholder="Enter Your Password" class="!w-full"/>
-                                    <div class="absolute top-1/2 -translate-y-1/2 3xs:right-1 sm:right-2 xl:right-3" @click="showPass">
-                                        <div class="relative 3xs:w-[17px] lg:w-8 xl:w-10 flex items-center justify-center">
-                                            <I_eye class="absolute fill-palText w-full transition duration-[400ms]" :class="!$form.password?.value || !local.isPasswordShow ? 'opacity-0 pointer-events-none' : 'opacity-100 cursor-pointer'"/>
-                                            <I_eye_slash class="absolute fill-palText w-full transition duration-400" :class="!$form.password?.value || local.isPasswordShow ? 'opacity-0 pointer-events-none' : 'opacity-100 cursor-pointer'"/>
-                                        </div>
+                    <Form :resolver="loginValidator" @submit="loginForm" v-slot="$form" class="w-[100%] lg:w-[50%] h-fit px-5 lg:px-12 py-7 lg:py-7 flex flex-col rounded-2xl md:rounded-2xl lg:rounded-3xl" style="background-color: rgba(255,255,255, 0.7); box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.35);">
+                        <FormField name="email" class="flex flex-col">
+                            <label for="email" class="ml-0.75 text-sm phone:text-base md:text-lg lg:text-xl xl:text-2xl">Email Address</label>
+                            <InputText id="email" type="email" placeholder="Enter Email Address" class="!text-sm phone:!text-base md:!text-lg lg:!text-xl xl:!text-2xl"/>
+                        </FormField>
+                        <FormField name="password" class="mt-2 sm:mt-2.5 lg:mt-3 flex flex-col">
+                            <label for="password" class="ml-0.75 text-sm phone:text-base md:text-lg lg:text-xl xl:text-2xl">Password</label>
+                            <div class="relative w-full">
+                                <InputText id="password" :type="local.isPasswordShow ? 'text' : 'password'" placeholder="Enter Your Password" class="!w-full !text-sm phone:!text-base md:!text-lg lg:!text-xl xl:!text-2xl"/>
+                                <div class="absolute top-1/2 -translate-y-1/2 3xs:right-1 sm:right-2 xl:right-3" @click="showPass">
+                                    <div class="relative 3xs:w-[17px] lg:w-8 xl:w-10 flex items-center justify-center">
+                                        <I_eye class="absolute fill-palText w-full transition duration-[400ms]" :class="!$form.password?.value || !local.isPasswordShow ? 'opacity-0 pointer-events-none' : 'opacity-100 cursor-pointer'"/>
+                                        <I_eye_slash class="absolute fill-palText w-full transition duration-400" :class="!$form.password?.value || local.isPasswordShow ? 'opacity-0 pointer-events-none' : 'opacity-100 cursor-pointer'"/>
                                     </div>
                                 </div>
-                            </FormField>
+                            </div>
+                        </FormField>
+                        <p class="!m-0 !ml-0.75 !mt-0.5 !text-sm phone:!text-base md:!text-lg lg:!text-xl xl:!text-2xl">Forgot Password ? <RouterLink to="/forgot-password" class="hover:text-red-500">Click Here</RouterLink></p>
+                        <Button type="submit" label="Login" :loading="loading.isLoading" class="!w-full mt-5 sm:mt-10 lg:mt-15 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm lg:!rounded-[17px] !text-sm phone:!text-base md:!text-lg lg:!text-xl xl:!text-2xl font-medium lg:font-semibold"/>
+                        <div class="relative left-1/2 -translate-x-1/2 w-[98%] h-6.5 sm:h-7.5 lg:h-10 flex items-center gap-5 sm:gap-7 lg:gap-10">
+                            <hr class="flex-1">
+                            <span class="text-xs sm:text-sm lg:text-base text-white">Or</span>
+                            <hr class="flex-1">
                         </div>
-                        <p class="!text-sm phone:!text-base md:!text-lg lg:!text-xl xl:!text-2xl">Forgot Password ? <RouterLink to="/forgot-password">Click Here</RouterLink></p>
-                        <Button type="submit" label="Login" :loading="loading.isLoading" class="!w-full mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm lg:!rounded-[17px] !text-sm sm:!text-base lg:!text-lg xl:!text-xl !font-normal"/>
-                        <Button variant="outlined" as="a" :href="publicConfig.baseURL +'/login/google'" rel="noopener noreferrer" class="relative left-1/2 -translate-x-1/2 w-fit mt-5 sm:mt-7.5 lg:mt-10 !px-2 sm:!px-3 lg:!px-4 !py-1 sm!py-1.5 lg:!py-2 !text-[#3D37F1] hover:!text-white !border-[#3D37F1] hover:!bg-[#3D37F1] !text-sm sm:!text-base lg:!text-lg xl:!text-xl">Login Google</Button>
+                        <Button as="a" :href="publicConfig.baseURL +'/login/google'" rel="noopener noreferrer" class="relative w-full !px-2 sm:!px-3 lg:!px-4 !py-1 sm!py-1.5 lg:!py-2 !rounded-sm lg:!rounded-[17px] !gap-2 !bg-white !text-black hover:!text-white !border-black hover:!bg-black !text-sm phone:!text-base md:!text-lg lg:!text-xl xl:!text-2xl font-medium lg:font-semibold">
+                            <I_google class="size-5 sm:size-7 lg:size-9"/>
+                            <span>Sign in with Google</span>
+                        </Button>
                     </Form>
                 </div>
             </div>
         </section>
     </main>
     <FooterHome/>
-    <Dialog v-model:visible="local.isGoogle" class="w-[70%] xs:w-[230px] phone:w-[300px]" :closable="false" pt:mask:class="backdrop-blur-sm" modal dismissableMask @after-hide="globalStore.reset()">
-        {{ globalStore.message }}
-    </Dialog>
+    <Dialog v-model:visible="local.isGoogle" class="w-[70%] xs:w-[230px] phone:w-[300px]" :closable="false" pt:mask:class="backdrop-blur-sm" modal dismissableMask @after-hide="globalStore.reset()">{{ globalStore.message }}</Dialog>
     <Loading/>
     <Toast position="bottom-right" />
 </template>
