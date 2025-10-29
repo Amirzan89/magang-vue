@@ -6,6 +6,12 @@ export default [
         meta: { layout: 'admin', isNeedAuth: { requiresAuth: true } },
     },
     {
+        path: '/kelola-event',
+        name: 'EventKelolaPage',
+        component: () => import('@/views/Admin/Event/EventKelola.vue'),
+        meta: { layout: 'admin', isNeedAuth: { requiresAuth: true } },
+    },
+    {
         path: '/event-booked',
         name: 'EventBookedPage',
         component: () => import('@/views/Admin/EventBooked.vue'),

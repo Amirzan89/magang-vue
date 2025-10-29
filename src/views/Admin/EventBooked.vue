@@ -97,67 +97,70 @@ const detailFormDialog = {
 
 </script>
 <template>
-    <main class="card">
-        <Toolbar class="mb-6">
-            <template #end>
-                <Button label="Export" icon="pi pi-upload" severity="secondary" @click="exportCSV" />
-            </template>
-        </Toolbar>
-        <DataTable ref="dt" :value="local.fetchData" dataKey="id" :paginator="true" :rows="rows" :rowsPerPageOptions="[5,10,25]" paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown" currentPageReportTemplate="Showing {first} to {last} of {totalRecords}" :loading="loadingDT" v-model:filters="filters" filterDisplay="menu" showGridlines :globalFilterFields="['registrationname','email','eventid','registrationstatus','paymenttype']" @page="onPage">
-            <template #header>
-                <div class="flex justify-between items-center">
-                    <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilters" />
-                    <IconField>
-                        <InputIcon><i class="pi pi-search" /></InputIcon>
-                        <InputText v-model="filters['global'].value" placeholder="Global Search" />
-                    </IconField>
-                </div>
-            </template>
-            <template #empty>No bookings found.</template>
-            <template #loading>Loading event bookings...</template>
-            <Column header="No" style="width: 4rem; text-align: center">
-                <template #body="{ index, data }">
-                    {{ currentFirst + index + 1 }}
+    <section class="flex flex-col sm:gap-0.5 md:gap-1 lg:gap-1.5">
+        <h1 class="!p-0 !m-0 !text-xl sm:!text-2xl lg:!text-3xl xl:!text-4xl">Event Booked</h1>
+        <div class="card">
+            <Toolbar class="mb-6">
+                <template #end>
+                    <Button label="Export" icon="pi pi-upload" severity="secondary" @click="exportCSV" />
                 </template>
-            </Column>
-            <Column field="registrationno" header="Reg No" sortable style="min-width: 10rem" />
-            <Column field="registrationname" header="Name" sortable style="min-width: 12rem">
-                <template #filter="{ filterModel }">
-                    <InputText v-model="filterModel.value" placeholder="Search name" />
+            </Toolbar>
+            <DataTable ref="dt" :value="local.fetchData" dataKey="id" :paginator="true" :rows="rows" :rowsPerPageOptions="[5,10,25]" paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown" currentPageReportTemplate="Showing {first} to {last} of {totalRecords}" :loading="loadingDT" v-model:filters="filters" filterDisplay="menu" showGridlines :globalFilterFields="['registrationname','email','eventid','registrationstatus','paymenttype']" @page="onPage">
+                <template #header>
+                    <div class="flex justify-between items-center">
+                        <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilters" />
+                        <IconField>
+                            <InputIcon><i class="pi pi-search" /></InputIcon>
+                            <InputText v-model="filters['global'].value" placeholder="Global Search" />
+                        </IconField>
+                    </div>
                 </template>
-            </Column>
-            <Column field="email" header="Email" sortable style="min-width: 14rem">
-                <template #filter="{ filterModel }">
-                    <InputText v-model="filterModel.value" placeholder="Search email" />
-                </template>
-            </Column>
-            <Column field="registrationdate" header="Date" sortable dataType="date" style="min-width: 10rem">
-                <template #body="{ data }">{{ formatTgl(data.registrationdate) }}</template>
-                <template #filter="{ filterModel }">
-                    <DatePicker v-model="filterModel.value" dateFormat="yy-mm-dd" placeholder="Select date" />
-                </template>
-            </Column>
-            <Column field="eventgroup" header="Event Group" sortable style="min-width: 8rem">
-                <template #filter="{ filterModel }">
-                    <InputText v-model="filterModel.value" placeholder="Event Group" />
-                </template>
-            </Column>
-            <Column header="Action" :exportable="false" style="min-width: 8rem">
-                <template #body="{ data }">
-                    <Button icon="pi pi-eye" outlined rounded @click="showDialog(data)" />
-                </template>
-            </Column>
-        </DataTable>
-        <Dialog v-model:visible="eventBookedStateDialog" class="w-[75%] xs:w-[330px] phone:w-[400px] sm:w-[480px]" header="Booking Details" modal>
-            <div v-if="ebDialog" class="flex flex-col gap-3">
-                <div v-for="(config, key) in detailFormDialog" :key="key" class="flex flex-col">
-                    <label class="font-semibold">{{ config.label }}</label>
-                    <InputText :value="config.format ? config.format(ebDialog[key]) : ebDialog[key]" disabled/>
-                </div>
+                <template #empty>No bookings found.</template>
+                <template #loading>Loading event bookings...</template>
+                <Column header="No" style="width: 4rem; text-align: center">
+                    <template #body="{ index, data }">
+                        {{ currentFirst + index + 1 }}
+                    </template>
+                </Column>
+                <Column field="registrationno" header="Reg No" sortable style="min-width: 10rem" />
+                <Column field="registrationname" header="Name" sortable style="min-width: 12rem">
+                    <template #filter="{ filterModel }">
+                        <InputText v-model="filterModel.value" placeholder="Search name" />
+                    </template>
+                </Column>
+                <Column field="email" header="Email" sortable style="min-width: 14rem">
+                    <template #filter="{ filterModel }">
+                        <InputText v-model="filterModel.value" placeholder="Search email" />
+                    </template>
+                </Column>
+                <Column field="registrationdate" header="Date" sortable dataType="date" style="min-width: 10rem">
+                    <template #body="{ data }">{{ formatTgl(data.registrationdate) }}</template>
+                    <template #filter="{ filterModel }">
+                        <DatePicker v-model="filterModel.value" dateFormat="yy-mm-dd" placeholder="Select date" />
+                    </template>
+                </Column>
+                <Column field="eventgroup" header="Event Group" sortable style="min-width: 8rem">
+                    <template #filter="{ filterModel }">
+                        <InputText v-model="filterModel.value" placeholder="Event Group" />
+                    </template>
+                </Column>
+                <Column header="Action" :exportable="false" style="min-width: 8rem">
+                    <template #body="{ data }">
+                        <Button icon="pi pi-eye" outlined rounded @click="showDialog(data)" />
+                    </template>
+                </Column>
+            </DataTable>
+        </div>
+    </section>
+    <Dialog v-model:visible="eventBookedStateDialog" class="w-[75%] xs:w-[330px] phone:w-[400px] sm:w-[480px]" header="Booking Details" modal>
+        <div v-if="ebDialog" class="flex flex-col gap-3">
+            <div v-for="(config, key) in detailFormDialog" :key="key" class="flex flex-col">
+                <label class="font-semibold">{{ config.label }}</label>
+                <InputText :value="config.format ? config.format(ebDialog[key]) : ebDialog[key]" disabled/>
             </div>
-            <template #footer>
-                <Button label="Close" icon="pi pi-times" text @click="hideDialog" />
-            </template>
-        </Dialog>
-    </main>
+        </div>
+        <template #footer>
+            <Button label="Close" icon="pi pi-times" text @click="hideDialog" />
+        </template>
+    </Dialog>
 </template>

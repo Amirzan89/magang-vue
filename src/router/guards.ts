@@ -17,6 +17,7 @@ export function setupGuards(router: Router){
                 fetchDataS.clearDecryptedImage()
             }, 500);
             if(!isPublic){
+                // toasss ???
                 return { path: '/login' }
             }
         }
