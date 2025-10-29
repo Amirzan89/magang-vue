@@ -26,7 +26,7 @@ export function setupGuards(router: Router){
         return true
     })
     router.onError((err) => {
-        if (err?.message?.includes('Navigation aborted')) return
+        if(err?.message?.includes('Navigation aborted')) return
         console.error('[Router Error]', err)
     })
 }

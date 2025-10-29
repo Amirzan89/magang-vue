@@ -391,7 +391,5 @@ const updatePasswordForm = async({ valid, states, reset }: any) => {
             </Tabs>
         </div>
     </section>
-    <Dialog v-model:visible="local.isGoogle" class="w-[70%] xs:w-[230px] phone:w-[300px]" :closable="false" pt:mask:class="backdrop-blur-sm" modal dismissableMask @after-hide="globalStore.reset()">
-        {{ globalStore.message }}
-    </Dialog>
+    <Dialog v-model:visible="local.isGoogle" class="w-[70%] xs:w-[230px] phone:w-[300px]" :closable="false" pt:mask:class="backdrop-blur-sm" modal dismissableMask @after-hide="globalStore.reset()">{{ globalStore.message }}</Dialog>
 </template>
