@@ -1,5 +1,11 @@
 import { useConfig } from '@/composables/useConfig'
 const publicConfig = useConfig()
+export const capitalizeFirstLetter = (str: any) => {
+    if(typeof str !== 'string' || str.length === 0){
+        return str;
+    }
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
 export const formatTgl = (inpTgl: Date) => {
     const inpDate = typeof inpTgl === 'string' ? new Date(inpTgl) : inpTgl
     if(isNaN(inpDate.getTime())) return '-'

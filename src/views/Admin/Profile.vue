@@ -48,7 +48,6 @@ const itemsGender = ref([
     { name: 'Perempuan', value: 'perempuan' },
 ])
 nextTick(() => {
-    local.isFirstTime = false
     local.linkImgProfile = fetchDataS.imgUrl ?? (fetchDataS.cacheAuth.jenis_kelamin === 'perempuan' ? Im_DefaultGirl : Im_DefaultBoy)
     local.linkImgShow = fetchDataS.imgUrl ?? (fetchDataS.cacheAuth.jenis_kelamin === 'perempuan' ? Im_DefaultGirl : Im_DefaultBoy)
     profileForm.value.setValues({
@@ -99,7 +98,7 @@ onBeforeMount(async() => {
         }
     }
     resFoto.data && resFoto.data !== null && isImageFile(resFoto.data.meta) ? fetchDataS.setDecryptedImage(base64_decode_to_blob(resFoto.data)) : fetchDataS.clearDecryptedImage()
-    if(local.isFirstTime || local.linkImgProfile === ''){
+    if(local.linkImgProfile === ''){
         local.linkImgProfile = fetchDataS.imgUrl ?? (res.data.jenis_kelamin === 'perempuan' ? Im_DefaultGirl : Im_DefaultBoy)
     }
     local.linkImgShow = fetchDataS.imgUrl ?? (res.data.jenis_kelamin === 'perempuan' ? Im_DefaultGirl : Im_DefaultBoy)
@@ -111,6 +110,7 @@ onBeforeMount(async() => {
         email: res.data.email
     })
     fetchDataS.cacheAuth = res.data
+    local.isFirstTime = false
 })
 const renderImgFallback = () => {
     if(!fetchDataS.cacheAuth) return Im_DefaultBoy
@@ -151,12 +151,12 @@ const handleFiles = async(files: FileList) => {
     profileForm.value.setFieldValue('foto', file)
     local.linkImgProfile = URL.createObjectURL(file)
     local.isErrorFoto = false
-    local.isShowOverlay = false
+    local.isHoveringOverlay = false
 }
 watch(width, () => {
     local.isShowOverlay = breakpoints.greater('sm').value ? true : false
 }, { immediate: true })
-const delFile = async() => {
+const delFile = () => {
     if(local.isFirstTime) return
     URL.revokeObjectURL(local.linkImgProfile)
     local.linkImgProfile = ''
@@ -302,7 +302,7 @@ const updatePasswordForm = async({ valid, states, reset }: any) => {
                         </div>
                     </TabPanel>
                     <TabPanel value="1">
-                        <Form ref="profileForm" :resolver="profileValidator" @submit="updateProfileForm" v-slot="$form" class="flex flex-col gap-3 sm:gap-4 xl:gap-5 rounded-3xl">
+                        <Form ref="profileForm" :resolver="profileValidator" @submit="updateProfileForm" v-slot="$form" class="flex flex-col gap-3 sm:gap-4 xl:gap-5 rounded-3xl" :class="{ 'pointer-events-none': local.isFirstTime }">
                             <div class="col-12 md:col-10">
                                 <div class="relative w-full 3xs:w-[85%] xs:w-[70%] phone:w-[55%] sm:w-[50%] md:w-[45%] lg:w-[35%] xl:w-[30%] 2xl:w-[25%] h-30 3xs:h-35 sm:h-35 md:h-37 lg:h-42 xl:h-50 2xl:h-55 flex flex-col justify-center items-center mx-auto cursor-pointer gap-2 rounded-lg" :class="{
                                     'border-black border-dashed border-3' : local.linkImgProfile === '' || local.isErrorFoto,
@@ -347,7 +347,7 @@ const updatePasswordForm = async({ valid, states, reset }: any) => {
                         </Form>
                     </TabPanel>
                     <TabPanel value="2">
-                        <Form :resolver="gantiPasswordValidator" @submit="updatePasswordForm" v-slot="$form" class="flex flex-col gap-0.5 phone:gap-1 md:gap-2 xl:gap-2.5 rounded-3xl">
+                        <Form :resolver="gantiPasswordValidator" @submit="updatePasswordForm" v-slot="$form" class="flex flex-col gap-0.5 phone:gap-1 md:gap-2 xl:gap-2.5 rounded-3xl" :class="{ 'pointer-events-none': local.isFirstTime }">
                             <FormField name="pass_lama" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
                                 <label for="pass_lama bg-amber-500">Password Sekarang</label>
                                 <div class="relative w-full">

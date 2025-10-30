@@ -29,7 +29,7 @@ export default [
     },
     {
         path: '/event/:id',
-        name: 'EventDetailPage',
+        name: 'EventDetailHomePage',
         component: () => import('@/views/EventHome/EventDetailBooking.vue'),
         meta: { layout: 'default', isNeedAuth: { requiresAuth: false } },
     },

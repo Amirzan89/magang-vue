@@ -12,7 +12,7 @@ const toast = useToast()
 type DialogInp = { label: string; format?: (val: any) => string }
 interface EventData {
     id: string
-    id_event: string
+    event_id: string
     event_name: string
     event_group: string
     start_date: string
@@ -78,10 +78,10 @@ const confirmDeleteSelected = () => {
 }
 const deleteEvent = async (cond: 'single' | 'multi') => {
     let ids: string[] = []
-    if(cond === 'single' && (eventData.value as EventData).id_event){
-        ids = [(eventData.value as EventData).id_event]
+    if(cond === 'single' && (eventData.value as EventData).event_id){
+        ids = [(eventData.value as EventData).event_id]
     }else if(cond === 'multi' && selectedEvents.value?.length){
-        ids = selectedEvents.value.map((e: any) => e.id_event)
+        ids = selectedEvents.value.map((e: any) => e.event_id)
     }else{
         toast.add({ severity: 'warn', summary: 'Tidak ada event terpilih', life: 2500 })
         return
@@ -97,7 +97,7 @@ const deleteEvent = async (cond: 'single' | 'multi') => {
         toast.add({ severity: 'error', summary: 'Gagal Hapus Event', detail: res.message, life: 3000 })
         return
     }
-    local.fetchData = local.fetchData.filter((val: any) => !ids.includes(val.id_event))
+    local.fetchData = local.fetchData.filter((val: any) => !ids.includes(val.event_id))
     if(cond === 'single'){
         deleteEventDialog.value = false
         eventData.value = {}
@@ -117,7 +117,6 @@ const deleteEvent = async (cond: 'single' | 'multi') => {
                     <Button :as="RouterLink" to="/kelola-event/tambah" label="Tambah Event" icon="pi pi-plus" severity="secondary" class="mr-2"/>
                     <Button label="Delete Event" icon="pi pi-trash" severity="secondary" @click="confirmDeleteSelected" :disabled="!selectedEvents || !selectedEvents.length" />
                 </template>
-        
                 <template #end>
                     <Button label="Export" icon="pi pi-upload" severity="secondary" @click="exportCSV" />
                 </template>
@@ -158,7 +157,7 @@ const deleteEvent = async (cond: 'single' | 'multi') => {
                 <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
                 <Column header="Action" :exportable="false" style="min-width: 8rem">
                     <template #body="slotProps">
-                        <Button :as="RouterLink" :to="'/kelola-event/' + slotProps.data.id_event" icon="pi pi-pencil" outlined rounded class="mr-2"/>
+                        <Button :as="RouterLink" :to="'/kelola-event/' + slotProps.data.event_id" icon="pi pi-pencil" outlined rounded class="mr-2"/>
                         <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteEvent(slotProps.data)" />
                     </template>
                 </Column>

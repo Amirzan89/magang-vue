@@ -2,6 +2,7 @@ import 'primeicons/primeicons.css'
 import PrimeVue from 'primevue/config'
 import Aura from '@primeuix/themes/aura'
 import StyleClass from 'primevue/styleclass'
+import Breadcrumb from 'primevue/breadcrumb'
 import Tabs from 'primevue/tabs'
 import TabList from 'primevue/tablist'
 import Tab from 'primevue/tab'
@@ -44,6 +45,7 @@ export default function setupPrimeVue(app: any){
     })
     app.use(ToastService)
     app.directive('styleclass', StyleClass)
+    app.component('Breadcrumb', Breadcrumb)
     app.component('Tabs', Tabs)
     app.component('TabList', TabList)
     app.component('Tab', Tab)

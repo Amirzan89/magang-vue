@@ -12,6 +12,12 @@ export default [
         meta: { layout: 'admin', isNeedAuth: { requiresAuth: true } },
     },
     {
+        path: '/kelola-event/tambah',
+        name: 'EventTambahPage',
+        component: () => import('@/views/Admin/Event/EventTambah.vue'),
+        meta: { layout: 'admin', isNeedAuth: { requiresAuth: true } },
+    },
+    {
         path: '/event-booked',
         name: 'EventBookedPage',
         component: () => import('@/views/Admin/EventBooked.vue'),

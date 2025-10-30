@@ -27,7 +27,7 @@ const routeItems = reactive([
 ])
 const headerRef = ref<HTMLElement | null>(null)
 const bgLayer = ref(null)
-const hBg = ['EventSearchPage', 'EventDetailPage', 'EventBookingPage', 'NotFound']
+const hBg = ['EventSearchPage', 'EventDetailHomePage', 'EventBookingPage', 'NotFound']
 const headerBg = computed(() => {
     const name = typeof route.name === 'string' ? route.name : ''
     return hBg.includes(name) ?? true

@@ -73,7 +73,7 @@ onBeforeMount(async() => {
         toast.add({ severity: 'error', summary: 'Gagal Ambil Data Halaman', detail: res.message, life: 3000 })
         return
     }
-    local.fetchData = res.data.list_booked.map((item: any) => ({
+    local.fetchData = res.data.map((item: any) => ({
         ...item,
         registrationdate: new Date(item.registrationdate)
     }))
