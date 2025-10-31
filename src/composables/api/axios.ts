@@ -5,6 +5,12 @@ import RSAComposables from '@/composables/RSA'
 import useEncryption from '@/composables/encryption'
 import { useLoadingStore } from '@/stores/Loading'
 import { useFetchDataStore } from '@/stores/FetchData'
+interface Response{
+    status: 'success' | 'error'
+    message?: string
+    data?: any
+    code?: number
+}
 const publicConfig = useConfig()
 const { encryptReq, decryptRes } = useEncryption()
 const api = axios.create({
@@ -50,7 +56,7 @@ const reqData = async({
     callbackFinalFn?: { isRoute: (url: string) => boolean; fn: () => Promise<void> } | null
 }> = {}) => {
     let retryCount = 0
-    const makeRequest = async (): Promise<any> => {
+    const makeRequest = async (): Promise<Response> => {
         const loading = useLoadingStore()
         let data = reqBody
         let encr: any = null

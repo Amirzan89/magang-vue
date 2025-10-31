@@ -24,6 +24,7 @@ import Button from 'primevue/button'
 import IconField from 'primevue/iconfield'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
+import Textarea from 'primevue/textarea'
 import DatePicker from 'primevue/datepicker'
 import Select from 'primevue/select'
 import Checkbox from 'primevue/checkbox'
@@ -41,6 +42,9 @@ export default function setupPrimeVue(app: any){
             options: {
                 darkModeSelector: '.app-dark',
             }
+        },
+        locale: {
+            monthNames: ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
         }
     })
     app.use(ToastService)
@@ -66,6 +70,7 @@ export default function setupPrimeVue(app: any){
     app.component('Button', Button)
     app.component('IconField', IconField)
     app.component('InputText', InputText)
+    app.component('Textarea', Textarea)
     app.component('InputNumber', InputNumber)
     app.component('DatePicker', DatePicker)
     app.component('Select', Select)

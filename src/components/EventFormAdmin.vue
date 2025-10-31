@@ -2,7 +2,9 @@
 import * as z from 'zod'
 import { zodResolver } from "@primevue/forms/resolvers/zod"
 import { Form, FormField } from "@primevue/forms"
-import { onMounted, reactive, ref, type Ref, type ComponentPublicInstance, nextTick, watch, onBeforeMount, computed, type ComputedRef } from 'vue'
+import { id as idLocale } from 'date-fns/locale'
+import { parse, format } from 'date-fns'
+import { onMounted, reactive, ref, type Ref, type ComponentPublicInstance, nextTick, watch, onBeforeMount, computed, type ComputedRef, shallowRef } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useConfig } from '@/composables/useConfig'
 import useAxios from '@/composables/api/axios'
@@ -24,6 +26,11 @@ interface EventData{
     event_name: string
     event_description: string
     event_group: string
+    start_date: Date
+    end_date: Date
+    quota: number
+    price: number
+    inclusion: string
     foto: string[]
 }
 interface ModeForm{
@@ -31,8 +38,23 @@ interface ModeForm{
     url: string
     method: 'POST' | 'PUT' | 'GET' | 'DELETE'
 }
+interface ModeForm{
+    name: string
+    url: string
+    method: 'POST' | 'PUT' | 'GET' | 'DELETE'
+}
+interface InpFiles{
+    mode: 'drop' | 'link'
+    isShowOverlay: boolean
+    isHoveringOverlay: boolean
+    isLoadingImg: boolean
+    hasTriedLoad: boolean
+    isErrorImg: boolean
+    file: File | string | null
+    preview: string
+    inpImg: string
+}
 const { reqData } = useAxios()
-const fetchDataS = useFetchDataStore()
 const toast = useToast()
 const modeForm: ModeForm[] = [
     {
@@ -56,20 +78,22 @@ const local = reactive({
     isFirstTime: true,
     oldInput: {} as Record<string, any>,
 })
-const inpFiles = ref(
-    Array.from({ length: 7 }, () => ({
+const inpFiles: Ref<InpFiles[]> = ref(
+    Array.from({ length: 9 }, () => ({
         mode: 'link' as 'drop' | 'link',
         isShowOverlay: breakpoints.greater('sm').value,
         isHoveringOverlay: false,
         isLoadingImg: false,
+        hasTriedLoad: false as boolean,
         isErrorImg: false,
-        file: null as File | null,
+        file: null as File | string | null,
         preview: '',
         inpImg: '',
     }))
 )
 const selectedMode: ComputedRef<ModeForm> = computed(() => modeForm.find((i) => i.name === local.mode)!)
 const eventForm: Ref = ref(null)
+const localCategory = shallowRef([])
 const fileInputEvent = ref<(HTMLInputElement | null)[]>([])
 watch(() => props.inpDataGroup, () => {
     local.isFirstTime = false
@@ -79,10 +103,53 @@ watch(() => props.inpDataGroup, () => {
             event_name: props.inpData?.event_name,
             event_description: props.inpData?.event_description,
             event_group: props.inpData?.event_group,
+            start_date: props.inpData?.start_date,
+            end_date: props.inpData?.end_date,
+            quota: props.inpData?.quota,
+            price: props.inpData?.price,
+            inclusion: props.inpData?.inclusion,
         })
     }
 })
-const onImgLoad = (f, e: Event) => {
+const dateSD = computed({
+    get(){
+        const formVal = eventForm.value?.states.start_date.value
+        if(!formVal) return null
+        return formVal
+    },
+    async set(val: Date | null){
+        const formVal = eventForm.value?.states
+        if(!eventForm.value?.setFieldValue) return
+        const newVal = val ? format(val, 'yyyy-MM-dd') : ''
+        eventForm.value.setFieldValue('start_date', newVal)
+        await nextTick()
+        const endVal = formVal.end_date.value
+        if((endVal && val) && val > endVal){
+            await nextTick()
+            eventForm.value.setFieldValue('end_date', newVal)
+        }
+    },
+})
+const dateED = computed({
+    get(){
+        const formVal = eventForm.value?.states.end_date.value
+        if(!formVal) return null
+        return formVal
+    },
+    async set(val: Date | null){
+        const formVal = eventForm.value?.states
+        if(!eventForm.value?.setFieldValue) return
+        const newVal = val ? format(val, 'yyyy-MM-dd') : ''
+        eventForm.value.setFieldValue('end_date', newVal)
+        await nextTick()
+        const startVal = formVal.start_date.value
+        if((startVal && val) && val < startVal){
+            await nextTick()
+            eventForm.value.setFieldValue('start_date', newVal)
+        }
+    },
+})
+const onImgLoad = (f: InpFiles, e: Event) => {
     const img = e.target as HTMLImageElement
     if(img.naturalWidth === 0 || img.naturalHeight === 0){
         f.isErrorImg = true
@@ -92,10 +159,10 @@ const onImgLoad = (f, e: Event) => {
     f.isLoadingImg = false
     f.hasTriedLoad = true
 }
-const onImgError = (f) => {
-  f.isErrorImg = true
-  f.isLoadingImg = false
-  f.hasTriedLoad = true
+const onImgError = (f: InpFiles) => {
+    f.isErrorImg = true
+    f.isLoadingImg = false
+    f.hasTriedLoad = true
 }
 const handleInpImgClick = (index: number) => {
     const f = inpFiles.value[index]
@@ -103,7 +170,7 @@ const handleInpImgClick = (index: number) => {
         if(breakpoints.greater('sm').value) return
         f.isShowOverlay = !f.isShowOverlay
     }else{
-        fileInputEvent.value?.[index].click()
+        if(fileInputEvent.value[index]) fileInputEvent.value?.[index].click()
     }
 }
 const handleFileChange = (event: any, index: number) => {
@@ -180,9 +247,14 @@ watch(breakpoints.active(), () => {
     })
 }, { immediate: true })
 const eventValidator = zodResolver(z.object({
-    event_name: z.string().min(1, 'Nama event harus diisi!').max(30, 'Nama event maksimal 30 karakter'),
-    event_description: z.string().min(1, 'Deskripsi event harus diisi!').max(300, 'Deskripsi event maksimal 30 karakter'),
-    email: z.string().min(1, 'Email Harus diisi!').max(45, 'Email maksimal 45 karakter').email('Masukkan email dengan benar!'),
+    event_name: z.string('Nama event harus diisi !').min(1, 'Nama event harus diisi!').max(50, 'Nama event maksimal 50 karakter'),
+    event_description: z.string('Deskripsi event harus diisi !').min(1, 'Deskripsi event harus diisi !').max(300, 'Deskripsi event maksimal 300 karakter'),
+    event_group: z.string('Kategori event harus diisi !').trim().min(1, 'Kategori event harus diisi !'),
+    start_date: z.union([z.date(), z.string().refine(v => !isNaN(Date.parse(v)), 'Tanggal mulai harus valid')]),
+    end_date: z.union([z.date(), z.string().refine(v => !isNaN(Date.parse(v)), 'Tanggal berakhir harus valid')]),
+    quota: z.number({ error: 'Kuota harus berupa angka!' }).min(1, 'Kuota minimal 1!'),
+    price: z.number({ error: 'Harga harus berupa angka!' }).min(0, 'Harga tidak boleh negatif!'),
+    inclusion: z.string('Inklusi wajib diisi !').trim().min(1, 'Inklusi wajib diisi!').max(255, 'Inklusi maksimal 255 karakter!'),
     foto: z.union([z.instanceof(File), z.null()]).optional().refine(file => !file || file.size <= 2 * 1024 * 1024, { message: 'Foto maksimal 2 MB !' })
 }))
 const sendEventForm = async({ valid, states, reset }: any) => {
@@ -194,26 +266,6 @@ const sendEventForm = async({ valid, states, reset }: any) => {
     if(props.mode == 'detail' && states.nama_lengkap.value === local.oldInput.nama_lengkap && states.email.value === local.oldInput.email && states.jenis_kelamin.value === local.oldInput.jenis_kelamin && states.no_telpon.value === local.oldInput.no_telpon && states.foto.value === null){
         return toast.add({ severity: 'error', summary: 'Gagal ' + capitalizeFirstLetter(props.mode) + ' Event', detail: 'Data belum diubah !', life: 3000 })
     }
-    const fileFoto = await base64_encode(states.foto.value)
-    const foto = []
-    // for(let i = 1; i <= 7; i++){
-    //     const img = local.linkImg[i]
-    //     if(!img) continue
-    //     if(local.isLocal[i]){
-    //         // convert local file to base64
-    //         const file = await base64_encode(states[`foto_${i}`]?.value)
-    //         foto.push({
-    //             data: file.data,
-    //             meta: file.meta,
-    //             source: 'local',
-    //         })
-    //     } else {
-    //         foto.push({
-    //             url: img,
-    //             source: 'external',
-    //         })
-    //     }
-    // }
     const res = await reqData({
         url: selectedMode.value.url,
         method: selectedMode.value.method,
@@ -221,13 +273,20 @@ const sendEventForm = async({ valid, states, reset }: any) => {
             event_name: states.event_name.value,
             event_description: states.event_description.value,
             event_group: states.event_group.value,
-            foto: [
-                //
-            ]
-            // foto: {
-            //     data: fileFoto.data,
-            //     meta: fileFoto.meta
-            // }
+            start_date: states.start_date.value,
+            end_date: states.end_date.value,
+            price: states.price.value,
+            quota: states.quota.value,
+            inclusion: states.inclusion.value,
+            foto: await Promise.all(inpFiles.value.map(async(item) => {
+                if(!item.file) return null
+                if(typeof item.file === 'string'){
+                    return { url: item.file }
+                }else{
+                    const fileFoto = await base64_encode(item.file)
+                    return { data: fileFoto.data, meta: fileFoto.meta }
+                }
+            }))
         },
         reqType: 'Json',
         isNeedLoading: true,
@@ -244,6 +303,17 @@ const sendEventForm = async({ valid, states, reset }: any) => {
         toast.add({ severity: 'success', summary: 'Berhasil ' + capitalizeFirstLetter(props.mode) + ' Event', detail: res.message, life: 3000 })
         if(local.mode == 'tambah'){
             reset()
+            inpFiles.value = Array.from({ length: 9 }, () => ({
+                mode: 'link',
+                isShowOverlay: breakpoints.greater('sm').value,
+                isHoveringOverlay: false,
+                isLoadingImg: false,
+                hasTriedLoad: false,
+                isErrorImg: false,
+                file: null,
+                preview: '',
+                inpImg: 'fff',
+            }))
         }
         setTimeout(() => {
         }, 3000);
@@ -259,15 +329,53 @@ const sendEventForm = async({ valid, states, reset }: any) => {
             </FormField>
             <FormField name="event_description" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
                 <label for="event_description">Deskripsi Event</label>
-                <InputText id="event_description" type="text" placeholder="Masukkan deskripsi event"/>
+                <Textarea id="event_description" type="text" placeholder="Masukkan deskripsi event" rows="5" cols="30"/>
             </FormField>
             <FormField name="event_group" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
                 <label for="event_group">Kategori Event</label>
                 <Select v-model="$form.event_group" :options="props.inpDataGroup" optionLabel="name" optionValue="value" placeholder="Pilih kategori event" class="w-full"/>
             </FormField>
+            <div class="grid grid-rows-2 grid-cols-1 sm:grid-rows-1 sm:grid-cols-2 sm:gap-3">
+                <FormField name="start_date" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
+                    <label for="start_date">Tanggal Mulai Event</label>
+                    <DatePicker v-model="dateSD" dateFormat="dd MM yy" showIcon placeholder="Pilih tanggal event"/>
+                </FormField>
+                <FormField name="end_date" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
+                    <label for="end_date">Tanggal Berakhir Event</label>
+                    <DatePicker v-model="dateED" dateFormat="dd MM yy" showIcon :locale="idLocale" placeholder="Pilih tanggal event"/>
+                </FormField>
+            </div>
+            <div class="grid grid-rows-2 grid-cols-1 sm:grid-rows-1 sm:grid-cols-2 sm:gap-3">
+                <FormField name="price" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
+                    <label for="price">Harga Tiket</label>
+                    <InputNumber id="price" :min="0" :minFractionDigits="0" :maxFractionDigits="0" showButtons mode="currency" currency="IDR" locale="id-ID" buttonLayout="horizontal" placeholder="Masukkan harga tiket">
+                        <template #incrementbuttonicon>
+                            <span class="pi pi-plus" />
+                        </template>
+                        <template #decrementbuttonicon>
+                            <span class="pi pi-minus" />
+                        </template>
+                    </InputNumber>
+                </FormField>
+                <FormField name="quota" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
+                    <label for="quota">Kuota Event Event</label>
+                    <InputNumber id="quota" :min="1" showButtons inputId="horizontal-buttons" buttonLayout="horizontal" :step="1" placeholder="Masukkan kuota tiket">
+                        <template #incrementbuttonicon>
+                            <span class="pi pi-plus" />
+                        </template>
+                        <template #decrementbuttonicon>
+                            <span class="pi pi-minus" />
+                        </template>
+                    </InputNumber>
+                </FormField>
+            </div>
+            <FormField name="inclusion" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
+                <label for="inclusion">Inklusi Event</label>
+                <InputText id="inclusion" type="text" placeholder="Masukkan inklusi event"/>
+            </FormField>
             <div class="grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4">
                 <FormField v-for="(fileObj, iMg) in inpFiles" :name="'imageicon_' + iMg" class="w-full">
-                    <label :for="'event_group ' + iMg">Foto Event {{ iMg }}</label>
+                    <label :for="'fotoevent_ ' + iMg">Foto Event {{ iMg }}</label>
                     <div class="flex flex-col gap-5">
                         <div class="relative w-full h-40 flex flex-col justify-center items-center cursor-pointer rounded-lg text-gray-500" :class="{ 'border-3 border-dashed border-black': !fileObj.preview || fileObj.isErrorImg }" @dragover.prevent="!fileObj.preview && handleDragOver($event)" @drop.prevent="!fileObj.preview && handleDropFile($event, iMg)" @click="handleInpImgClick(iMg)">
                             <div v-if="fileObj.preview !== ''" v-show="fileObj.isShowOverlay" class="absolute inset-0 backdrop-blur-xs sm:backdrop-blur-none z-20 flex items-center justify-center transition" :class="{ 'sm:backdrop-blur-xs': fileObj.isHoveringOverlay }">
@@ -286,7 +394,7 @@ const sendEventForm = async({ valid, states, reset }: any) => {
                             </div>
                             <input type="file" class="hidden" ref="fileInputEvent" accept="image/*" @change="handleFileChange($event, iMg)"/>
                         </div>
-                        <InputText v-model="fileObj.inpImg" placeholder="Masukkan link foto event" :readonly="fileObj.mode === 'drop'" @input="handleInpLink(iMg)"/>
+                        <InputText :id="'fotoevent_' + iMg" v-model="fileObj.inpImg" placeholder="Masukkan link foto event" :readonly="fileObj.mode === 'drop'" @input="handleInpLink(iMg)"/>
                     </div>
                 </FormField>
             </div>
