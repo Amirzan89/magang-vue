@@ -14,7 +14,13 @@ export default [
     {
         path: '/kelola-event/tambah',
         name: 'EventTambahPage',
-        component: () => import('@/views/Admin/Event/EventTambah.vue'),
+        component: () => import('@/views/Admin/Event/EventFormView.vue'),
+        meta: { layout: 'admin', isNeedAuth: { requiresAuth: true } },
+    },
+    {
+        path: '/kelola-event/detail/:id',
+        name: 'EventDetailPage',
+        component: () => import('@/views/Admin/Event/EventFormView.vue'),
         meta: { layout: 'admin', isNeedAuth: { requiresAuth: true } },
     },
     {

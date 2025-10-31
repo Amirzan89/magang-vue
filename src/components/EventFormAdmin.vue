@@ -22,7 +22,12 @@ import I_eye from '@/assets/icons/eye.svg'
 import I_eye_slash from '@/assets/icons/eye-slash.svg'
 import { base64_encode } from '@/utils/Base64File'
 import { capitalizeFirstLetter } from '@/utils/global'
-interface EventData{
+export interface EventGroup{
+    name: string
+    value: string
+}
+export interface EventData{
+    event_id?: string
     event_name: string
     event_description: string
     event_group: string
@@ -70,11 +75,11 @@ const modeForm: ModeForm[] = [
 ]
 const props = defineProps<{
     mode: 'tambah' | 'detail',
-    inpDataGroup?: { name: string, value: string }[],
+    inpDataGroup?: EventGroup[],
     inpData?: EventData,
 }>()
 const local = reactive({
-    mode: 'tambah' as 'tambah' | 'detail' | 'update',
+    mode: props.mode == 'tambah' ? 'tambah' : 'detail' as 'tambah' | 'detail' | 'update',
     isFirstTime: true,
     oldInput: {} as Record<string, any>,
 })
@@ -93,22 +98,47 @@ const inpFiles: Ref<InpFiles[]> = ref(
 )
 const selectedMode: ComputedRef<ModeForm> = computed(() => modeForm.find((i) => i.name === local.mode)!)
 const eventForm: Ref = ref(null)
-const localCategory = shallowRef([])
+const localCategory: Ref<EventGroup[]> = shallowRef([])
 const fileInputEvent = ref<(HTMLInputElement | null)[]>([])
 watch(() => props.inpDataGroup, () => {
-    local.isFirstTime = false
+    console.log('wss mari kabeh', )
+    if(local.isFirstTime && props.inpDataGroup){
+        localCategory.value = props.inpDataGroup
+        local.isFirstTime = false
+    }
     if(props.mode == 'detail'){
-        local.oldInput = props.inpData ?? {}
-        eventForm.value.setValues({
-            event_name: props.inpData?.event_name,
-            event_description: props.inpData?.event_description,
-            event_group: props.inpData?.event_group,
-            start_date: props.inpData?.start_date,
-            end_date: props.inpData?.end_date,
-            quota: props.inpData?.quota,
-            price: props.inpData?.price,
-            inclusion: props.inpData?.inclusion,
+        local.mode = 'detail'
+        const data = props.inpData ?? {}
+        local.oldInput = data ?? {}
+        eventForm.value?.setValues({
+            event_name: data.event_name || '',
+            event_description: data.event_description || '',
+            event_group: data.event_group || '',
+            start_date: data.start_date || '',
+            end_date: data.end_date || '',
+            quota: Number(data.quota) || 0,
+            price: Number(data.price) || 0,
+            inclusion: data.inclusion || '',
         })
+        if(props.inpData){
+            props.inpData.foto.map((fileObj, index) => {
+                console.log('isii fotoo ', index, ' ii-- ', fileObj)
+                if(fileObj == null){
+                    return
+                }else if(typeof fileObj === 'string'){
+                    inpFiles.value[index].inpImg = fileObj
+                    inpFiles.value[index].preview = fileObj
+                    inpFiles.value[index].mode = 'link'
+                }else if(typeof fileObj === 'object' && 'data' in fileObj && 'meta' in fileObj && isImageFile(fileObj.meta)){
+                    inpFiles.value[index].inpImg = 'Local'
+                    const hasil = base64_decode_to_blob(fileObj.data);
+                    console.log('hasilll', hasil)
+                    inpFiles.value[index].preview = URL.createObjectURL(hasil)
+                    inpFiles.value[index].mode = 'drop'
+                }
+                console.log('')
+            })
+        }
     }
 })
 const dateSD = computed({
@@ -165,6 +195,7 @@ const onImgError = (f: InpFiles) => {
     f.hasTriedLoad = true
 }
 const handleInpImgClick = (index: number) => {
+    if(local.isFirstTime || local.mode == 'detail') return
     const f = inpFiles.value[index]
     if(f.preview){
         if(breakpoints.greater('sm').value) return
@@ -184,13 +215,14 @@ const handleDropFile = (event: any, index: number) => {
     handleFiles(index, event.dataTransfer.files)
 }
 const handleFiles = async (index: number, files: FileList) => {
+    if(local.isFirstTime || local.mode == 'detail') return
     const f = inpFiles.value[index]
     if(files.length !== 1){
         toast.add({ severity: 'error', summary: 'Gagal Upload', detail: 'Pilih satu file foto.', life: 2500 })
         return
     }
     const file = files[0]
-    if(!file.type.startsWith('image/')){
+    if(!isImageFile(file)){
         toast.add({ severity: 'error', summary: 'Gagal Upload', detail: 'File bukan gambar.', life: 2500 })
         return
     }
@@ -263,31 +295,51 @@ const sendEventForm = async({ valid, states, reset }: any) => {
         toast.add({ severity: 'error', summary: 'Gagal ' + capitalizeFirstLetter(props.mode) + ' Event',  detail: Object.values(states as Record<string, any>).find((field: any) => field?.invalid)?.error?.message || 'Periksa kembali input !', life: 3000 })
         return
     }
-    if(props.mode == 'detail' && states.nama_lengkap.value === local.oldInput.nama_lengkap && states.email.value === local.oldInput.email && states.jenis_kelamin.value === local.oldInput.jenis_kelamin && states.no_telpon.value === local.oldInput.no_telpon && states.foto.value === null){
-        return toast.add({ severity: 'error', summary: 'Gagal ' + capitalizeFirstLetter(props.mode) + ' Event', detail: 'Data belum diubah !', life: 3000 })
+    if(local.mode == 'update'){
+        const unchanged = ['event_name', 'event_description', 'event_group', 'start_date', 'end_date', 'quota', 'price', 'inclusion'].every(field => states[field]?.value === local.oldInput?.[field])
+        const sameFoto = (() => {
+            if (!Array.isArray(states.foto?.value) || !Array.isArray(local.oldInput?.foto)) {
+                return false
+            }
+            const newFotos = states.foto.value
+            const oldFotos = local.oldInput.foto
+            if(newFotos.length !== oldFotos.length) return false
+            return newFotos.every((newItem, i) => {
+                const oldItem = oldFotos[i]
+                if(newItem == null && oldItem == null) return true
+                if(typeof newItem === 'string' && typeof oldItem === 'string') return newItem.trim() === oldItem.trim()
+                if(typeof newItem === 'object' && typeof oldItem === 'object' && 'data' in newItem && 'data' in oldItem && 'meta' in newItem && 'meta' in oldItem && newItem.data === oldItem.data && newItem.meta?.type === oldItem.meta?.type) return true
+                return false
+            })
+        })()
+        if(unchanged && sameFoto){
+            return toast.add({ severity: 'error', summary: 'Gagal Detail Event', detail: 'Data belum diubah !', life: 3000 })
+        }
     }
+    const reqBody = {
+        event_name: states.event_name.value,
+        event_description: states.event_description.value,
+        event_group: states.event_group.value,
+        start_date: states.start_date.value,
+        end_date: states.end_date.value,
+        price: states.price.value,
+        quota: states.quota.value,
+        inclusion: states.inclusion.value,
+        foto: await Promise.all(inpFiles.value.map(async(item) => {
+            if(!item.file) return null
+            if(typeof item.file === 'string'){
+                return { url: item.file }
+            }else{
+                const fileFoto = await base64_encode(item.file)
+                return { data: fileFoto.data, meta: fileFoto.meta }
+            }
+        }))
+    }
+    if (props.mode === 'detail') Object.assign(reqBody, { event_id: props.inpData!.event_id });
     const res = await reqData({
         url: selectedMode.value.url,
         method: selectedMode.value.method,
-        reqBody: {
-            event_name: states.event_name.value,
-            event_description: states.event_description.value,
-            event_group: states.event_group.value,
-            start_date: states.start_date.value,
-            end_date: states.end_date.value,
-            price: states.price.value,
-            quota: states.quota.value,
-            inclusion: states.inclusion.value,
-            foto: await Promise.all(inpFiles.value.map(async(item) => {
-                if(!item.file) return null
-                if(typeof item.file === 'string'){
-                    return { url: item.file }
-                }else{
-                    const fileFoto = await base64_encode(item.file)
-                    return { data: fileFoto.data, meta: fileFoto.meta }
-                }
-            }))
-        },
+        reqBody,
         reqType: 'Json',
         isNeedLoading: true,
     })
@@ -325,30 +377,30 @@ const sendEventForm = async({ valid, states, reset }: any) => {
         <div class="flex flex-col gap-0.5 phone:gap-1 md:gap-2 xl:gap-2.5">
             <FormField name="event_name" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
                 <label for="event_name">Nama Event</label>
-                <InputText id="event_name" type="text" placeholder="Masukkan nama event"/>
+                <InputText id="event_name" type="text" placeholder="Masukkan nama event" :readonly="props.mode == 'detail' && local.mode == 'detail'"/>
             </FormField>
             <FormField name="event_description" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
                 <label for="event_description">Deskripsi Event</label>
-                <Textarea id="event_description" type="text" placeholder="Masukkan deskripsi event" rows="5" cols="30"/>
+                <Textarea id="event_description" type="text" placeholder="Masukkan deskripsi event" rows="5" cols="30":readonly="props.mode == 'detail' && local.mode == 'detail'"/>
             </FormField>
             <FormField name="event_group" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
                 <label for="event_group">Kategori Event</label>
-                <Select v-model="$form.event_group" :options="props.inpDataGroup" optionLabel="name" optionValue="value" placeholder="Pilih kategori event" class="w-full"/>
+                <Select v-model="$form.event_group" :options="props.inpDataGroup" optionLabel="name" optionValue="value" placeholder="Pilih kategori event" class="w-full" :disabled="props.mode == 'detail' && local.mode == 'detail'"/>
             </FormField>
             <div class="grid grid-rows-2 grid-cols-1 sm:grid-rows-1 sm:grid-cols-2 sm:gap-3">
                 <FormField name="start_date" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
                     <label for="start_date">Tanggal Mulai Event</label>
-                    <DatePicker v-model="dateSD" dateFormat="dd MM yy" showIcon placeholder="Pilih tanggal event"/>
+                    <DatePicker v-model="dateSD" dateFormat="dd MM yy" showIcon placeholder="Pilih tanggal awal event" :readonly="props.mode == 'detail' && local.mode == 'detail'"/>
                 </FormField>
                 <FormField name="end_date" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
                     <label for="end_date">Tanggal Berakhir Event</label>
-                    <DatePicker v-model="dateED" dateFormat="dd MM yy" showIcon :locale="idLocale" placeholder="Pilih tanggal event"/>
+                    <DatePicker v-model="dateED" dateFormat="dd MM yy" showIcon :locale="idLocale" placeholder="Pilih tanggal akhir event" :readonly="props.mode == 'detail' && local.mode == 'detail'"/>
                 </FormField>
             </div>
             <div class="grid grid-rows-2 grid-cols-1 sm:grid-rows-1 sm:grid-cols-2 sm:gap-3">
                 <FormField name="price" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
                     <label for="price">Harga Tiket</label>
-                    <InputNumber id="price" :min="0" :minFractionDigits="0" :maxFractionDigits="0" showButtons mode="currency" currency="IDR" locale="id-ID" buttonLayout="horizontal" placeholder="Masukkan harga tiket">
+                    <InputNumber id="price" :min="0" :minFractionDigits="0" :maxFractionDigits="0" showButtons mode="currency" currency="IDR" locale="id-ID" buttonLayout="horizontal" placeholder="Masukkan harga tiket" :readonly="props.mode == 'detail' && local.mode == 'detail'">
                         <template #incrementbuttonicon>
                             <span class="pi pi-plus" />
                         </template>
@@ -359,7 +411,7 @@ const sendEventForm = async({ valid, states, reset }: any) => {
                 </FormField>
                 <FormField name="quota" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
                     <label for="quota">Kuota Event Event</label>
-                    <InputNumber id="quota" :min="1" showButtons inputId="horizontal-buttons" buttonLayout="horizontal" :step="1" placeholder="Masukkan kuota tiket">
+                    <InputNumber id="quota" :min="1" showButtons inputId="horizontal-buttons" buttonLayout="horizontal" :step="1" placeholder="Masukkan kuota tiket" :readonly="props.mode == 'detail' && local.mode == 'detail'">
                         <template #incrementbuttonicon>
                             <span class="pi pi-plus" />
                         </template>
@@ -371,11 +423,11 @@ const sendEventForm = async({ valid, states, reset }: any) => {
             </div>
             <FormField name="inclusion" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
                 <label for="inclusion">Inklusi Event</label>
-                <InputText id="inclusion" type="text" placeholder="Masukkan inklusi event"/>
+                <InputText id="inclusion" type="text" placeholder="Masukkan inklusi event" :readonly="props.mode == 'detail' && local.mode == 'detail'"/>
             </FormField>
             <div class="grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4">
                 <FormField v-for="(fileObj, iMg) in inpFiles" :name="'imageicon_' + iMg" class="w-full">
-                    <label :for="'fotoevent_ ' + iMg">Foto Event {{ iMg }}</label>
+                    <label :for="'fotoevent_ ' + iMg">Foto Event {{ iMg + 1 }}</label>
                     <div class="flex flex-col gap-5">
                         <div class="relative w-full h-40 flex flex-col justify-center items-center cursor-pointer rounded-lg text-gray-500" :class="{ 'border-3 border-dashed border-black': !fileObj.preview || fileObj.isErrorImg }" @dragover.prevent="!fileObj.preview && handleDragOver($event)" @drop.prevent="!fileObj.preview && handleDropFile($event, iMg)" @click="handleInpImgClick(iMg)">
                             <div v-if="fileObj.preview !== ''" v-show="fileObj.isShowOverlay" class="absolute inset-0 backdrop-blur-xs sm:backdrop-blur-none z-20 flex items-center justify-center transition" :class="{ 'sm:backdrop-blur-xs': fileObj.isHoveringOverlay }">
@@ -394,7 +446,7 @@ const sendEventForm = async({ valid, states, reset }: any) => {
                             </div>
                             <input type="file" class="hidden" ref="fileInputEvent" accept="image/*" @change="handleFileChange($event, iMg)"/>
                         </div>
-                        <InputText :id="'fotoevent_' + iMg" v-model="fileObj.inpImg" placeholder="Masukkan link foto event" :readonly="fileObj.mode === 'drop'" @input="handleInpLink(iMg)"/>
+                        <InputText :id="'fotoevent_' + iMg" v-model="fileObj.inpImg" placeholder="Masukkan link foto event" :readonly="local.mode == 'detail' || fileObj.mode === 'drop'" @input="handleInpLink(iMg)"/>
                     </div>
                 </FormField>
             </div>
@@ -405,10 +457,10 @@ const sendEventForm = async({ valid, states, reset }: any) => {
                 <Button type="submit" label="Tambah Event" class="!w-full phone:!w-fit mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm sm:!rounded-md md:!rounded-lg lg:!rounded-xl !text-base sm:!text-lg lg:!text-xl xl:!text-2xl !font-normal"/>
             </template>
             <template v-else>
-                <Button v-if="local.mode == 'detail'" type="submit" label="Edit Event" class="!w-full phone:!w-fit mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm sm:!rounded-md md:!rounded-lg lg:!rounded-xl !text-base sm:!text-lg lg:!text-xl xl:!text-2xl !font-normal"/>
-                <template v-else>
-                    <Button type="submit" label="Batal Update" class="!w-full phone:!w-fit mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm sm:!rounded-md md:!rounded-lg lg:!rounded-xl !text-base sm:!text-lg lg:!text-xl xl:!text-2xl !font-normal"/>
-                    <Button type="submit" label="Update Event" class="!w-full phone:!w-fit mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm sm:!rounded-md md:!rounded-lg lg:!rounded-xl !text-base sm:!text-lg lg:!text-xl xl:!text-2xl !font-normal"/>
+                <Button v-if="local.isFirstTime || local.mode == 'detail'" type="button" label="Update Event" class="!w-full phone:!w-fit mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm sm:!rounded-md md:!rounded-lg lg:!rounded-xl !text-base sm:!text-lg lg:!text-xl xl:!text-2xl !font-normal" @click="local.mode = 'update'"/>
+                <template v-else-if="local.mode == 'update'">
+                    <Button type="button" label="Batal Update" class="!w-full phone:!w-fit mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm sm:!rounded-md md:!rounded-lg lg:!rounded-xl !text-base sm:!text-lg lg:!text-xl xl:!text-2xl !font-normal" @click="local.mode = 'detail'"/>
+                    <Button type="submit" label="Kirim Update" class="!w-full phone:!w-fit mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm sm:!rounded-md md:!rounded-lg lg:!rounded-xl !text-base sm:!text-lg lg:!text-xl xl:!text-2xl !font-normal"/>
                 </template>
             </template>
         </div>

@@ -157,7 +157,7 @@ const deleteEvent = async (cond: 'single' | 'multi') => {
                 <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
                 <Column header="Action" :exportable="false" style="min-width: 8rem">
                     <template #body="slotProps">
-                        <Button :as="RouterLink" :to="'/kelola-event/' + slotProps.data.event_id" icon="pi pi-pencil" outlined rounded class="mr-2"/>
+                        <Button :as="RouterLink" :to="'/kelola-event/detail/' + slotProps.data.event_id" icon="pi pi-pencil" outlined rounded class="mr-2"/>
                         <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteEvent(slotProps.data)" />
                     </template>
                 </Column>
