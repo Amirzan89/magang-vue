@@ -3,23 +3,15 @@ import * as z from 'zod'
 import { zodResolver } from "@primevue/forms/resolvers/zod"
 import { Form, FormField } from "@primevue/forms"
 import { id as idLocale } from 'date-fns/locale'
-import { parse, format } from 'date-fns'
-import { onMounted, reactive, ref, type Ref, type ComponentPublicInstance, nextTick, watch, onBeforeMount, computed, type ComputedRef, shallowRef } from 'vue'
-import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { format } from 'date-fns'
+import { reactive, ref, type Ref, nextTick, watch, computed, type ComputedRef, shallowRef } from 'vue'
+import { RouterLink } from 'vue-router'
 import { useConfig } from '@/composables/useConfig'
 import useAxios from '@/composables/api/axios'
-import RSAComposables from '@/composables/RSA'
-import useEncryption from '@/composables/encryption'
-import { useGlobalStore } from '@/stores/Global'
-import { useFetchDataStore } from '@/stores/FetchData'
 import { useToast } from 'primevue/usetoast'
-import { width, breakpoints } from '@/composables/useScreenSize'
-import{ isImageFile, base64_decode_to_blob } from '@/utils/Base64File'
-import Im_DefaultBoy from '@/assets/images/default_boy.jpg'
-import Im_DefaultGirl from '@/assets/images/default_girl.png'
+import { breakpoints } from '@/composables/useScreenSize'
+import{ isImageFile } from '@/utils/Base64File'
 import I_Close from '@/assets/icons/close.svg'
-import I_eye from '@/assets/icons/eye.svg'
-import I_eye_slash from '@/assets/icons/eye-slash.svg'
 import { base64_encode } from '@/utils/Base64File'
 import { capitalizeFirstLetter } from '@/utils/global'
 export interface EventGroup{
@@ -49,16 +41,18 @@ interface ModeForm{
     method: 'POST' | 'PUT' | 'GET' | 'DELETE'
 }
 interface InpFiles{
+    states: 'tambah' | 'hydration' | 'updating' | 'updated'
     mode: 'drop' | 'link'
     isShowOverlay: boolean
     isHoveringOverlay: boolean
     isLoadingImg: boolean
     hasTriedLoad: boolean
     isErrorImg: boolean
-    file: File | string | null
+    file: File | 'exist' | null
     preview: string
     inpImg: string
 }
+const publicConfig = useConfig()
 const { reqData } = useAxios()
 const toast = useToast()
 const modeForm: ModeForm[] = [
@@ -85,13 +79,14 @@ const local = reactive({
 })
 const inpFiles: Ref<InpFiles[]> = ref(
     Array.from({ length: 9 }, () => ({
+        states: props.mode == 'tambah' ? 'tambah' : 'hydration',
         mode: 'link' as 'drop' | 'link',
         isShowOverlay: breakpoints.greater('sm').value,
         isHoveringOverlay: false,
         isLoadingImg: false,
         hasTriedLoad: false as boolean,
         isErrorImg: false,
-        file: null as File | string | null,
+        file: null as File | null,
         preview: '',
         inpImg: '',
     }))
@@ -101,45 +96,34 @@ const eventForm: Ref = ref(null)
 const localCategory: Ref<EventGroup[]> = shallowRef([])
 const fileInputEvent = ref<(HTMLInputElement | null)[]>([])
 watch(() => props.inpDataGroup, () => {
-    console.log('wss mari kabeh', )
     if(local.isFirstTime && props.inpDataGroup){
         localCategory.value = props.inpDataGroup
         local.isFirstTime = false
     }
-    if(props.mode == 'detail'){
-        local.mode = 'detail'
-        const data = props.inpData ?? {}
-        local.oldInput = data ?? {}
-        eventForm.value?.setValues({
-            event_name: data.event_name || '',
-            event_description: data.event_description || '',
-            event_group: data.event_group || '',
-            start_date: data.start_date || '',
-            end_date: data.end_date || '',
-            quota: Number(data.quota) || 0,
-            price: Number(data.price) || 0,
-            inclusion: data.inclusion || '',
+    if(props.mode !== 'detail' || !props.inpData) return
+    local.mode = 'detail'
+    local.oldInput = props.inpData
+    const d = props.inpData as EventData
+    eventForm.value?.setValues({
+        event_name: d.event_name ?? '',
+        event_description: d.event_description ?? '',
+        event_group: d.event_group ?? '',
+        start_date: d.start_date ?? '',
+        end_date: d.end_date ?? '',
+        quota: Number(d.quota) || 0,
+        price: Number(d.price) || 0,
+        inclusion: d.inclusion ?? '',
+    })
+    props.inpData.foto?.forEach((fileObj, i) => {
+        if(!fileObj) return
+        const img = inpFiles.value[i]
+        const isExternal = typeof fileObj === 'string' && /^https?:\/\//i.test(fileObj) && !fileObj.includes(window.location.host)
+        Object.assign(img, {
+            inpImg: isExternal ? fileObj : 'Local',
+            preview: isExternal ? fileObj : `${publicConfig.baseURL}/img/events/${encodeURIComponent(fileObj)}`,
+            mode: isExternal ? 'link' : 'drop',
         })
-        if(props.inpData){
-            props.inpData.foto.map((fileObj, index) => {
-                console.log('isii fotoo ', index, ' ii-- ', fileObj)
-                if(fileObj == null){
-                    return
-                }else if(typeof fileObj === 'string'){
-                    inpFiles.value[index].inpImg = fileObj
-                    inpFiles.value[index].preview = fileObj
-                    inpFiles.value[index].mode = 'link'
-                }else if(typeof fileObj === 'object' && 'data' in fileObj && 'meta' in fileObj && isImageFile(fileObj.meta)){
-                    inpFiles.value[index].inpImg = 'Local'
-                    const hasil = base64_decode_to_blob(fileObj.data);
-                    console.log('hasilll', hasil)
-                    inpFiles.value[index].preview = URL.createObjectURL(hasil)
-                    inpFiles.value[index].mode = 'drop'
-                }
-                console.log('')
-            })
-        }
-    }
+    })
 })
 const dateSD = computed({
     get(){
@@ -184,12 +168,16 @@ const onImgLoad = (f: InpFiles, e: Event) => {
     if(img.naturalWidth === 0 || img.naturalHeight === 0){
         f.isErrorImg = true
     }else{
+        if(f.inpImg != 'Local'){
+            f.file = 'exist'
+        }
         f.isErrorImg = false
     }
     f.isLoadingImg = false
     f.hasTriedLoad = true
 }
 const onImgError = (f: InpFiles) => {
+    f.file = null
     f.isErrorImg = true
     f.isLoadingImg = false
     f.hasTriedLoad = true
@@ -236,22 +224,23 @@ const handleFiles = async (index: number, files: FileList) => {
     f.mode = 'drop'
     f.isErrorImg = false
     f.isHoveringOverlay = false
-    eventForm.value.setFieldValue(`foto_${index + 1}`, file)
+    f.states = 'updating'
 }
 const handleInpLink = (index: number) => {
     const f = inpFiles.value[index]
     const val = f.inpImg.trim()
     f.isErrorImg = false
     f.hasTriedLoad = false
-    f.file = null
     f.mode = 'link'
     if(!val){
+        f.file = null
         f.preview = ''
         f.isLoadingImg = false
         return
     }
     f.preview = ''
     f.isLoadingImg = true
+    f.states = 'updating'
     if(/^https?:\/\//i.test(val)){
         nextTick(() => (f.preview = val))
     }else{
@@ -264,6 +253,7 @@ const delFile = (index: number) => {
     const f = inpFiles.value[index]
     if(f.preview && f.mode === 'drop') URL.revokeObjectURL(f.preview)
     Object.assign(f, {
+        states: 'updating',
         mode: 'link',
         file: null,
         preview: '',
@@ -271,7 +261,6 @@ const delFile = (index: number) => {
         isErrorImg: false,
         isShowOverlay: breakpoints.greater('sm').value,
     })
-    eventForm.value.setFieldValue(`foto_${index + 1}`, null)
 }
 watch(breakpoints.active(), () => {
     inpFiles.value.forEach(f => {
@@ -304,7 +293,7 @@ const sendEventForm = async({ valid, states, reset }: any) => {
             const newFotos = states.foto.value
             const oldFotos = local.oldInput.foto
             if(newFotos.length !== oldFotos.length) return false
-            return newFotos.every((newItem, i) => {
+            return newFotos.every((newItem: { data: string, meta: Record<string, any> } | string, i: number) => {
                 const oldItem = oldFotos[i]
                 if(newItem == null && oldItem == null) return true
                 if(typeof newItem === 'string' && typeof oldItem === 'string') return newItem.trim() === oldItem.trim()
@@ -316,24 +305,36 @@ const sendEventForm = async({ valid, states, reset }: any) => {
             return toast.add({ severity: 'error', summary: 'Gagal Detail Event', detail: 'Data belum diubah !', life: 3000 })
         }
     }
+    const foto = await Promise.all(inpFiles.value.map(async(item) => {
+        if(!item.file) return null
+        if(props.mode == 'tambah'){
+            if(item.inpImg == 'Local'){
+                const fileFoto = await base64_encode((item.file as File))
+                return { data: fileFoto.data, meta: fileFoto.meta }
+            }else{
+                return { url: item.preview }
+            }
+        }
+        if(item.states != 'updating'){
+            return { url: item.states }
+        }
+        if(typeof item.file === 'string' && item.file == 'exist'){
+            return { url: item.preview }
+        }else{
+            const fileFoto = await base64_encode(item.file)
+            return { data: fileFoto.data, meta: fileFoto.meta }
+        }
+    }))
     const reqBody = {
         event_name: states.event_name.value,
         event_description: states.event_description.value,
         event_group: states.event_group.value,
         start_date: states.start_date.value,
         end_date: states.end_date.value,
-        price: states.price.value,
-        quota: states.quota.value,
+        quota: states.quota.value.toString(),
+        price: states.price.value.toString(),
         inclusion: states.inclusion.value,
-        foto: await Promise.all(inpFiles.value.map(async(item) => {
-            if(!item.file) return null
-            if(typeof item.file === 'string'){
-                return { url: item.file }
-            }else{
-                const fileFoto = await base64_encode(item.file)
-                return { data: fileFoto.data, meta: fileFoto.meta }
-            }
-        }))
+        foto
     }
     if (props.mode === 'detail') Object.assign(reqBody, { event_id: props.inpData!.event_id });
     const res = await reqData({
@@ -356,6 +357,7 @@ const sendEventForm = async({ valid, states, reset }: any) => {
         if(local.mode == 'tambah'){
             reset()
             inpFiles.value = Array.from({ length: 9 }, () => ({
+                states: 'tambah',
                 mode: 'link',
                 isShowOverlay: breakpoints.greater('sm').value,
                 isHoveringOverlay: false,
@@ -366,9 +368,12 @@ const sendEventForm = async({ valid, states, reset }: any) => {
                 preview: '',
                 inpImg: 'fff',
             }))
+        }else{
+            inpFiles.value = inpFiles.value.map(item => ({
+                ...item,
+                states: item.states == 'updating' ? 'updated' : item.states,
+            }))
         }
-        setTimeout(() => {
-        }, 3000);
     }, 5)
 }
 </script>
@@ -398,9 +403,9 @@ const sendEventForm = async({ valid, states, reset }: any) => {
                 </FormField>
             </div>
             <div class="grid grid-rows-2 grid-cols-1 sm:grid-rows-1 sm:grid-cols-2 sm:gap-3">
-                <FormField name="price" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
-                    <label for="price">Harga Tiket</label>
-                    <InputNumber id="price" :min="0" :minFractionDigits="0" :maxFractionDigits="0" showButtons mode="currency" currency="IDR" locale="id-ID" buttonLayout="horizontal" placeholder="Masukkan harga tiket" :readonly="props.mode == 'detail' && local.mode == 'detail'">
+                <FormField name="quota" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
+                    <label for="quota">Kuota Event Event</label>
+                    <InputNumber id="quota" :min="1" showButtons inputId="horizontal-buttons" buttonLayout="horizontal" :step="1" placeholder="Masukkan kuota tiket" :readonly="props.mode == 'detail' && local.mode == 'detail'">
                         <template #incrementbuttonicon>
                             <span class="pi pi-plus" />
                         </template>
@@ -409,9 +414,9 @@ const sendEventForm = async({ valid, states, reset }: any) => {
                         </template>
                     </InputNumber>
                 </FormField>
-                <FormField name="quota" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
-                    <label for="quota">Kuota Event Event</label>
-                    <InputNumber id="quota" :min="1" showButtons inputId="horizontal-buttons" buttonLayout="horizontal" :step="1" placeholder="Masukkan kuota tiket" :readonly="props.mode == 'detail' && local.mode == 'detail'">
+                <FormField name="price" class="flex flex-col gap-0.25 !text-sm sm:!text-base lg:!text-lg">
+                    <label for="price">Harga Tiket</label>
+                    <InputNumber id="price" :min="0" :minFractionDigits="0" :maxFractionDigits="0" showButtons mode="currency" currency="IDR" locale="id-ID" buttonLayout="horizontal" placeholder="Masukkan harga tiket" :readonly="props.mode == 'detail' && local.mode == 'detail'">
                         <template #incrementbuttonicon>
                             <span class="pi pi-plus" />
                         </template>
@@ -426,23 +431,22 @@ const sendEventForm = async({ valid, states, reset }: any) => {
                 <InputText id="inclusion" type="text" placeholder="Masukkan inklusi event" :readonly="props.mode == 'detail' && local.mode == 'detail'"/>
             </FormField>
             <div class="grid grid-cols-1 phone:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4">
-                <FormField v-for="(fileObj, iMg) in inpFiles" :name="'imageicon_' + iMg" class="w-full">
-                    <label :for="'fotoevent_ ' + iMg">Foto Event {{ iMg + 1 }}</label>
+                <FormField v-for="(fileObj, iMg) in inpFiles" :name="'fotoevent_' + iMg" class="w-full">
+                    <label :for="'fotoevent_' + iMg">Foto Event {{ iMg + 1 }}</label>
                     <div class="flex flex-col gap-5">
-                        <div class="relative w-full h-40 flex flex-col justify-center items-center cursor-pointer rounded-lg text-gray-500" :class="{ 'border-3 border-dashed border-black': !fileObj.preview || fileObj.isErrorImg }" @dragover.prevent="!fileObj.preview && handleDragOver($event)" @drop.prevent="!fileObj.preview && handleDropFile($event, iMg)" @click="handleInpImgClick(iMg)">
-                            <div v-if="fileObj.preview !== ''" v-show="fileObj.isShowOverlay" class="absolute inset-0 backdrop-blur-xs sm:backdrop-blur-none z-20 flex items-center justify-center transition" :class="{ 'sm:backdrop-blur-xs': fileObj.isHoveringOverlay }">
+                        <div class="relative w-full h-40 flex flex-col justify-center items-center rounded-lg text-gray-500" :class="{ 'border-3 border-dashed border-black': !fileObj.preview || fileObj.isErrorImg, 'cursor-pointer': (!local.isFirstTime && local.mode != 'detail' && !fileObj.isErrorImg) && (fileObj.inpImg === 'Local' || fileObj.states == 'updating' || fileObj.file == null) }" @dragover.prevent="!fileObj.preview && handleDragOver($event)" @drop.prevent="!fileObj.preview && handleDropFile($event, iMg)" @click="handleInpImgClick(iMg)">
+                            <div v-show="local.mode != 'detail' && fileObj.preview !== '' && fileObj.isShowOverlay && fileObj.inpImg === 'Local' && !fileObj.isErrorImg" class="absolute inset-0 backdrop-blur-xs sm:backdrop-blur-none flex items-center justify-center transition" :class="{ 'sm:backdrop-blur-xs': fileObj.isHoveringOverlay }">
                                 <div class="size-[45%] rounded-full flex items-center justify-center" @mouseenter="fileObj.isHoveringOverlay = true" @mouseleave="fileObj.isHoveringOverlay = false">
                                     <I_Close v-show="breakpoints.greater('sm') || fileObj.isShowOverlay" class="size-7 sm:size-8 md:size-9 lg:size-10 p-1.25 bg-red-500 sm:bg-transparent hover:sm:bg-red-500 text-white sm:text-transparent hover:sm:text-white rounded-full shadow-md sm:shadow-none hover:sm:shadow-md cursor-pointer transition" @click.stop="delFile(iMg)"></I_Close>
                                 </div>
                             </div>
-                            <img v-if="fileObj.preview && !fileObj.isErrorImg" :src="fileObj.preview" class="object-contain w-full h-full" @load="onImgLoad(fileObj, $event)" @error="onImgError(fileObj)"/>
-                            <template v-if="!fileObj.preview && !fileObj.file && !fileObj.hasTriedLoad">
-                                <img src="@/assets/images/drop.png" class="w-10 mb-2" />
-                                <span>Pilih file atau jatuhkan gambar</span>
-                            </template>
-                            <div v-if="fileObj.isLoadingImg" class="absolute inset-0 flex justify-center items-center bg-white/60 text-sm font-medium">Memuat gambar...</div>
-                            <div v-if="fileObj.isErrorImg && fileObj.hasTriedLoad" class="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
+                            <img v-show="fileObj.preview && !fileObj.isLoadingImg && !fileObj.isErrorImg" :src="fileObj.preview" class="object-contain w-full h-full" @load="fileObj.preview && onImgLoad(fileObj, $event)" @error="fileObj.preview && onImgError(fileObj)"/>
+                            <img v-show="!fileObj.preview && !fileObj.isErrorImg" src="@/assets/images/drop.png" class="w-10 mb-2"/>
+                            <span v-show="!fileObj.preview && !fileObj.isErrorImg">Pilih file atau jatuhkan gambar</span>
+                            <div v-show="fileObj.isLoadingImg" class="flex justify-center items-center bg-white/60 text-sm font-medium">Memuat gambar...</div>
+                            <div v-show="fileObj.isErrorImg && fileObj.hasTriedLoad" class="flex flex-col items-center justify-center gap-1.5 text-gray-400 text-sm">
                                 <span>⚠️ Gagal memuat gambar</span>
+                                <Button v-show="local.mode != 'detail'" class="!px-2 !py-1" @click.stop="delFile(iMg)">Hapus</Button>
                             </div>
                             <input type="file" class="hidden" ref="fileInputEvent" accept="image/*" @change="handleFileChange($event, iMg)"/>
                         </div>
@@ -459,7 +463,7 @@ const sendEventForm = async({ valid, states, reset }: any) => {
             <template v-else>
                 <Button v-if="local.isFirstTime || local.mode == 'detail'" type="button" label="Update Event" class="!w-full phone:!w-fit mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm sm:!rounded-md md:!rounded-lg lg:!rounded-xl !text-base sm:!text-lg lg:!text-xl xl:!text-2xl !font-normal" @click="local.mode = 'update'"/>
                 <template v-else-if="local.mode == 'update'">
-                    <Button type="button" label="Batal Update" class="!w-full phone:!w-fit mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm sm:!rounded-md md:!rounded-lg lg:!rounded-xl !text-base sm:!text-lg lg:!text-xl xl:!text-2xl !font-normal" @click="local.mode = 'detail'"/>
+                    <Button type="button" label="Batal Update" class="!w-full phone:!w-fit mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm sm:!rounded-md md:!rounded-lg lg:!rounded-xl !text-base sm:!text-lg lg:!text-xl xl:!text-2xl !font-normal" @click="!local.isFirstTime ? local.mode = 'detail' : null"/>
                     <Button type="submit" label="Kirim Update" class="!w-full phone:!w-fit mt-3 sm:mt-5 lg:mt-7 mx-auto !px-2 lg:!px-4 !py-1 lg:!py-2 !rounded-sm sm:!rounded-md md:!rounded-lg lg:!rounded-xl !text-base sm:!text-lg lg:!text-xl xl:!text-2xl !font-normal"/>
                 </template>
             </template>
